@@ -38,8 +38,13 @@ export default function VacationRequestsPage() {
             >
               <div>
                 <h3 className="font-semibold">{request.title}</h3>
+
+                <p className="mt-1 text-sm font-medium text-slate-700">
+                  {request.employeeName}
+                </p>
+
                 <p className="mt-1 text-sm text-slate-500">
-                  {request.period} · {request.days} Tage
+                  {request.department} · {request.period} · {request.days} Tage
                 </p>
               </div>
 

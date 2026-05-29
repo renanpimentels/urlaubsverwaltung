@@ -17,7 +17,8 @@ export default function ApprovalsPage() {
             Genehmigungen
           </h1>
           <p className="mt-2 text-slate-600">
-            Prüfe offene Urlaubsanträge und entscheide über Genehmigung oder Ablehnung.
+            Prüfe offene Urlaubsanträge und entscheide über Genehmigung oder
+            Ablehnung.
           </p>
         </div>
 
@@ -39,9 +40,19 @@ export default function ApprovalsPage() {
                 </div>
 
                 <h2 className="text-xl font-bold">{request.title}</h2>
-                <p className="mt-2 text-slate-600">
+
+                <p className="mt-2 font-medium text-slate-700">
+                  {request.employeeName}
+                </p>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  {request.department}
+                </p>
+
+                <p className="mt-3 text-slate-600">
                   {request.period} · {request.days} Tage
                 </p>
+
                 <p className="mt-1 text-sm text-slate-500">
                   Antrag wartet auf Entscheidung.
                 </p>

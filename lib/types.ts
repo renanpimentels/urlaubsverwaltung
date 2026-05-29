@@ -2,6 +2,8 @@ export type RequestStatus = "Genehmigt" | "Ausstehend" | "Abgelehnt";
 
 export type VacationRequest = {
   title: string;
+  employeeName: string;
+  department: string;
   period: string;
   days: number;
   status: RequestStatus;
