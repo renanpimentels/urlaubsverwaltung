@@ -1,10 +1,16 @@
 import {Sidebar} from "@/components/Sidebar";
 import {StatCard} from "@/components/StatCard" ;
+import { StatusBadge } from "@/components/StatusBadge";
 
 
 
 
-const vacationRequests = [
+const vacationRequests: {
+  title: string;
+  period: string;
+  days: number;
+  status: "Genehmigt" | "Ausstehend" | "Abgelehnt";
+}[] = [
   {
     title: "Sommerurlaub",
     period: "03.06.2026 - 07.06.2026",
@@ -43,17 +49,7 @@ const upcomingAbsences = [
   },
 ];
 
-function getStatusClass(status: string) {
-  if (status === "Genehmigt") {
-    return "bg-green-100 text-green-700";
-  }
 
-  if (status === "Ausstehend") {
-    return "bg-amber-100 text-amber-700";
-  }
-
-  return "bg-red-100 text-red-700";
-}
 
 export default function DashboardPage() {
   return (
@@ -135,13 +131,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
 
-                    <span
-                      className={`w-fit rounded-full px-3 py-1 text-sm font-semibold ${getStatusClass(
-                        request.status
-                      )}`}
-                    >
-                      {request.status}
-                    </span>
+                    <StatusBadge status={request.status} />
                   </div>
                 ))}
               </div>
