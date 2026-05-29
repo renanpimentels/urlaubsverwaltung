@@ -1,5 +1,6 @@
 import type {
   DashboardStat,
+  Employee,
   UpcomingAbsence,
   VacationRequest,
 } from "./types";
@@ -65,5 +66,58 @@ export const upcomingAbsences: UpcomingAbsence[] = [
     name: "Lisa Schneider",
     department: "Vertrieb",
     period: "01.07.2026 - 05.07.2026",
+  },
+];
+
+export const employees: Employee[] = [
+  {
+    id: "emp-001",
+    name: "Max Müller",
+    department: "Entwicklung",
+    role: "Frontend Entwickler",
+    vacationDaysTotal: 30,
+    vacationDaysUsed: 12,
+    vacationDaysRemaining: 18,
+    isActive: true,
+  },
+  {
+    id: "emp-002",
+    name: "Anna Becker",
+    department: "Entwicklung",
+    role: "Backend Entwicklerin",
+    vacationDaysTotal: 30,
+    vacationDaysUsed: 8,
+    vacationDaysRemaining: 22,
+    isActive: true,
+  },
+  {
+    id: "emp-003",
+    name: "Jonas Weber",
+    department: "Support",
+    role: "IT Support Specialist",
+    vacationDaysTotal: 28,
+    vacationDaysUsed: 14,
+    vacationDaysRemaining: 14,
+    isActive: true,
+  },
+  {
+    id: "emp-004",
+    name: "Lisa Schneider",
+    department: "Vertrieb",
+    role: "Account Managerin",
+    vacationDaysTotal: 30,
+    vacationDaysUsed: 20,
+    vacationDaysRemaining: 10,
+    isActive: true,
+  },
+  {
+    id: "emp-005",
+    name: "Thomas Wagner",
+    department: "Administration",
+    role: "Office Manager",
+    vacationDaysTotal: 26,
+    vacationDaysUsed: 26,
+    vacationDaysRemaining: 0,
+    isActive: false,
   },
 ];
