@@ -33,18 +33,24 @@ export const dashboardStats: DashboardStat[] = [
 export const vacationRequests: VacationRequest[] = [
   {
     title: "Sommerurlaub",
+    employeeName: "Max Müller",
+    department: "Entwicklung",
     period: "03.06.2026 - 07.06.2026",
     days: 5,
     status: "Genehmigt",
   },
   {
     title: "Familienurlaub",
+    employeeName: "Anna Becker",
+    department: "Entwicklung",
     period: "15.07.2026 - 26.07.2026",
     days: 10,
     status: "Ausstehend",
   },
   {
     title: "Kurzurlaub",
+    employeeName: "Jonas Weber",
+    department: "Support",
     period: "12.08.2026 - 14.08.2026",
     days: 3,
     status: "Abgelehnt",

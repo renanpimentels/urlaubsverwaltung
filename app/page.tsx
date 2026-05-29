@@ -50,7 +50,10 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <a className="text-sm font-semibold text-teal-700" href="/urlaubsantraege">
+            <a
+              className="text-sm font-semibold text-teal-700"
+              href="/urlaubsantraege"
+            >
               Alle anzeigen
             </a>
           </div>
@@ -63,8 +66,14 @@ export default function DashboardPage() {
               >
                 <div>
                   <h4 className="font-semibold">{request.title}</h4>
+
+                  <p className="mt-1 text-sm font-medium text-slate-700">
+                    {request.employeeName}
+                  </p>
+
                   <p className="mt-1 text-sm text-slate-500">
-                    {request.period} · {request.days} Tage
+                    {request.department} · {request.period} · {request.days}{" "}
+                    Tage
                   </p>
                 </div>
 
