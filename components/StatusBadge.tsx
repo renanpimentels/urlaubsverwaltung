@@ -1,5 +1,9 @@
+import type { RequestStatus } from "@/lib/types";
+
+
+
 type StatusBadgeProps = {
-  status: "Genehmigt" | "Ausstehend" | "Abgelehnt";
+  status: RequestStatus;
 };
 
 const statusClassNames = {
