@@ -1,65 +1,199 @@
-import Image from "next/image";
+const vacationRequests = [
+  {
+    title: "Sommerurlaub",
+    period: "03.06.2026 - 07.06.2026",
+    days: 5,
+    status: "Genehmigt",
+  },
+  {
+    title: "Familienurlaub",
+    period: "15.07.2026 - 26.07.2026",
+    days: 10,
+    status: "Ausstehend",
+  },
+  {
+    title: "Kurzurlaub",
+    period: "12.08.2026 - 14.08.2026",
+    days: 3,
+    status: "Abgelehnt",
+  },
+];
 
-export default function Home() {
+const upcomingAbsences = [
+  {
+    name: "Anna Becker",
+    department: "Entwicklung",
+    period: "10.06.2026 - 14.06.2026",
+  },
+  {
+    name: "Jonas Weber",
+    department: "Support",
+    period: "18.06.2026 - 21.06.2026",
+  },
+  {
+    name: "Lisa Schneider",
+    department: "Vertrieb",
+    period: "01.07.2026 - 05.07.2026",
+  },
+];
+
+function getStatusClass(status: string) {
+  if (status === "Genehmigt") {
+    return "bg-green-100 text-green-700";
+  }
+
+  if (status === "Ausstehend") {
+    return "bg-amber-100 text-amber-700";
+  }
+
+  return "bg-red-100 text-red-700";
+}
+
+export default function DashboardPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main className="min-h-screen bg-slate-100 text-slate-950">
+      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[280px_1fr]">
+        <aside className="bg-slate-950 px-6 py-8 text-white">
+          <div className="mb-10 flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-600 text-lg font-bold">
+              U
+            </div>
+
+            <div>
+              <h1 className="text-lg font-semibold">Urlaubsverwaltung</h1>
+              <p className="text-sm text-slate-300">Internes Portal</p>
+            </div>
+          </div>
+
+          <nav className="grid gap-2">
+            <a className="rounded-xl bg-white/10 px-4 py-3 text-white" href="#">
+              Dashboard
+            </a>
+            <a className="rounded-xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white" href="#">
+              Urlaubsanträge
+            </a>
+            <a className="rounded-xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white" href="#">
+              Mitarbeiter
+            </a>
+            <a className="rounded-xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white" href="#">
+              Genehmigungen
+            </a>
+            <a className="rounded-xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white" href="#">
+              Kalender
+            </a>
+          </nav>
+        </aside>
+
+        <section className="px-6 py-8 sm:px-10">
+          <header className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-center">
+            <div>
+              <p className="mb-2 text-sm font-bold uppercase tracking-wide text-teal-700">
+                Willkommen zurück
+              </p>
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                Hallo, Max Müller
+              </h2>
+              <p className="mt-2 text-slate-600">
+                Hier ist deine aktuelle Urlaubsübersicht.
+              </p>
+            </div>
+
+            <button className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800">
+              Neuen Antrag erstellen
+            </button>
+          </header>
+
+          <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <p className="text-sm text-slate-500">Urlaubstage gesamt</p>
+              <strong className="mt-3 block text-4xl">30</strong>
+              <span className="text-sm text-slate-500">Tage pro Jahr</span>
+            </article>
+
+            <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <p className="text-sm text-slate-500">Genommen</p>
+              <strong className="mt-3 block text-4xl">12</strong>
+              <span className="text-sm text-slate-500">bereits genehmigt</span>
+            </article>
+
+            <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <p className="text-sm text-slate-500">Verfügbar</p>
+              <strong className="mt-3 block text-4xl">18</strong>
+              <span className="text-sm text-slate-500">noch offen</span>
+            </article>
+
+            <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <p className="text-sm text-slate-500">Ausstehend</p>
+              <strong className="mt-3 block text-4xl text-amber-600">2</strong>
+              <span className="text-sm text-slate-500">Anträge in Prüfung</span>
+            </article>
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
+            <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="mb-5 flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-xl font-bold">Aktuelle Urlaubsanträge</h3>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Deine letzten Anträge und deren Status.
+                  </p>
+                </div>
+
+                <a className="text-sm font-semibold text-teal-700" href="#">
+                  Alle anzeigen
+                </a>
+              </div>
+
+              <div className="grid gap-3">
+                {vacationRequests.map((request) => (
+                  <div
+                    key={request.title}
+                    className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center"
+                  >
+                    <div>
+                      <h4 className="font-semibold">{request.title}</h4>
+                      <p className="mt-1 text-sm text-slate-500">
+                        {request.period} · {request.days} Tage
+                      </p>
+                    </div>
+
+                    <span
+                      className={`w-fit rounded-full px-3 py-1 text-sm font-semibold ${getStatusClass(
+                        request.status
+                      )}`}
+                    >
+                      {request.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </article>
+
+            <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="mb-5">
+                <h3 className="text-xl font-bold">Nächste Abwesenheiten</h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  Wer demnächst nicht im Büro ist.
+                </p>
+              </div>
+
+              <div className="grid gap-3">
+                {upcomingAbsences.map((absence) => (
+                  <div
+                    key={absence.name}
+                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                  >
+                    <h4 className="font-semibold">{absence.name}</h4>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {absence.department} · {absence.period}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </article>
+          </section>
+        </section>
+      </div>
+    </main>
   );
 }
