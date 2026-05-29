@@ -1,55 +1,12 @@
-import {Sidebar} from "@/components/Sidebar";
-import {StatCard} from "@/components/StatCard" ;
+import { Sidebar } from "@/components/Sidebar";
+import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
 
-
-
-
-const vacationRequests: {
-  title: string;
-  period: string;
-  days: number;
-  status: "Genehmigt" | "Ausstehend" | "Abgelehnt";
-}[] = [
-  {
-    title: "Sommerurlaub",
-    period: "03.06.2026 - 07.06.2026",
-    days: 5,
-    status: "Genehmigt",
-  },
-  {
-    title: "Familienurlaub",
-    period: "15.07.2026 - 26.07.2026",
-    days: 10,
-    status: "Ausstehend",
-  },
-  {
-    title: "Kurzurlaub",
-    period: "12.08.2026 - 14.08.2026",
-    days: 3,
-    status: "Abgelehnt",
-  },
-];
-
-const upcomingAbsences = [
-  {
-    name: "Anna Becker",
-    department: "Entwicklung",
-    period: "10.06.2026 - 14.06.2026",
-  },
-  {
-    name: "Jonas Weber",
-    department: "Support",
-    period: "18.06.2026 - 21.06.2026",
-  },
-  {
-    name: "Lisa Schneider",
-    department: "Vertrieb",
-    period: "01.07.2026 - 05.07.2026",
-  },
-];
-
-
+import {
+  dashboardStats,
+  upcomingAbsences,
+  vacationRequests,
+} from "@/lib/mock-data";
 
 export default function DashboardPage() {
   return (
@@ -77,30 +34,15 @@ export default function DashboardPage() {
           </header>
 
           <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard
-              title="Urlaubstage gesamt"
-              value="30"
-              description="Tage pro Jahr"
-            />
-
-            <StatCard
-              title="Genommen"
-              value="12"
-              description="bereits genehmigt"
-            />
-
-            <StatCard
-              title="Verfügbar"
-              value="18"
-              description="noch offen"
-            />
-
-            <StatCard
-              title="Ausstehend"
-              value="2"
-              description="Anträge in Prüfung"
-              variant="warning"
-            />
+            {dashboardStats.map((stat) => (
+              <StatCard
+                key={stat.title}
+                title={stat.title}
+                value={stat.value}
+                description={stat.description}
+                variant={stat.variant}
+              />
+            ))}
           </section>
 
           <section className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
