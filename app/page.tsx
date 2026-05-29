@@ -1,4 +1,7 @@
 import {Sidebar} from "@/components/Sidebar";
+import {StatCard} from "@/components/StatCard" ;
+
+
 
 
 const vacationRequests = [
@@ -78,29 +81,30 @@ export default function DashboardPage() {
           </header>
 
           <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <p className="text-sm text-slate-500">Urlaubstage gesamt</p>
-              <strong className="mt-3 block text-4xl">30</strong>
-              <span className="text-sm text-slate-500">Tage pro Jahr</span>
-            </article>
+            <StatCard
+              title="Urlaubstage gesamt"
+              value="30"
+              description="Tage pro Jahr"
+            />
 
-            <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <p className="text-sm text-slate-500">Genommen</p>
-              <strong className="mt-3 block text-4xl">12</strong>
-              <span className="text-sm text-slate-500">bereits genehmigt</span>
-            </article>
+            <StatCard
+              title="Genommen"
+              value="12"
+              description="bereits genehmigt"
+            />
 
-            <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <p className="text-sm text-slate-500">Verfügbar</p>
-              <strong className="mt-3 block text-4xl">18</strong>
-              <span className="text-sm text-slate-500">noch offen</span>
-            </article>
+            <StatCard
+              title="Verfügbar"
+              value="18"
+              description="noch offen"
+            />
 
-            <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <p className="text-sm text-slate-500">Ausstehend</p>
-              <strong className="mt-3 block text-4xl text-amber-600">2</strong>
-              <span className="text-sm text-slate-500">Anträge in Prüfung</span>
-            </article>
+            <StatCard
+              title="Ausstehend"
+              value="2"
+              description="Anträge in Prüfung"
+              variant="warning"
+            />
           </section>
 
           <section className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
