@@ -19,3 +19,14 @@ export type DashboardStat = {
   description: string;
   variant?: "default" | "warning";
 };
+
+export type Employee = {
+  id: string;
+  name: string;
+  department: string;
+  role: string;
+  vacationDaysTotal: number;
+  vacationDaysUsed: number;
+  vacationDaysRemaining: number;
+  isActive: boolean;
+};
