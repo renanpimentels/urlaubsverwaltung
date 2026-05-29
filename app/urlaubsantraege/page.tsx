@@ -3,7 +3,7 @@ import { vacationRequests } from "@/lib/mock-data";
 
 export default function VacationRequestsPage() {
   return (
-    <main className="min-h-screen bg-slate-100 px-6 py-8 text-slate-950 sm:px-10">
+    <>
       <header className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-center">
         <div>
           <p className="mb-2 text-sm font-bold uppercase tracking-wide text-teal-700">
@@ -48,6 +48,6 @@ export default function VacationRequestsPage() {
           ))}
         </div>
       </section>
-    </main>
+    </>
   );
 }

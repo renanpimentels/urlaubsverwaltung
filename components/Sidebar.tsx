@@ -1,6 +1,6 @@
 const navItems = [
-  { label: "Dashboard", href: "#", active: true },
-  { label: "Urlaubsanträge", href: "#", active: false },
+  { label: "Dashboard", href: "/", active: true },
+  { label: "Urlaubsanträge", href: "/urlaubsantraege", active: false },
   { label: "Mitarbeiter", href: "#", active: false },
   { label: "Genehmigungen", href: "#", active: false },
   { label: "Kalender", href: "#", active: false },
