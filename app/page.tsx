@@ -1,3 +1,6 @@
+import {Sidebar} from "@/components/Sidebar";
+
+
 const vacationRequests = [
   {
     title: "Sommerurlaub",
@@ -53,36 +56,7 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-slate-100 text-slate-950">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[280px_1fr]">
-        <aside className="bg-slate-950 px-6 py-8 text-white">
-          <div className="mb-10 flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-600 text-lg font-bold">
-              U
-            </div>
-
-            <div>
-              <h1 className="text-lg font-semibold">Urlaubsverwaltung</h1>
-              <p className="text-sm text-slate-300">Internes Portal</p>
-            </div>
-          </div>
-
-          <nav className="grid gap-2">
-            <a className="rounded-xl bg-white/10 px-4 py-3 text-white" href="#">
-              Dashboard
-            </a>
-            <a className="rounded-xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white" href="#">
-              Urlaubsanträge
-            </a>
-            <a className="rounded-xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white" href="#">
-              Mitarbeiter
-            </a>
-            <a className="rounded-xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white" href="#">
-              Genehmigungen
-            </a>
-            <a className="rounded-xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white" href="#">
-              Kalender
-            </a>
-          </nav>
-        </aside>
+        <Sidebar />
 
         <section className="px-6 py-8 sm:px-10">
           <header className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-center">
