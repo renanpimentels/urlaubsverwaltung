@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Urlaubsverwaltung
 
-## Getting Started
+Eine interne Webanwendung zur Verwaltung von Urlaubsanträgen, Mitarbeitern und Genehmigungen.
 
-First, run the development server:
+Dieses Projekt ist aktuell ein Frontend-Mockup und dient zum Lernen und Üben von professioneller Softwareentwicklung mit Next.js, TypeScript, Git und GitHub.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Ziel des Projekts
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Das Ziel ist, eine einfache Urlaubsverwaltung für eine kleine IT-Firma zu entwickeln.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Die Anwendung soll später ermöglichen:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Mitarbeiter zu verwalten
+- Urlaubsanträge zu erstellen
+- Urlaubsanträge anzuzeigen
+- offene Anträge zu genehmigen oder abzulehnen
+- Urlaubssalden zu verwalten
+- Abwesenheiten übersichtlich darzustellen
 
-## Learn More
+Aktuell gibt es noch kein Backend, keine Datenbank und kein Login. Die Daten sind vorerst als Mock-Daten im Projekt hinterlegt.
 
-To learn more about Next.js, take a look at the following resources:
+## Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Next.js
+- TypeScript
+- Tailwind CSS
+- Git
+- GitHub
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Aktueller Status
 
-## Deploy on Vercel
+Aktuell umgesetzt:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Dashboard-Seite
+- Seite für Urlaubsanträge
+- Seite für Mitarbeiter
+- Seite für Genehmigungen
+- Seite für neuen Urlaubsantrag als Mockup
+- globale Sidebar-Navigation
+- aktiver Navigationspunkt in der Sidebar
+- wiederverwendbare Komponenten
+- Mock-Daten und TypeScript-Typen
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Seiten
+
+| Route | Beschreibung |
+|---|---|
+| `/` | Dashboard mit Übersicht über Urlaubstage, Anträge und Abwesenheiten |
+| `/urlaubsantraege` | Liste der aktuellen Urlaubsanträge |
+| `/urlaubsantraege/neu` | Mockup-Formular zum Erstellen eines neuen Urlaubsantrags |
+| `/mitarbeiter` | Übersicht der Mitarbeiter und Urlaubssalden |
+| `/genehmigungen` | Manager-Ansicht für offene Genehmigungen |
+
+## Projektstruktur
+
+```text
+urlaubsverwaltung/
+  app/
+    page.tsx
+    layout.tsx
+    globals.css
+    urlaubsantraege/
+      page.tsx
+      neu/
+        page.tsx
+    mitarbeiter/
+      page.tsx
+    genehmigungen/
+      page.tsx
+
+  components/
+    Sidebar.tsx
+    PageHeader.tsx
+    StatCard.tsx
+    StatusBadge.tsx
+    VacationRequestCard.tsx
+    EmployeeCard.tsx
+
+  lib/
+    types.ts
+    mock-data.ts
