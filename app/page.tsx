@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
-import { StatusBadge } from "@/components/StatusBadge";
+import { VacationRequestCard } from "@/components/VacationRequestCard";
 
 import {
   dashboardStats,
@@ -54,25 +54,7 @@ export default function DashboardPage() {
 
           <div className="grid gap-3">
             {vacationRequests.map((request) => (
-              <div
-                key={request.title}
-                className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center"
-              >
-                <div>
-                  <h4 className="font-semibold">{request.title}</h4>
-
-                  <p className="mt-1 text-sm font-medium text-slate-700">
-                    {request.employeeName}
-                  </p>
-
-                  <p className="mt-1 text-sm text-slate-500">
-                    {request.department} · {request.period} · {request.days}{" "}
-                    Tage
-                  </p>
-                </div>
-
-                <StatusBadge status={request.status} />
-              </div>
+              <VacationRequestCard key={request.title} request={request} />
             ))}
           </div>
         </article>
