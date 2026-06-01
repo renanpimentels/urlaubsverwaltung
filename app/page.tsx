@@ -1,6 +1,11 @@
+import Link from "next/link";
+
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { VacationRequestCard } from "@/components/VacationRequestCard";
+
+
+
 
 import {
   dashboardStats,
@@ -16,12 +21,12 @@ export default function DashboardPage() {
         title="Hallo, Max Müller"
         description="Hier ist deine aktuelle Urlaubsübersicht."
         action={
-          <a
+          <Link
             href="/urlaubsantraege/neu"
             className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
           >
             Neuen Antrag erstellen
-          </a>
+          </Link>
         }
       />
 
@@ -47,12 +52,12 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <a
+            <Link
               className="text-sm font-semibold text-teal-700"
               href="/urlaubsantraege"
             >
               Alle anzeigen
-            </a>
+            </Link>
           </div>
 
           <div className="grid gap-3">

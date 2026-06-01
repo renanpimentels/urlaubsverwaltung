@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/PageHeader";
 import { VacationRequestCard } from "@/components/VacationRequestCard";
 import { vacationRequests } from "@/lib/mock-data";
+import Link from "next/link";
 
 export default function VacationRequestsPage() {
   return (
@@ -10,12 +11,12 @@ export default function VacationRequestsPage() {
         title="Urlaubsanträge"
         description="Hier siehst du alle aktuellen Urlaubsanträge und deren Status."
         action={
-          <a
+          <Link
             href="/urlaubsantraege/neu"
             className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
           >
             Neuen Antrag erstellen
-          </a>
+          </Link>
         }
       />
 
