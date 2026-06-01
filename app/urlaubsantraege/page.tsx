@@ -10,9 +10,12 @@ export default function VacationRequestsPage() {
         title="Urlaubsanträge"
         description="Hier siehst du alle aktuellen Urlaubsanträge und deren Status."
         action={
-          <button className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800">
+          <a
+            href="/urlaubsantraege/neu"
+            className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
+          >
             Neuen Antrag erstellen
-          </button>
+          </a>
         }
       />
 
