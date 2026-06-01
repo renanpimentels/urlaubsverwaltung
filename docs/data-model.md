@@ -85,3 +85,4 @@ Ein `Employee` repräsentiert einen Mitarbeiter im Unternehmen.
 Department 1 --- n Employee
 Employee 1 --- n VacationRequest
 Employee 1 --- 0..1 User
+
