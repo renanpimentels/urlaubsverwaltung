@@ -1,21 +1,23 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { vacationRequests } from "@/lib/mock-data";
-import { notFound } from "next/navigation";
-import Link from "next/link";
-
 
 type VacationRequestDetailPageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
-export default function VacationRequestDetailPage({
+export default async function VacationRequestDetailPage({
   params,
 }: VacationRequestDetailPageProps) {
+  const { id } = await params;
+
   const request = vacationRequests.find(
-    (vacationRequest) => vacationRequest.id === params.id
+    (vacationRequest) => vacationRequest.id === id
   );
 
   if (!request) {
@@ -44,9 +46,7 @@ export default function VacationRequestDetailPage({
             </div>
 
             <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm font-semibold text-slate-500">
-                Abteilung
-              </p>
+              <p className="text-sm font-semibold text-slate-500">Abteilung</p>
               <p className="mt-1 font-medium">{request.department}</p>
             </div>
 

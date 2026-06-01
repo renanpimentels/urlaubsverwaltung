@@ -1,6 +1,8 @@
+import Link from "next/link";
+import type { ReactNode } from "react";
+
 import { StatusBadge } from "@/components/StatusBadge";
 import type { VacationRequest } from "@/lib/types";
-import type { ReactNode } from "react";
 
 type VacationRequestCardProps = {
   request: VacationRequest;
@@ -28,16 +30,16 @@ export function VacationRequestCard({
       <div className="flex flex-col items-start gap-3 md:items-end">
         <StatusBadge status={request.status} />
 
+        <Link
+          href={`/urlaubsantraege/${request.id}`}
+          className="text-sm font-semibold text-teal-700 hover:text-teal-800"
+        >
+          Details anzeigen
+        </Link>
+
         {actions ? (
           <div className="flex flex-col gap-3 sm:flex-row">{actions}</div>
-        ) : (
-          <a
-            href={`/urlaubsantraege/${request.id}`}
-            className="text-sm font-semibold text-teal-700 hover:text-teal-800"
-          >
-            Details anzeigen
-          </a>
-        )}
+        ) : null}
       </div>
     </article>
   );
