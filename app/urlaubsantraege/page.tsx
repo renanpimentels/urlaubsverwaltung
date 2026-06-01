@@ -1,5 +1,5 @@
 import { PageHeader } from "@/components/PageHeader";
-import { StatusBadge } from "@/components/StatusBadge";
+import { VacationRequestCard } from "@/components/VacationRequestCard";
 import { vacationRequests } from "@/lib/mock-data";
 
 export default function VacationRequestsPage() {
@@ -26,24 +26,7 @@ export default function VacationRequestsPage() {
 
         <div className="grid gap-3">
           {vacationRequests.map((request) => (
-            <article
-              key={request.title}
-              className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:flex-row md:items-center"
-            >
-              <div>
-                <h3 className="font-semibold">{request.title}</h3>
-
-                <p className="mt-1 text-sm font-medium text-slate-700">
-                  {request.employeeName}
-                </p>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  {request.department} · {request.period} · {request.days} Tage
-                </p>
-              </div>
-
-              <StatusBadge status={request.status} />
-            </article>
+            <VacationRequestCard key={request.title} request={request} />
           ))}
         </div>
       </section>
