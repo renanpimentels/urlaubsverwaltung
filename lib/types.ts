@@ -8,6 +8,7 @@ export type VacationRequest = {
   period: string;
   days: number;
   status: RequestStatus;
+  createdAt: string;
 };
 
 export type UpcomingAbsence = {

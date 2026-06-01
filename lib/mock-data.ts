@@ -39,6 +39,7 @@ export const vacationRequests: VacationRequest[] = [
     period: "03.06.2026 - 07.06.2026",
     days: 5,
     status: "Genehmigt",
+    createdAt: "01.05.2026",
   },
   {
     id: "req-002",
@@ -48,6 +49,7 @@ export const vacationRequests: VacationRequest[] = [
     period: "15.07.2026 - 26.07.2026",
     days: 10,
     status: "Ausstehend",
+    createdAt: "02.05.2026",
   },
   {
     id: "req-003",
@@ -57,6 +59,7 @@ export const vacationRequests: VacationRequest[] = [
     period: "12.08.2026 - 14.08.2026",
     days: 3,
     status: "Abgelehnt",
+    createdAt: "03.05.2026",
   },
 ];
 

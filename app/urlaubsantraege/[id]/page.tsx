@@ -80,13 +80,21 @@ export default async function VacationRequestDetailPage({
             <h2 className="text-xl font-bold">Aktionen</h2>
 
             <div className="mt-5 grid gap-3">
-              <button className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800">
-                Genehmigen
-              </button>
+              {request.status === "Ausstehend" ? (
+                <>
+                  <button className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800">
+                    Genehmigen
+                  </button>
 
-              <button className="rounded-xl border border-red-200 bg-red-50 px-5 py-3 font-semibold text-red-700 hover:bg-red-100">
-                Ablehnen
-              </button>
+                  <button className="rounded-xl border border-red-200 bg-red-50 px-5 py-3 font-semibold text-red-700 hover:bg-red-100">
+                    Ablehnen
+                  </button>
+                </>
+              ) : (
+                <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
+                  Für diesen Antrag sind aktuell keine Aktionen verfügbar.
+                </div>
+              )}
 
               <Link
                 href="/urlaubsantraege"
@@ -98,25 +106,21 @@ export default async function VacationRequestDetailPage({
           </section>
 
           <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold">Historie</h2>
+            <h2 className="text-xl font-bold">Administrative Informationen</h2>
 
-            <div className="mt-5 grid gap-4 text-sm">
+            <div className="mt-5 grid gap-4">
               <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="font-semibold text-slate-800">
-                  Antrag erstellt
+                <p className="text-sm font-semibold text-slate-500">
+                  Antrag-ID
                 </p>
-                <p className="mt-1 text-slate-500">
-                  Der Antrag wurde als Mock-Datensatz angelegt.
-                </p>
+                <p className="mt-1 font-medium">{request.id}</p>
               </div>
 
               <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="font-semibold text-slate-800">
-                  Aktueller Status
+                <p className="text-sm font-semibold text-slate-500">
+                  Erstellt am
                 </p>
-                <p className="mt-1 text-slate-500">
-                  Der Antrag befindet sich aktuell im Status {request.status}.
-                </p>
+                <p className="mt-1 font-medium">{request.createdAt}</p>
               </div>
             </div>
           </section>
