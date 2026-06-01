@@ -57,7 +57,7 @@ export default function DashboardPage() {
 
           <div className="grid gap-3">
             {vacationRequests.map((request) => (
-              <VacationRequestCard key={request.title} request={request} />
+              <VacationRequestCard key={request.id} request={request} />
             ))}
           </div>
         </article>

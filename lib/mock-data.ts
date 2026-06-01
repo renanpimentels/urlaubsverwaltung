@@ -32,6 +32,7 @@ export const dashboardStats: DashboardStat[] = [
 
 export const vacationRequests: VacationRequest[] = [
   {
+    id: "req-001",
     title: "Sommerurlaub",
     employeeName: "Max Müller",
     department: "Entwicklung",
@@ -40,6 +41,7 @@ export const vacationRequests: VacationRequest[] = [
     status: "Genehmigt",
   },
   {
+    id: "req-002",
     title: "Familienurlaub",
     employeeName: "Anna Becker",
     department: "Entwicklung",
@@ -48,6 +50,7 @@ export const vacationRequests: VacationRequest[] = [
     status: "Ausstehend",
   },
   {
+    id: "req-003",
     title: "Kurzurlaub",
     employeeName: "Jonas Weber",
     department: "Support",

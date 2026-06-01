@@ -23,7 +23,7 @@ export default function ApprovalsPage() {
       <section className="grid gap-4">
         {pendingRequests.map((request) => (
           <VacationRequestCard
-            key={request.title}
+            key={request.id}
             request={request}
             actions={
               <>
