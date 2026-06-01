@@ -1,12 +1,26 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+
 const navItems = [
-  { label: "Dashboard", href: "/", active: true },
-  { label: "Urlaubsanträge", href: "/urlaubsantraege", active: false },
-  { label: "Mitarbeiter", href: "/mitarbeiter", active: false },
-  { label: "Genehmigungen", href: "/genehmigungen", active: false },
-  { label: "Kalender", href: "#", active: false },
+  { label: "Dashboard", href: "/" },
+  { label: "Urlaubsanträge", href: "/urlaubsantraege" },
+  { label: "Mitarbeiter", href: "/mitarbeiter" },
+  { label: "Genehmigungen", href: "/genehmigungen" },
+  { label: "Kalender", href: "#" },
 ];
 
+function isActiveLink(pathname: string, href: string) {
+  if (href === "/") {
+    return pathname === "/";
+  }
+
+  return pathname.startsWith(href);
+}
+
 export function Sidebar() {
+  const pathname = usePathname();
+
   return (
     <aside className="bg-slate-950 px-6 py-8 text-white">
       <div className="mb-10 flex items-center gap-3">
@@ -21,19 +35,23 @@ export function Sidebar() {
       </div>
 
       <nav className="grid gap-2">
-        {navItems.map((item) => (
-          <a
-            key={item.label}
-            className={
-              item.active
-                ? "rounded-xl bg-white/10 px-4 py-3 text-white"
-                : "rounded-xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white"
-            }
-            href={item.href}
-          >
-            {item.label}
-          </a>
-        ))}
+        {navItems.map((item) => {
+          const isActive = item.href !== "#" && isActiveLink(pathname, item.href);
+
+          return (
+            <a
+              key={item.label}
+              className={
+                isActive
+                  ? "rounded-xl bg-white/10 px-4 py-3 text-white"
+                  : "rounded-xl px-4 py-3 text-slate-300 hover:bg-white/10 hover:text-white"
+              }
+              href={item.href}
+            >
+              {item.label}
+            </a>
+          );
+        })}
       </nav>
     </aside>
   );
