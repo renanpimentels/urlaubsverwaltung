@@ -16,9 +16,12 @@ export default function DashboardPage() {
         title="Hallo, Max Müller"
         description="Hier ist deine aktuelle Urlaubsübersicht."
         action={
-          <button className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800">
+          <a
+            href="/urlaubsantraege/neu"
+            className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
+          >
             Neuen Antrag erstellen
-          </button>
+          </a>
         }
       />
 
