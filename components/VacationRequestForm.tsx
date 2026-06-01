@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 type FormState = {
   employee: string;
@@ -165,12 +166,12 @@ export function VacationRequestForm() {
             Antrag erstellen
           </button>
 
-          <a
+          <Link
             href="/urlaubsantraege"
             className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 hover:bg-slate-50"
           >
             Abbrechen
-          </a>
+          </Link>
         </div>
       </div>
     </form>
