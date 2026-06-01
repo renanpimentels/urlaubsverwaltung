@@ -1,4 +1,64 @@
+"use client";
+
+import { useState } from "react";
+
+type FormState = {
+  employee: string;
+  startDate: string;
+  endDate: string;
+  absenceType: string;
+  comment: string;
+};
+
+const initialFormState: FormState = {
+  employee: "",
+  startDate: "",
+  endDate: "",
+  absenceType: "Urlaub",
+  comment: "",
+};
+
 export function VacationRequestForm() {
+  const [formData, setFormData] = useState<FormState>(initialFormState);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
+  function updateField(field: keyof FormState, value: string) {
+    setFormData((currentFormData) => ({
+      ...currentFormData,
+      [field]: value,
+    }));
+
+    setErrorMessage("");
+    setSuccessMessage("");
+  }
+
+  function handleSubmit() {
+    if (!formData.employee) {
+      setErrorMessage("Bitte wähle einen Mitarbeiter aus.");
+      return;
+    }
+
+    if (!formData.startDate) {
+      setErrorMessage("Bitte wähle ein Startdatum aus.");
+      return;
+    }
+
+    if (!formData.endDate) {
+      setErrorMessage("Bitte wähle ein Enddatum aus.");
+      return;
+    }
+
+    if (formData.endDate < formData.startDate) {
+      setErrorMessage("Das Enddatum darf nicht vor dem Startdatum liegen.");
+      return;
+    }
+
+    setSuccessMessage(
+      "Der Urlaubsantrag wurde erfolgreich vorbereitet. In dieser Mockup-Version wird er noch nicht gespeichert."
+    );
+  }
+
   return (
     <form className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-6">
@@ -14,11 +74,16 @@ export function VacationRequestForm() {
           <span className="text-sm font-semibold text-slate-700">
             Mitarbeiter
           </span>
-          <select className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600">
-            <option>Max Müller</option>
-            <option>Anna Becker</option>
-            <option>Jonas Weber</option>
-            <option>Lisa Schneider</option>
+          <select
+            value={formData.employee}
+            onChange={(event) => updateField("employee", event.target.value)}
+            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+          >
+            <option value="">Bitte auswählen</option>
+            <option value="Max Müller">Max Müller</option>
+            <option value="Anna Becker">Anna Becker</option>
+            <option value="Jonas Weber">Jonas Weber</option>
+            <option value="Lisa Schneider">Lisa Schneider</option>
           </select>
         </label>
 
@@ -29,6 +94,8 @@ export function VacationRequestForm() {
             </span>
             <input
               type="date"
+              value={formData.startDate}
+              onChange={(event) => updateField("startDate", event.target.value)}
               className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
             />
           </label>
@@ -39,6 +106,8 @@ export function VacationRequestForm() {
             </span>
             <input
               type="date"
+              value={formData.endDate}
+              onChange={(event) => updateField("endDate", event.target.value)}
               className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
             />
           </label>
@@ -48,11 +117,17 @@ export function VacationRequestForm() {
           <span className="text-sm font-semibold text-slate-700">
             Abwesenheitsart
           </span>
-          <select className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600">
-            <option>Urlaub</option>
-            <option>Sonderurlaub</option>
-            <option>Gleitzeit</option>
-            <option>Homeoffice</option>
+          <select
+            value={formData.absenceType}
+            onChange={(event) =>
+              updateField("absenceType", event.target.value)
+            }
+            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+          >
+            <option value="Urlaub">Urlaub</option>
+            <option value="Sonderurlaub">Sonderurlaub</option>
+            <option value="Gleitzeit">Gleitzeit</option>
+            <option value="Homeoffice">Homeoffice</option>
           </select>
         </label>
 
@@ -62,14 +137,29 @@ export function VacationRequestForm() {
           </span>
           <textarea
             rows={5}
+            value={formData.comment}
+            onChange={(event) => updateField("comment", event.target.value)}
             placeholder="Optionale Bemerkung zum Antrag..."
             className="resize-none rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
           />
         </label>
 
+        {errorMessage ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            {errorMessage}
+          </div>
+        ) : null}
+
+        {successMessage ? (
+          <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+            {successMessage}
+          </div>
+        ) : null}
+
         <div className="flex flex-col gap-3 pt-2 sm:flex-row">
           <button
             type="button"
+            onClick={handleSubmit}
             className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
           >
             Antrag erstellen
