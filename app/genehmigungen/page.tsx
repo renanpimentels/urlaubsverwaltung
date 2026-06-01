@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { vacationRequests } from "@/lib/mock-data";
 
@@ -8,24 +9,16 @@ const pendingRequests = vacationRequests.filter(
 export default function ApprovalsPage() {
   return (
     <>
-      <header className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-center">
-        <div>
-          <p className="mb-2 text-sm font-bold uppercase tracking-wide text-teal-700">
-            Manager-Bereich
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Genehmigungen
-          </h1>
-          <p className="mt-2 text-slate-600">
-            Prüfe offene Urlaubsanträge und entscheide über Genehmigung oder
-            Ablehnung.
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm font-semibold text-amber-800">
-          {pendingRequests.length} offene Anträge
-        </div>
-      </header>
+      <PageHeader
+        eyebrow="Manager-Bereich"
+        title="Genehmigungen"
+        description="Prüfe offene Urlaubsanträge und entscheide über Genehmigung oder Ablehnung."
+        action={
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm font-semibold text-amber-800">
+            {pendingRequests.length} offene Anträge
+          </div>
+        }
+      />
 
       <section className="grid gap-4">
         {pendingRequests.map((request) => (

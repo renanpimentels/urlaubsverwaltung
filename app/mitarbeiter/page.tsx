@@ -1,25 +1,19 @@
+import { PageHeader } from "@/components/PageHeader";
 import { employees } from "@/lib/mock-data";
 
 export default function EmployeesPage() {
   return (
     <>
-      <header className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-center">
-        <div>
-          <p className="mb-2 text-sm font-bold uppercase tracking-wide text-teal-700">
-            Teamübersicht
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Mitarbeiter
-          </h1>
-          <p className="mt-2 text-slate-600">
-            Übersicht über Mitarbeiter, Abteilungen und Urlaubssalden.
-          </p>
-        </div>
-
-        <button className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800">
-          Mitarbeiter hinzufügen
-        </button>
-      </header>
+      <PageHeader
+        eyebrow="Teamübersicht"
+        title="Mitarbeiter"
+        description="Übersicht über Mitarbeiter, Abteilungen und Urlaubssalden."
+        action={
+          <button className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800">
+            Mitarbeiter hinzufügen
+          </button>
+        }
+      />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {employees.map((employee) => (
@@ -30,9 +24,7 @@ export default function EmployeesPage() {
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold">{employee.name}</h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  {employee.role}
-                </p>
+                <p className="mt-1 text-sm text-slate-500">{employee.role}</p>
               </div>
 
               <span
@@ -47,9 +39,7 @@ export default function EmployeesPage() {
             </div>
 
             <div className="mb-5 rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm font-semibold text-slate-500">
-                Abteilung
-              </p>
+              <p className="text-sm font-semibold text-slate-500">Abteilung</p>
               <p className="mt-1 font-medium">{employee.department}</p>
             </div>
 

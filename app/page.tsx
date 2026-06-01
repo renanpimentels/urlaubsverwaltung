@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
 
@@ -10,23 +11,16 @@ import {
 export default function DashboardPage() {
   return (
     <>
-      <header className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-center">
-        <div>
-          <p className="mb-2 text-sm font-bold uppercase tracking-wide text-teal-700">
-            Willkommen zurück
-          </p>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Hallo, Max Müller
-          </h2>
-          <p className="mt-2 text-slate-600">
-            Hier ist deine aktuelle Urlaubsübersicht.
-          </p>
-        </div>
-
-        <button className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800">
-          Neuen Antrag erstellen
-        </button>
-      </header>
+      <PageHeader
+        eyebrow="Willkommen zurück"
+        title="Hallo, Max Müller"
+        description="Hier ist deine aktuelle Urlaubsübersicht."
+        action={
+          <button className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800">
+            Neuen Antrag erstellen
+          </button>
+        }
+      />
 
       <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {dashboardStats.map((stat) => (
