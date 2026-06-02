@@ -66,3 +66,47 @@ export function getApprovableRequestsForEmployee(employeeId: string) {
     return nextApproverId === employeeId;
   });
 }
+
+import type { UserRole } from "@/lib/types";
+
+export function canViewAllEmployeeData(role: UserRole) {
+  return role === "hr" || role === "admin";
+}
+
+export function canViewDepartmentEmployeeData(role: UserRole) {
+  return role === "manager";
+}
+
+export function getVisibleVacationRequestsForUser(
+  employeeId: string,
+  role: UserRole
+) {
+  if (canViewAllEmployeeData(role)) {
+    return vacationRequests;
+  }
+
+  const currentEmployee = getEmployeeById(employeeId);
+
+  if (!currentEmployee) {
+    return [];
+  }
+
+  if (canViewDepartmentEmployeeData(role)) {
+    return vacationRequests.filter((request) => {
+      const requestEmployee = getEmployeeById(request.employeeId);
+
+      return requestEmployee?.departmentId === currentEmployee.departmentId;
+    });
+  }
+
+  return vacationRequests.filter((request) => request.employeeId === employeeId);
+}
+
+export function getVisibleUpcomingAbsencesForUser(
+  employeeId: string,
+  role: UserRole
+) {
+  const visibleRequests = getVisibleVacationRequestsForUser(employeeId, role);
+
+  return visibleRequests.filter((request) => request.status === "Genehmigt");
+}

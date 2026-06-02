@@ -3,21 +3,60 @@ import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
-
+import { currentUser } from "@/lib/current-user";
 import {
-  dashboardStats,
-  upcomingAbsences,
-  vacationRequests,
-} from "@/lib/mock-data";
-
-import { getDepartmentById, getEmployeeById } from "@/lib/mock-queries";
+  getDepartmentById,
+  getEmployeeById,
+  getVacationBalanceByEmployeeId,
+  getVisibleUpcomingAbsencesForUser,
+  getVisibleVacationRequestsForUser,
+} from "@/lib/mock-queries";
 
 export default function DashboardPage() {
+  const currentEmployee = getEmployeeById(currentUser.employeeId);
+  const vacationBalance = getVacationBalanceByEmployeeId(
+    currentUser.employeeId
+  );
+
+  const visibleVacationRequests = getVisibleVacationRequestsForUser(
+    currentUser.employeeId,
+    currentUser.role
+  );
+
+  const visibleUpcomingAbsences = getVisibleUpcomingAbsencesForUser(
+    currentUser.employeeId,
+    currentUser.role
+  );
+
+  const dashboardStats = [
+    {
+      title: "Urlaubstage gesamt",
+      value: String(vacationBalance?.total ?? 0),
+      description: "vertraglicher Jahresanspruch",
+    },
+    {
+      title: "Genommen",
+      value: String(vacationBalance?.used ?? 0),
+      description: "bereits genehmigt",
+    },
+    {
+      title: "Verfügbar",
+      value: String(vacationBalance?.available ?? 0),
+      description: "noch offen",
+    },
+    {
+      title: "Ausstehend",
+      value: String(vacationBalance?.pending ?? 0),
+      description: "Anträge in Prüfung",
+      variant: "warning" as const,
+    },
+  ];
+
   return (
     <>
       <PageHeader
         eyebrow="Willkommen zurück"
-        title="Hallo, Max Müller"
+        title={`Hallo, ${currentEmployee?.name ?? "Benutzer"}`}
         description="Hier ist deine aktuelle Urlaubsübersicht."
         action={
           <Link
@@ -47,7 +86,7 @@ export default function DashboardPage() {
             <div>
               <h3 className="text-xl font-bold">Aktuelle Urlaubsanträge</h3>
               <p className="mt-1 text-sm text-slate-500">
-                Deine letzten Anträge und deren Status.
+                Anträge, die du aktuell sehen darfst.
               </p>
             </div>
 
@@ -60,7 +99,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid gap-3">
-            {vacationRequests.map((request) => {
+            {visibleVacationRequests.map((request) => {
               const employee = getEmployeeById(request.employeeId);
               const department = employee
                 ? getDepartmentById(employee.departmentId)
@@ -98,6 +137,12 @@ export default function DashboardPage() {
                 </div>
               );
             })}
+
+            {visibleVacationRequests.length === 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+                Keine Urlaubsanträge gefunden.
+              </div>
+            ) : null}
           </div>
         </article>
 
@@ -105,22 +150,39 @@ export default function DashboardPage() {
           <div className="mb-5">
             <h3 className="text-xl font-bold">Nächste Abwesenheiten</h3>
             <p className="mt-1 text-sm text-slate-500">
-              Wer demnächst nicht im Büro ist.
+              Genehmigte Abwesenheiten, die du sehen darfst.
             </p>
           </div>
 
           <div className="grid gap-3">
-            {upcomingAbsences.map((absence) => (
-              <div
-                key={absence.name}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-              >
-                <h4 className="font-semibold">{absence.name}</h4>
-                <p className="mt-1 text-sm text-slate-500">
-                  {absence.department} · {absence.period}
-                </p>
+            {visibleUpcomingAbsences.map((absence) => {
+              const employee = getEmployeeById(absence.employeeId);
+              const department = employee
+                ? getDepartmentById(employee.departmentId)
+                : undefined;
+
+              return (
+                <div
+                  key={absence.id}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                >
+                  <h4 className="font-semibold">
+                    {employee ? employee.name : "Unbekannter Mitarbeiter"}
+                  </h4>
+
+                  <p className="mt-1 text-sm text-slate-500">
+                    {department ? department.name : "Keine Abteilung"} ·{" "}
+                    {absence.period}
+                  </p>
+                </div>
+              );
+            })}
+
+            {visibleUpcomingAbsences.length === 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+                Keine kommenden Abwesenheiten gefunden.
               </div>
-            ))}
+            ) : null}
           </div>
         </article>
       </section>
