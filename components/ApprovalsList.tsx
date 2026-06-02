@@ -31,7 +31,7 @@ export function ApprovalsList() {
     );
 
     setDecisionMessage({
-      requestTitle: request.title,
+      requestTitle: `${request.absenceType} von ${request.employeeName}`,
       newStatus,
     });
   }

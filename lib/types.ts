@@ -1,14 +1,17 @@
 export type RequestStatus = "Genehmigt" | "Ausstehend" | "Abgelehnt";
 
+export type AbsenceType = "Urlaub" | "Sonderurlaub";
+
 export type VacationRequest = {
   id: string;
-  title: string;
+  absenceType: AbsenceType;
   employeeName: string;
   department: string;
   period: string;
   days: number;
   status: RequestStatus;
   createdAt: string;
+  comment?: string;
 };
 
 export type UpcomingAbsence = {

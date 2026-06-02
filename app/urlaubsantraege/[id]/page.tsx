@@ -28,7 +28,7 @@ export default async function VacationRequestDetailPage({
     <>
       <PageHeader
         eyebrow="Antragsdetails"
-        title={request.title}
+        title={request.absenceType}
         description="Detailansicht eines Urlaubsantrags mit Status, Zeitraum und Mitarbeiterinformationen."
         action={<StatusBadge status={request.status} />}
       />
@@ -65,6 +65,15 @@ export default async function VacationRequestDetailPage({
                 <p className="mt-1 font-medium">{request.days} Tage</p>
               </div>
             </div>
+
+            {request.comment ? (
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-sm font-semibold text-slate-500">
+                  Bemerkung
+                </p>
+                <p className="mt-1 font-medium">{request.comment}</p>
+              </div>
+            ) : null}
 
             <div className="rounded-2xl bg-slate-50 p-4">
               <p className="text-sm font-semibold text-slate-500">Status</p>
