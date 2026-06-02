@@ -5,6 +5,9 @@ import {
   vacationRequests,
 } from "@/lib/mock-data";
 
+import type { UserRole } from "@/lib/types";
+
+
 export function getDepartmentById(id: string) {
   return departments.find((department) => department.id === id);
 }
@@ -67,7 +70,6 @@ export function getApprovableRequestsForEmployee(employeeId: string) {
   });
 }
 
-import type { UserRole } from "@/lib/types";
 
 export function canViewAllEmployeeData(role: UserRole) {
   return role === "hr" || role === "admin";
@@ -109,4 +111,24 @@ export function getVisibleUpcomingAbsencesForUser(
   const visibleRequests = getVisibleVacationRequestsForUser(employeeId, role);
 
   return visibleRequests.filter((request) => request.status === "Genehmigt");
+}
+
+export function getVisibleEmployeesForUser(employeeId: string, role: UserRole) {
+  if (canViewAllEmployeeData(role)) {
+    return employees;
+  }
+
+  const currentEmployee = getEmployeeById(employeeId);
+
+  if (!currentEmployee) {
+    return [];
+  }
+
+  if (canViewDepartmentEmployeeData(role)) {
+    return employees.filter(
+      (employee) => employee.departmentId === currentEmployee.departmentId
+    );
+  }
+
+  return employees.filter((employee) => employee.id === employeeId);
 }
