@@ -119,17 +119,15 @@ export function VacationRequestForm() {
             Abwesenheitsart
           </span>
           <select
-            value={formData.absenceType}
-            onChange={(event) =>
-              updateField("absenceType", event.target.value)
-            }
-            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
-          >
-            <option value="Urlaub">Urlaub</option>
-            <option value="Sonderurlaub">Sonderurlaub</option>
-            <option value="Gleitzeit">Gleitzeit</option>
-            <option value="Homeoffice">Homeoffice</option>
-          </select>
+              value={formData.absenceType}
+              onChange={(event) =>
+                updateField("absenceType", event.target.value)
+              }
+              className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+            >
+              <option value="Urlaub">Urlaub</option>
+              <option value="Sonderurlaub">Sonderurlaub</option>
+            </select>
         </label>
 
         <label className="grid gap-2">
