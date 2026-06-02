@@ -4,12 +4,10 @@ import { useState } from "react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { VacationRequestCard } from "@/components/VacationRequestCard";
-import { vacationRequests } from "@/lib/mock-data";
+import { getPendingVacationRequests } from "@/lib/mock-queries";
 import type { RequestStatus, VacationRequest } from "@/lib/types";
 
-const initialPendingRequests = vacationRequests.filter(
-  (request) => request.status === "Ausstehend"
-);
+const initialPendingRequests = getPendingVacationRequests();
 
 type DecisionMessage = {
   requestTitle: string;
