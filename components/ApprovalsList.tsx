@@ -4,7 +4,10 @@ import { useState } from "react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { VacationRequestCard } from "@/components/VacationRequestCard";
-import { getPendingVacationRequests } from "@/lib/mock-queries";
+import {
+  getEmployeeById,
+  getPendingVacationRequests,
+} from "@/lib/mock-queries";
 import type { RequestStatus, VacationRequest } from "@/lib/types";
 
 const initialPendingRequests = getPendingVacationRequests();
@@ -22,6 +25,8 @@ export function ApprovalsList() {
     useState<DecisionMessage | null>(null);
 
   function handleDecision(request: VacationRequest, newStatus: RequestStatus) {
+    const employee = getEmployeeById(request.employeeId);
+
     setPendingRequests((currentRequests) =>
       currentRequests.filter(
         (currentRequest) => currentRequest.id !== request.id
@@ -29,7 +34,9 @@ export function ApprovalsList() {
     );
 
     setDecisionMessage({
-      requestTitle: `${request.absenceType} von ${request.employeeName}`,
+      requestTitle: `${request.absenceType} von ${
+        employee ? employee.name : "unbekannt"
+      }`,
       newStatus,
     });
   }
@@ -56,31 +63,36 @@ export function ApprovalsList() {
       ) : null}
 
       <section className="grid gap-4">
-        {pendingRequests.map((request) => (
-          <VacationRequestCard
-            key={request.id}
-            request={request}
-            actions={
-              <>
-                <button
-                  type="button"
-                  onClick={() => handleDecision(request, "Genehmigt")}
-                  className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
-                >
-                  Genehmigen
-                </button>
+        {pendingRequests.map((request) => {
+          const employee = getEmployeeById(request.employeeId);
 
-                <button
-                  type="button"
-                  onClick={() => handleDecision(request, "Abgelehnt")}
-                  className="rounded-xl border border-red-200 bg-red-50 px-5 py-3 font-semibold text-red-700 hover:bg-red-100"
-                >
-                  Ablehnen
-                </button>
-              </>
-            }
-          />
-        ))}
+          return (
+            <VacationRequestCard
+              key={request.id}
+              request={request}
+              employee={employee}
+              actions={
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleDecision(request, "Genehmigt")}
+                    className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
+                  >
+                    Genehmigen
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDecision(request, "Abgelehnt")}
+                    className="rounded-xl border border-red-200 bg-red-50 px-5 py-3 font-semibold text-red-700 hover:bg-red-100"
+                  >
+                    Ablehnen
+                  </button>
+                </>
+              }
+            />
+          );
+        })}
 
         {pendingRequests.length === 0 && (
           <article className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
