@@ -4,13 +4,16 @@ import { useState } from "react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { VacationRequestCard } from "@/components/VacationRequestCard";
+import { currentUser } from "@/lib/current-user";
 import {
+  getApprovableRequestsForEmployee,
   getEmployeeById,
-  getPendingVacationRequests,
 } from "@/lib/mock-queries";
 import type { RequestStatus, VacationRequest } from "@/lib/types";
 
-const initialPendingRequests = getPendingVacationRequests();
+const initialPendingRequests = getApprovableRequestsForEmployee(
+  currentUser.employeeId
+);
 
 type DecisionMessage = {
   requestTitle: string;
@@ -44,12 +47,12 @@ export function ApprovalsList() {
   return (
     <>
       <PageHeader
-        eyebrow="Manager-Bereich"
-        title="Genehmigungen"
-        description="Prüfe offene Urlaubsanträge und entscheide über Genehmigung oder Ablehnung."
+        eyebrow="Genehmigungen"
+        title="Meine offenen Freigaben"
+        description="Hier siehst du Urlaubsanträge, bei denen du aktuell als nächster Genehmiger eingetragen bist."
         action={
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm font-semibold text-amber-800">
-            {pendingRequests.length} offene Anträge
+            {pendingRequests.length} offene Freigaben
           </div>
         }
       />
@@ -96,9 +99,10 @@ export function ApprovalsList() {
 
         {pendingRequests.length === 0 && (
           <article className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-            <h2 className="text-xl font-bold">Keine offenen Anträge</h2>
+            <h2 className="text-xl font-bold">Keine offenen Freigaben</h2>
             <p className="mt-2 text-slate-600">
-              Aktuell gibt es keine Urlaubsanträge, die geprüft werden müssen.
+              Aktuell gibt es keine Urlaubsanträge, bei denen du als nächster
+              Genehmiger eingetragen bist.
             </p>
           </article>
         )}

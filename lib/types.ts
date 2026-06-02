@@ -2,6 +2,8 @@ export type RequestStatus = "Genehmigt" | "Ausstehend" | "Abgelehnt";
 
 export type AbsenceType = "Urlaub" | "Sonderurlaub";
 
+export type UserRole = "employee" | "manager" | "hr" | "admin";
+
 export type VacationRequest = {
   id: string;
   employeeId: string;
