@@ -4,6 +4,7 @@ export type AbsenceType = "Urlaub" | "Sonderurlaub";
 
 export type VacationRequest = {
   id: string;
+  employeeId: string;
   absenceType: AbsenceType;
   employeeName: string;
   department: string;
@@ -12,6 +13,14 @@ export type VacationRequest = {
   status: RequestStatus;
   createdAt: string;
   comment?: string;
+};
+
+export type VacationBalance = {
+  employeeId: string;
+  total: number;
+  used: number;
+  pending: number;
+  available: number;
 };
 
 export type UpcomingAbsence = {

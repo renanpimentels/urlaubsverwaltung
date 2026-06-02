@@ -9,6 +9,14 @@ type VacationRequestCardProps = {
   actions?: ReactNode;
 };
 
+export type VacationBalance = {
+  employeeId: string;
+  total: number;
+  used: number;
+  pending: number;
+  available: number;
+};
+
 export function VacationRequestCard({
   request,
   actions,
