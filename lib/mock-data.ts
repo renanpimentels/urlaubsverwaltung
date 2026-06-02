@@ -29,27 +29,56 @@ export const departments: Department[] = [
   },
 ];
 
-export const dashboardStats: DashboardStat[] = [
+export const employees: Employee[] = [
   {
-    title: "Urlaubstage gesamt",
-    value: "30",
-    description: "Tage pro Jahr",
+    id: "emp-001",
+    name: "Max Müller",
+    departmentId: "dep-001",
+    role: "Frontend Entwickler",
+    vacationDaysTotal: 30,
+    vacationDaysUsed: 12,
+    vacationDaysRemaining: 18,
+    isActive: true,
   },
   {
-    title: "Genommen",
-    value: "12",
-    description: "bereits genehmigt",
+    id: "emp-002",
+    name: "Anna Becker",
+    departmentId: "dep-002",
+    role: "Backend Entwicklerin",
+    vacationDaysTotal: 30,
+    vacationDaysUsed: 8,
+    vacationDaysRemaining: 22,
+    isActive: true,
   },
   {
-    title: "Verfügbar",
-    value: "18",
-    description: "noch offen",
+    id: "emp-003",
+    name: "Jonas Weber",
+    departmentId: "dep-001",
+    role: "IT Support Specialist",
+    vacationDaysTotal: 28,
+    vacationDaysUsed: 14,
+    vacationDaysRemaining: 14,
+    isActive: true,
   },
   {
-    title: "Ausstehend",
-    value: "2",
-    description: "Anträge in Prüfung",
-    variant: "warning",
+    id: "emp-004",
+    name: "Lisa Schneider",
+    departmentId: "dep-001",
+    role: "Account Managerin",
+    vacationDaysTotal: 30,
+    vacationDaysUsed: 20,
+    vacationDaysRemaining: 10,
+    isActive: true,
+  },
+  {
+    id: "emp-005",
+    name: "Thomas Wagner",
+    departmentId: "dep-001",
+    role: "Office Manager",
+    vacationDaysTotal: 26,
+    vacationDaysUsed: 26,
+    vacationDaysRemaining: 0,
+    isActive: false,
   },
 ];
 
@@ -84,13 +113,39 @@ export const vacationRequests: VacationRequest[] = [
     absenceType: "Sonderurlaub",
     period: "12.08.2026 - 14.08.2026",
     days: 3,
-    status: "Abgelehnt",
+    status: "Ausstehend",
     createdAt: "30.05.2026",
     approvalStepsCompleted: 0,
     approvalStepsRequired: 2,
     comment: "Privater Termin",
   },
 ];
+
+export const dashboardStats: DashboardStat[] = [
+  {
+    title: "Urlaubstage gesamt",
+    value: "30",
+    description: "Tage pro Jahr",
+  },
+  {
+    title: "Genommen",
+    value: "12",
+    description: "bereits genehmigt",
+  },
+  {
+    title: "Verfügbar",
+    value: "18",
+    description: "noch offen",
+  },
+  {
+    title: "Ausstehend",
+    value: "2",
+    description: "Anträge in Prüfung",
+    variant: "warning",
+  },
+];
+
+
 
 export const upcomingAbsences: UpcomingAbsence[] = [
   {
@@ -110,58 +165,7 @@ export const upcomingAbsences: UpcomingAbsence[] = [
   },
 ];
 
-export const employees: Employee[] = [
-  {
-    id: "emp-001",
-    name: "Max Müller",
-    departmentId: "dep-001",
-    role: "Frontend Entwickler",
-    vacationDaysTotal: 30,
-    vacationDaysUsed: 12,
-    vacationDaysRemaining: 18,
-    isActive: true,
-  },
-  {
-    id: "emp-002",
-    name: "Anna Becker",
-    departmentId: "dep-002",
-    role: "Backend Entwicklerin",
-    vacationDaysTotal: 30,
-    vacationDaysUsed: 8,
-    vacationDaysRemaining: 22,
-    isActive: true,
-  },
-  {
-    id: "emp-003",
-    name: "Jonas Weber",
-    departmentId: "dep-003",
-    role: "IT Support Specialist",
-    vacationDaysTotal: 28,
-    vacationDaysUsed: 14,
-    vacationDaysRemaining: 14,
-    isActive: true,
-  },
-  {
-    id: "emp-004",
-    name: "Lisa Schneider",
-    departmentId: "dep-003",
-    role: "Account Managerin",
-    vacationDaysTotal: 30,
-    vacationDaysUsed: 20,
-    vacationDaysRemaining: 10,
-    isActive: true,
-  },
-  {
-    id: "emp-005",
-    name: "Thomas Wagner",
-    departmentId: "dep-003",
-    role: "Office Manager",
-    vacationDaysTotal: 26,
-    vacationDaysUsed: 26,
-    vacationDaysRemaining: 0,
-    isActive: false,
-  },
-];
+
 
 export const vacationBalances: VacationBalance[] = [
   {
