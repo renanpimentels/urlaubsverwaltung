@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { StatusBadge } from "@/components/StatusBadge";
+import { getDepartmentById } from "@/lib/mock-queries";
 import type { Employee, VacationRequest } from "@/lib/types";
 
 type VacationRequestCardProps = {
@@ -15,6 +16,10 @@ export function VacationRequestCard({
   employee,
   actions,
 }: VacationRequestCardProps) {
+  const department = employee
+    ? getDepartmentById(employee.departmentId)
+    : undefined;
+
   return (
     <article className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:flex-row md:items-center">
       <div>
@@ -29,13 +34,17 @@ export function VacationRequestCard({
         ) : null}
 
         <p className="mt-1 text-sm text-slate-500">
-          {employee ? employee.department : "Keine Abteilung"} ·{" "}
-          {request.period} · {request.days} Tage
+          {department ? department.name : "Keine Abteilung"} · {request.period} ·{" "}
+          {request.days} Tage
         </p>
       </div>
 
       <div className="flex flex-col items-start gap-3 md:items-end">
-        <StatusBadge status={request.status} />
+        <StatusBadge
+          status={request.status}
+          approvalStepsCompleted={request.approvalStepsCompleted}
+          approvalStepsRequired={request.approvalStepsRequired}
+        />
 
         <Link
           href={`/urlaubsantraege/${request.id}`}

@@ -1,11 +1,26 @@
 import {
+  departments,
   employees,
   vacationBalances,
   vacationRequests,
 } from "@/lib/mock-data";
 
+export function getDepartmentById(id: string) {
+  return departments.find((department) => department.id === id);
+}
+
 export function getEmployeeById(id: string) {
   return employees.find((employee) => employee.id === id);
+}
+
+export function getDepartmentByEmployeeId(employeeId: string) {
+  const employee = getEmployeeById(employeeId);
+
+  if (!employee) {
+    return undefined;
+  }
+
+  return getDepartmentById(employee.departmentId);
 }
 
 export function getVacationRequestById(id: string) {

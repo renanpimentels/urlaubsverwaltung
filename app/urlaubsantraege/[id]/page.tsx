@@ -1,18 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-
-import { VacationBalanceCard} from "@/components/VacationBalanceCard";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
+import { VacationBalanceCard } from "@/components/VacationBalanceCard";
 
 import {
+  getDepartmentById,
   getEmployeeById,
   getVacationBalanceByEmployeeId,
   getVacationRequestById,
 } from "@/lib/mock-queries";
-
-
 
 type VacationRequestDetailPageProps = {
   params: Promise<{
@@ -31,8 +29,12 @@ export default async function VacationRequestDetailPage({
     notFound();
   }
 
-  const vacationBalance = getVacationBalanceByEmployeeId(request.employeeId);
   const employee = getEmployeeById(request.employeeId);
+  const department = employee
+    ? getDepartmentById(employee.departmentId)
+    : undefined;
+
+  const vacationBalance = getVacationBalanceByEmployeeId(request.employeeId);
 
   return (
     <>
@@ -40,7 +42,13 @@ export default async function VacationRequestDetailPage({
         eyebrow="Antragsdetails"
         title={request.absenceType}
         description="Detailansicht eines Urlaubsantrags mit Status, Zeitraum und Mitarbeiterinformationen."
-        action={<StatusBadge status={request.status} />}
+        action={
+          <StatusBadge
+            status={request.status}
+            approvalStepsCompleted={request.approvalStepsCompleted}
+            approvalStepsRequired={request.approvalStepsRequired}
+          />
+        }
       />
 
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -60,7 +68,7 @@ export default async function VacationRequestDetailPage({
             <div className="rounded-2xl bg-slate-50 p-4">
               <p className="text-sm font-semibold text-slate-500">Abteilung</p>
               <p className="mt-1 font-medium">
-                {employee ? employee.department : "Keine Abteilung"}
+                {department ? department.name : "Keine Abteilung"}
               </p>
             </div>
 
@@ -92,7 +100,11 @@ export default async function VacationRequestDetailPage({
             <div className="rounded-2xl bg-slate-50 p-4">
               <p className="text-sm font-semibold text-slate-500">Status</p>
               <div className="mt-2">
-                <StatusBadge status={request.status} />
+                <StatusBadge
+                  status={request.status}
+                  approvalStepsCompleted={request.approvalStepsCompleted}
+                  approvalStepsRequired={request.approvalStepsRequired}
+                />
               </div>
             </div>
           </div>
@@ -129,17 +141,17 @@ export default async function VacationRequestDetailPage({
           </section>
 
           {vacationBalance ? (
-              <VacationBalanceCard
-                total={vacationBalance.total}
-                used={vacationBalance.used}
-                pending={vacationBalance.pending}
-                available={vacationBalance.available}
-                requestedDays={request.days}
-                title="Urlaubssaldo"
-                description="Mockup-Übersicht zur Bewertung dieses Antrags."
-              />
-            ) : null}
-      
+            <VacationBalanceCard
+              total={vacationBalance.total}
+              used={vacationBalance.used}
+              pending={vacationBalance.pending}
+              available={vacationBalance.available}
+              requestedDays={request.days}
+              title="Urlaubssaldo"
+              description="Mockup-Übersicht zur Bewertung dieses Antrags."
+            />
+          ) : null}
+
           <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-bold">Administrative Informationen</h2>
 
@@ -159,7 +171,6 @@ export default async function VacationRequestDetailPage({
               </div>
             </div>
           </section>
-
         </aside>
       </section>
     </>

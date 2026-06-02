@@ -4,8 +4,30 @@ import type {
   UpcomingAbsence,
   VacationBalance,
   VacationRequest,
+  Department
 } from "./types";
 
+
+export const departments: Department[] = [
+  {
+    id: "dep-001",
+    name: "Entwicklung",
+    managerId: "emp-001",
+    finalApproverId: "emp-002",
+  },
+  {
+    id: "dep-002",
+    name: "Support",
+    managerId: "emp-002",
+    finalApproverId: "emp-001",
+  },
+  {
+    id: "dep-003",
+    name: "Administration",
+    managerId: "emp-002",
+    finalApproverId: "emp-001",
+  },
+];
 
 export const dashboardStats: DashboardStat[] = [
   {
@@ -40,6 +62,8 @@ export const vacationRequests: VacationRequest[] = [
     days: 5,
     status: "Genehmigt",
     createdAt: "20.05.2026",
+    approvalStepsCompleted: 2,
+    approvalStepsRequired: 2,
     comment: "Sommerurlaub",
   },
   {
@@ -50,6 +74,8 @@ export const vacationRequests: VacationRequest[] = [
     days: 10,
     status: "Ausstehend",
     createdAt: "28.05.2026",
+    approvalStepsCompleted: 1,
+    approvalStepsRequired: 2,
     comment: "Familienurlaub",
   },
   {
@@ -60,6 +86,8 @@ export const vacationRequests: VacationRequest[] = [
     days: 3,
     status: "Abgelehnt",
     createdAt: "30.05.2026",
+    approvalStepsCompleted: 0,
+    approvalStepsRequired: 2,
     comment: "Privater Termin",
   },
 ];
@@ -86,7 +114,7 @@ export const employees: Employee[] = [
   {
     id: "emp-001",
     name: "Max Müller",
-    department: "Entwicklung",
+    departmentId: "dep-001",
     role: "Frontend Entwickler",
     vacationDaysTotal: 30,
     vacationDaysUsed: 12,
@@ -96,7 +124,7 @@ export const employees: Employee[] = [
   {
     id: "emp-002",
     name: "Anna Becker",
-    department: "Entwicklung",
+    departmentId: "dep-002",
     role: "Backend Entwicklerin",
     vacationDaysTotal: 30,
     vacationDaysUsed: 8,
@@ -106,7 +134,7 @@ export const employees: Employee[] = [
   {
     id: "emp-003",
     name: "Jonas Weber",
-    department: "Support",
+    departmentId: "dep-003",
     role: "IT Support Specialist",
     vacationDaysTotal: 28,
     vacationDaysUsed: 14,
@@ -116,7 +144,7 @@ export const employees: Employee[] = [
   {
     id: "emp-004",
     name: "Lisa Schneider",
-    department: "Vertrieb",
+    departmentId: "dep-003",
     role: "Account Managerin",
     vacationDaysTotal: 30,
     vacationDaysUsed: 20,
@@ -126,7 +154,7 @@ export const employees: Employee[] = [
   {
     id: "emp-005",
     name: "Thomas Wagner",
-    department: "Administration",
+    departmentId: "dep-003",
     role: "Office Manager",
     vacationDaysTotal: 26,
     vacationDaysUsed: 26,
