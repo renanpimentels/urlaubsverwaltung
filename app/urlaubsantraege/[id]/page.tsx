@@ -5,7 +5,9 @@ import { notFound } from "next/navigation";
 import { VacationBalanceCard} from "@/components/VacationBalanceCard";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
-import { vacationBalances, vacationRequests } from "@/lib/mock-data";
+import { getVacationBalanceByEmployeeId, getVacationRequestById } from "@/lib/mock-queries";
+
+
 
 type VacationRequestDetailPageProps = {
   params: Promise<{
@@ -18,17 +20,13 @@ export default async function VacationRequestDetailPage({
 }: VacationRequestDetailPageProps) {
   const { id } = await params;
 
-  const request = vacationRequests.find(
-    (vacationRequest) => vacationRequest.id === id
-  );
+  const request = getVacationRequestById(id);
 
   if (!request) {
     notFound();
   }
 
-  const vacationBalance = vacationBalances.find(
-  (balance) => balance.employeeId === request.employeeId
-);
+  const vacationBalance = getVacationBalanceByEmployeeId(request.employeeId);
 
   return (
     <>

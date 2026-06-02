@@ -1,14 +1,14 @@
 import { PageHeader } from "@/components/PageHeader";
 import { VacationBalanceCard } from "@/components/VacationBalanceCard";
 import { VacationRequestForm } from "@/components/VacationRequestForm";
-import { vacationBalances } from "@/lib/mock-data";
+//import { vacationBalances } from "@/lib/mock-data";
+import { getVacationBalanceByEmployeeId } from "@/lib/mock-queries";
 
 const currentEmployeeId = "emp-001";
 
 export default function NewVacationRequestPage() {
-  const vacationBalance = vacationBalances.find(
-    (balance) => balance.employeeId === currentEmployeeId
-  );
+  
+  const vacationBalance = getVacationBalanceByEmployeeId(currentEmployeeId);
 
   return (
     <>
