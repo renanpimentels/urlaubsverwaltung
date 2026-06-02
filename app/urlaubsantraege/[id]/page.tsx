@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+
+import { VacationBalanceCard} from "@/components/VacationBalanceCard";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { vacationRequests } from "@/lib/mock-data";
@@ -114,6 +116,16 @@ export default async function VacationRequestDetailPage({
             </div>
           </section>
 
+          <VacationBalanceCard
+            total={30}
+            used={8}
+            pending={10}
+            available={12}
+            requestedDays={request.days}
+            title="Urlaubssaldo"
+            description="Mockup-Übersicht zur Bewertung dieses Antrags."
+          />
+      
           <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-bold">Administrative Informationen</h2>
 
@@ -133,6 +145,7 @@ export default async function VacationRequestDetailPage({
               </div>
             </div>
           </section>
+
         </aside>
       </section>
     </>
