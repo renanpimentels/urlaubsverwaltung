@@ -1,18 +1,29 @@
-import { PageHeader } from "@/components/PageHeader";
-import { VacationRequestCard } from "@/components/VacationRequestCard";
-import { vacationRequests } from "@/lib/mock-data";
 import Link from "next/link";
 
-import { getEmployeeById } from "@/lib/mock-queries";
-
+import { PageHeader } from "@/components/PageHeader";
+import { VacationRequestCard } from "@/components/VacationRequestCard";
+import { currentUser } from "@/lib/current-user";
+import {
+  getEmployeeById,
+  getVisibleVacationRequestsForUser,
+} from "@/lib/mock-queries";
 
 export default function VacationRequestsPage() {
+  const currentEmployee = getEmployeeById(currentUser.employeeId);
+
+  const visibleVacationRequests = getVisibleVacationRequestsForUser(
+    currentUser.employeeId,
+    currentUser.role
+  );
+
   return (
     <>
       <PageHeader
         eyebrow="Übersicht"
         title="Urlaubsanträge"
-        description="Hier siehst du alle aktuellen Urlaubsanträge und deren Status."
+        description={`Hier siehst du die Urlaubsanträge, die für ${
+          currentEmployee?.name ?? "den aktuellen Benutzer"
+        } sichtbar sind.`}
         action={
           <Link
             href="/urlaubsantraege/neu"
@@ -27,22 +38,28 @@ export default function VacationRequestsPage() {
         <div className="mb-5">
           <h2 className="text-xl font-bold">Aktuelle Anträge</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Mock-Daten für die erste Version der Anwendung.
+            Die Liste wird aktuell anhand des mock currentUser gefiltert.
           </p>
         </div>
 
         <div className="grid gap-3">
-          {vacationRequests.map((request) => {
-              const employee = getEmployeeById(request.employeeId);
+          {visibleVacationRequests.map((request) => {
+            const employee = getEmployeeById(request.employeeId);
 
-              return (
-                <VacationRequestCard
-                  key={request.id}
-                  request={request}
-                  employee={employee}
-                />
-              );
-            })}
+            return (
+              <VacationRequestCard
+                key={request.id}
+                request={request}
+                employee={employee}
+              />
+            );
+          })}
+
+          {visibleVacationRequests.length === 0 ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+              Keine Urlaubsanträge gefunden.
+            </div>
+          ) : null}
         </div>
       </section>
     </>
