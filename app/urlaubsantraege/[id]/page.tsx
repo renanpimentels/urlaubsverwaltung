@@ -5,6 +5,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { VacationBalanceCard } from "@/components/VacationBalanceCard";
 
+import { formatDate, formatDateRange } from "@/lib/date-formatters";
+
 import {
   getDepartmentById,
   getEmployeeById,
@@ -77,7 +79,7 @@ export default async function VacationRequestDetailPage({
                 <p className="text-sm font-semibold text-slate-500">
                   Zeitraum
                 </p>
-                <p className="mt-1 font-medium">{request.period}</p>
+                <p className="mt-1 font-medium">{formatDateRange(request.startDate, request.endDate)}</p>
               </div>
 
               <div className="rounded-2xl bg-slate-50 p-4">
@@ -167,7 +169,7 @@ export default async function VacationRequestDetailPage({
                 <p className="text-sm font-semibold text-slate-500">
                   Erstellt am
                 </p>
-                <p className="mt-1 font-medium">{request.createdAt}</p>
+                <p className="mt-1 font-medium">{formatDate(request.createdAt)}</p>
               </div>
             </div>
           </section>

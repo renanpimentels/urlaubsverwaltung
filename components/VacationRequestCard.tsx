@@ -5,6 +5,8 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { getDepartmentById } from "@/lib/mock-queries";
 import type { Employee, VacationRequest } from "@/lib/types";
 
+import { formatDateRange } from "@/lib/date-formatters";
+
 type VacationRequestCardProps = {
   request: VacationRequest;
   employee?: Employee;
@@ -34,8 +36,8 @@ export function VacationRequestCard({
         ) : null}
 
         <p className="mt-1 text-sm text-slate-500">
-          {department ? department.name : "Keine Abteilung"} · {request.period} ·{" "}
-          {request.days} Tage
+          {department ? department.name : "Keine Abteilung"} ·{" "}
+          {formatDateRange(request.startDate, request.endDate)} · {request.days} Tage
         </p>
       </div>
 

@@ -8,13 +8,14 @@ export type VacationRequest = {
   id: string;
   employeeId: string;
   absenceType: AbsenceType;
-  period: string;
+  startDate: string;
+  endDate: string;
   days: number;
   status: RequestStatus;
   createdAt: string;
-  comment?: string;
   approvalStepsCompleted: number;
   approvalStepsRequired: number;
+  comment?: string;
 };
 
 export type VacationBalance = {
@@ -25,11 +26,6 @@ export type VacationBalance = {
   available: number;
 };
 
-export type UpcomingAbsence = {
-  name: string;
-  department: string;
-  period: string;
-};
 
 export type DashboardStat = {
   title: string;

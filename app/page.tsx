@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { currentUser } from "@/lib/current-user";
+import { formatDateRange } from "@/lib/date-formatters";
 import {
   getDepartmentById,
   getEmployeeById,
@@ -125,7 +126,8 @@ export default function DashboardPage() {
 
                     <p className="mt-1 text-sm text-slate-500">
                       {department ? department.name : "Keine Abteilung"} ·{" "}
-                      {request.period} · {request.days} Tage
+                      {formatDateRange(request.startDate, request.endDate)} ·{" "}
+                      {request.days} Tage
                     </p>
                   </div>
 
@@ -155,15 +157,15 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid gap-3">
-            {visibleUpcomingAbsences.map((absence) => {
-              const employee = getEmployeeById(absence.employeeId);
+            {visibleUpcomingAbsences.map((request) => {
+              const employee = getEmployeeById(request.employeeId);
               const department = employee
                 ? getDepartmentById(employee.departmentId)
                 : undefined;
 
               return (
                 <div
-                  key={absence.id}
+                  key={request.id}
                   className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
                 >
                   <h4 className="font-semibold">
@@ -172,7 +174,7 @@ export default function DashboardPage() {
 
                   <p className="mt-1 text-sm text-slate-500">
                     {department ? department.name : "Keine Abteilung"} ·{" "}
-                    {absence.period}
+                    {formatDateRange(request.startDate, request.endDate)}
                   </p>
                 </div>
               );

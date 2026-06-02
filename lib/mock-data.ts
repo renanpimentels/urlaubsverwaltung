@@ -1,7 +1,6 @@
 import type {
   DashboardStat,
   Employee,
-  UpcomingAbsence,
   VacationBalance,
   VacationRequest,
   Department
@@ -87,10 +86,11 @@ export const vacationRequests: VacationRequest[] = [
     id: "req-001",
     employeeId: "emp-001",
     absenceType: "Urlaub",
-    period: "03.06.2026 - 07.06.2026",
+    startDate: "2026-06-03",
+    endDate: "2026-06-07",
     days: 5,
     status: "Genehmigt",
-    createdAt: "20.05.2026",
+    createdAt: "2026-05-20",
     approvalStepsCompleted: 2,
     approvalStepsRequired: 2,
     comment: "Sommerurlaub",
@@ -99,10 +99,11 @@ export const vacationRequests: VacationRequest[] = [
     id: "req-002",
     employeeId: "emp-002",
     absenceType: "Urlaub",
-    period: "15.07.2026 - 26.07.2026",
+    startDate: "2026-07-15",
+    endDate: "2026-07-26",
     days: 10,
     status: "Ausstehend",
-    createdAt: "28.05.2026",
+    createdAt: "2026-05-28",
     approvalStepsCompleted: 1,
     approvalStepsRequired: 2,
     comment: "Familienurlaub",
@@ -111,10 +112,11 @@ export const vacationRequests: VacationRequest[] = [
     id: "req-003",
     employeeId: "emp-003",
     absenceType: "Sonderurlaub",
-    period: "12.08.2026 - 14.08.2026",
+    startDate: "2026-08-12",
+    endDate: "2026-08-14",
     days: 3,
-    status: "Ausstehend",
-    createdAt: "30.05.2026",
+    status: "Abgelehnt",
+    createdAt: "2026-05-30",
     approvalStepsCompleted: 0,
     approvalStepsRequired: 2,
     comment: "Privater Termin",
@@ -147,23 +149,6 @@ export const dashboardStats: DashboardStat[] = [
 
 
 
-export const upcomingAbsences: UpcomingAbsence[] = [
-  {
-    name: "Anna Becker",
-    department: "Entwicklung",
-    period: "10.06.2026 - 14.06.2026",
-  },
-  {
-    name: "Jonas Weber",
-    department: "Support",
-    period: "18.06.2026 - 21.06.2026",
-  },
-  {
-    name: "Lisa Schneider",
-    department: "Vertrieb",
-    period: "01.07.2026 - 05.07.2026",
-  },
-];
 
 
 
