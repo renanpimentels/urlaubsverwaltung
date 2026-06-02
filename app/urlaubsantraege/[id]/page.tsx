@@ -5,7 +5,12 @@ import { notFound } from "next/navigation";
 import { VacationBalanceCard} from "@/components/VacationBalanceCard";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
-import { getVacationBalanceByEmployeeId, getVacationRequestById } from "@/lib/mock-queries";
+
+import {
+  getEmployeeById,
+  getVacationBalanceByEmployeeId,
+  getVacationRequestById,
+} from "@/lib/mock-queries";
 
 
 
@@ -27,6 +32,7 @@ export default async function VacationRequestDetailPage({
   }
 
   const vacationBalance = getVacationBalanceByEmployeeId(request.employeeId);
+  const employee = getEmployeeById(request.employeeId);
 
   return (
     <>
@@ -46,12 +52,16 @@ export default async function VacationRequestDetailPage({
               <p className="text-sm font-semibold text-slate-500">
                 Mitarbeiter
               </p>
-              <p className="mt-1 font-medium">{request.employeeName}</p>
+              <p className="mt-1 font-medium">
+                {employee ? employee.name : "Unbekannter Mitarbeiter"}
+              </p>
             </div>
 
             <div className="rounded-2xl bg-slate-50 p-4">
               <p className="text-sm font-semibold text-slate-500">Abteilung</p>
-              <p className="mt-1 font-medium">{request.department}</p>
+              <p className="mt-1 font-medium">
+                {employee ? employee.department : "Keine Abteilung"}
+              </p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">

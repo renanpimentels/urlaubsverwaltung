@@ -6,8 +6,6 @@ export type VacationRequest = {
   id: string;
   employeeId: string;
   absenceType: AbsenceType;
-  employeeName: string;
-  department: string;
   period: string;
   days: number;
   status: RequestStatus;

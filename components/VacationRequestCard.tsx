@@ -2,23 +2,17 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { StatusBadge } from "@/components/StatusBadge";
-import type { VacationRequest } from "@/lib/types";
+import type { Employee, VacationRequest } from "@/lib/types";
 
 type VacationRequestCardProps = {
   request: VacationRequest;
+  employee?: Employee;
   actions?: ReactNode;
-};
-
-export type VacationBalance = {
-  employeeId: string;
-  total: number;
-  used: number;
-  pending: number;
-  available: number;
 };
 
 export function VacationRequestCard({
   request,
+  employee,
   actions,
 }: VacationRequestCardProps) {
   return (
@@ -27,7 +21,7 @@ export function VacationRequestCard({
         <h3 className="font-semibold">{request.absenceType}</h3>
 
         <p className="mt-1 text-sm font-medium text-slate-700">
-          {request.employeeName}
+          {employee ? employee.name : "Unbekannter Mitarbeiter"}
         </p>
 
         {request.comment ? (
@@ -35,7 +29,8 @@ export function VacationRequestCard({
         ) : null}
 
         <p className="mt-1 text-sm text-slate-500">
-          {request.department} · {request.period} · {request.days} Tage
+          {employee ? employee.department : "Keine Abteilung"} ·{" "}
+          {request.period} · {request.days} Tage
         </p>
       </div>
 

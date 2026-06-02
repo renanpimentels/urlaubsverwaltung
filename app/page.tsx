@@ -4,8 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { VacationRequestCard } from "@/components/VacationRequestCard";
 
-
-
+import { getEmployeeById } from "@/lib/mock-queries";
 
 import {
   dashboardStats,
@@ -61,9 +60,17 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid gap-3">
-            {vacationRequests.map((request) => (
-              <VacationRequestCard key={request.id} request={request} />
-            ))}
+            {vacationRequests.map((request) => {
+              const employee = getEmployeeById(request.employeeId);
+
+              return (
+                <VacationRequestCard
+                  key={request.id}
+                  request={request}
+                  employee={employee}
+                />
+              );
+            })}
           </div>
         </article>
 

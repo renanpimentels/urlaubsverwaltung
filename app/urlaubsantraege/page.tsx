@@ -3,6 +3,9 @@ import { VacationRequestCard } from "@/components/VacationRequestCard";
 import { vacationRequests } from "@/lib/mock-data";
 import Link from "next/link";
 
+import { getEmployeeById } from "@/lib/mock-queries";
+
+
 export default function VacationRequestsPage() {
   return (
     <>
@@ -29,9 +32,17 @@ export default function VacationRequestsPage() {
         </div>
 
         <div className="grid gap-3">
-          {vacationRequests.map((request) => (
-            <VacationRequestCard key={request.id} request={request} />
-          ))}
+          {vacationRequests.map((request) => {
+              const employee = getEmployeeById(request.employeeId);
+
+              return (
+                <VacationRequestCard
+                  key={request.id}
+                  request={request}
+                  employee={employee}
+                />
+              );
+            })}
         </div>
       </section>
     </>
