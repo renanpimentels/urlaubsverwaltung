@@ -1,3 +1,4 @@
+import { getDepartmentById } from "@/lib/mock-queries";
 import type { Employee } from "@/lib/types";
 
 type EmployeeCardProps = {
@@ -5,6 +6,8 @@ type EmployeeCardProps = {
 };
 
 export function EmployeeCard({ employee }: EmployeeCardProps) {
+  const department = getDepartmentById(employee.departmentId);
+
   return (
     <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-5 flex items-start justify-between gap-4">
@@ -26,7 +29,9 @@ export function EmployeeCard({ employee }: EmployeeCardProps) {
 
       <div className="mb-5 rounded-2xl bg-slate-50 p-4">
         <p className="text-sm font-semibold text-slate-500">Abteilung</p>
-        <p className="mt-1 font-medium">{employee.department}</p>
+        <p className="mt-1 font-medium">
+          {department ? department.name : "Keine Abteilung"}
+        </p>
       </div>
 
       <div className="grid grid-cols-3 gap-3 text-center">
@@ -39,9 +44,7 @@ export function EmployeeCard({ employee }: EmployeeCardProps) {
 
         <div className="rounded-2xl bg-slate-50 p-3">
           <p className="text-xs text-slate-500">Genutzt</p>
-          <p className="mt-1 text-lg font-bold">
-            {employee.vacationDaysUsed}
-          </p>
+          <p className="mt-1 text-lg font-bold">{employee.vacationDaysUsed}</p>
         </div>
 
         <div className="rounded-2xl bg-slate-50 p-3">

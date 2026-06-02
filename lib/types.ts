@@ -11,6 +11,8 @@ export type VacationRequest = {
   status: RequestStatus;
   createdAt: string;
   comment?: string;
+  approvalStepsCompleted: number;
+  approvalStepsRequired: number;
 };
 
 export type VacationBalance = {
@@ -37,10 +39,17 @@ export type DashboardStat = {
 export type Employee = {
   id: string;
   name: string;
-  department: string;
+  departmentId: string;
   role: string;
   vacationDaysTotal: number;
   vacationDaysUsed: number;
   vacationDaysRemaining: number;
   isActive: boolean;
+};
+
+export type Department = {
+  id: string;
+  name: string;
+  managerId: string;
+  finalApproverId?: string;
 };

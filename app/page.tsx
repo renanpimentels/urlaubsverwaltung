@@ -2,15 +2,15 @@ import Link from "next/link";
 
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
-import { VacationRequestCard } from "@/components/VacationRequestCard";
-
-import { getEmployeeById } from "@/lib/mock-queries";
+import { StatusBadge } from "@/components/StatusBadge";
 
 import {
   dashboardStats,
   upcomingAbsences,
   vacationRequests,
 } from "@/lib/mock-data";
+
+import { getDepartmentById, getEmployeeById } from "@/lib/mock-queries";
 
 export default function DashboardPage() {
   return (
@@ -62,13 +62,40 @@ export default function DashboardPage() {
           <div className="grid gap-3">
             {vacationRequests.map((request) => {
               const employee = getEmployeeById(request.employeeId);
+              const department = employee
+                ? getDepartmentById(employee.departmentId)
+                : undefined;
 
               return (
-                <VacationRequestCard
+                <div
                   key={request.id}
-                  request={request}
-                  employee={employee}
-                />
+                  className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center"
+                >
+                  <div>
+                    <h4 className="font-semibold">{request.absenceType}</h4>
+
+                    <p className="mt-1 text-sm font-medium text-slate-700">
+                      {employee ? employee.name : "Unbekannter Mitarbeiter"}
+                    </p>
+
+                    {request.comment ? (
+                      <p className="mt-1 text-sm text-slate-500">
+                        {request.comment}
+                      </p>
+                    ) : null}
+
+                    <p className="mt-1 text-sm text-slate-500">
+                      {department ? department.name : "Keine Abteilung"} ·{" "}
+                      {request.period} · {request.days} Tage
+                    </p>
+                  </div>
+
+                  <StatusBadge
+                    status={request.status}
+                    approvalStepsCompleted={request.approvalStepsCompleted}
+                    approvalStepsRequired={request.approvalStepsRequired}
+                  />
+                </div>
               );
             })}
           </div>
