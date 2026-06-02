@@ -1,8 +1,15 @@
 import { PageHeader } from "@/components/PageHeader";
 import { VacationBalanceCard } from "@/components/VacationBalanceCard";
 import { VacationRequestForm } from "@/components/VacationRequestForm";
+import { vacationBalances } from "@/lib/mock-data";
+
+const currentEmployeeId = "emp-001";
 
 export default function NewVacationRequestPage() {
+  const vacationBalance = vacationBalances.find(
+    (balance) => balance.employeeId === currentEmployeeId
+  );
+
   return (
     <>
       <PageHeader
@@ -14,13 +21,15 @@ export default function NewVacationRequestPage() {
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <VacationRequestForm />
 
-        <VacationBalanceCard
-          total={30}
-          used={8}
-          pending={10}
-          available={12}
-          description="Mockup-Übersicht für den aktuell ausgewählten Mitarbeiter."
-        />
+        {vacationBalance ? (
+          <VacationBalanceCard
+            total={vacationBalance.total}
+            used={vacationBalance.used}
+            pending={vacationBalance.pending}
+            available={vacationBalance.available}
+            description="Mockup-Übersicht für den aktuell ausgewählten Mitarbeiter."
+          />
+        ) : null}
       </section>
     </>
   );

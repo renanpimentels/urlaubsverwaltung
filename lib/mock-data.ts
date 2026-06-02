@@ -2,6 +2,7 @@ import type {
   DashboardStat,
   Employee,
   UpcomingAbsence,
+  VacationBalance,
   VacationRequest,
 } from "./types";
 
@@ -33,6 +34,7 @@ export const dashboardStats: DashboardStat[] = [
 export const vacationRequests: VacationRequest[] = [
   {
     id: "req-001",
+    employeeId: "emp-001",
     absenceType: "Urlaub",
     employeeName: "Max Müller",
     department: "Entwicklung",
@@ -44,6 +46,7 @@ export const vacationRequests: VacationRequest[] = [
   },
   {
     id: "req-002",
+    employeeId: "emp-002",
     absenceType: "Urlaub",
     employeeName: "Anna Becker",
     department: "Entwicklung",
@@ -55,6 +58,7 @@ export const vacationRequests: VacationRequest[] = [
   },
   {
     id: "req-003",
+    employeeId: "emp-003",
     absenceType: "Sonderurlaub",
     employeeName: "Jonas Weber",
     department: "Support",
@@ -134,5 +138,43 @@ export const employees: Employee[] = [
     vacationDaysUsed: 26,
     vacationDaysRemaining: 0,
     isActive: false,
+  },
+];
+
+export const vacationBalances: VacationBalance[] = [
+  {
+    employeeId: "emp-001",
+    total: 30,
+    used: 12,
+    pending: 0,
+    available: 18,
+  },
+  {
+    employeeId: "emp-002",
+    total: 30,
+    used: 8,
+    pending: 10,
+    available: 12,
+  },
+  {
+    employeeId: "emp-003",
+    total: 28,
+    used: 14,
+    pending: 0,
+    available: 14,
+  },
+  {
+    employeeId: "emp-004",
+    total: 30,
+    used: 20,
+    pending: 0,
+    available: 10,
+  },
+  {
+    employeeId: "emp-005",
+    total: 26,
+    used: 26,
+    pending: 0,
+    available: 0,
   },
 ];
