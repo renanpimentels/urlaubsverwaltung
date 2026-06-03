@@ -6,6 +6,8 @@ import {
   getVisibleEmployeesForUser,
 } from "@/lib/mock-queries";
 
+import Link from "next/link";
+
 export default function EmployeesPage() {
   const currentEmployee = getEmployeeById(currentUser.employeeId);
 
@@ -26,9 +28,12 @@ export default function EmployeesPage() {
         } sichtbar sind.`}
         action={
           canCreateEmployee ? (
-            <button className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800">
+            <Link
+              href="/mitarbeiter-erstellen"
+              className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
+            >
               Mitarbeiter hinzufügen
-            </button>
+            </Link>
           ) : null
         }
       />
