@@ -3,22 +3,27 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import type { AbsenceType, Employee } from "@/lib/types";
 import { calculateBusinessDays } from "@/lib/vacation-calculations";
 
 type FormState = {
-  employee: string;
+  employeeId: string;
   startDate: string;
   endDate: string;
-  absenceType: string;
+  absenceType: AbsenceType;
   comment: string;
 };
 
 type VacationRequestFormProps = {
+  selectableEmployees: Employee[];
+  defaultEmployeeId: string;
+  onEmployeeChange?: (employeeId: string) => void;
   onRequestedDaysChange?: (requestedDays: number) => void;
+  onAbsenceTypeChange?: (absenceType: AbsenceType) => void;
 };
 
 const initialFormState: FormState = {
-  employee: "",
+  employeeId: "",
   startDate: "",
   endDate: "",
   absenceType: "Urlaub",
@@ -26,9 +31,17 @@ const initialFormState: FormState = {
 };
 
 export function VacationRequestForm({
+  selectableEmployees,
+  defaultEmployeeId,
+  onEmployeeChange,
   onRequestedDaysChange,
+  onAbsenceTypeChange,
 }: VacationRequestFormProps) {
-  const [formData, setFormData] = useState<FormState>(initialFormState);
+  const [formData, setFormData] = useState<FormState>({
+    ...initialFormState,
+    employeeId: defaultEmployeeId,
+  });
+
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -37,9 +50,19 @@ export function VacationRequestForm({
     formData.endDate
   );
 
+  const isEmployeeSelectionDisabled = selectableEmployees.length <= 1;
+
   useEffect(() => {
     onRequestedDaysChange?.(requestedDays);
   }, [onRequestedDaysChange, requestedDays]);
+
+  useEffect(() => {
+    onEmployeeChange?.(formData.employeeId);
+  }, [formData.employeeId, onEmployeeChange]);
+
+  useEffect(() => {
+    onAbsenceTypeChange?.(formData.absenceType);
+  }, [formData.absenceType, onAbsenceTypeChange]);
 
   function updateField(field: keyof FormState, value: string) {
     setFormData((currentFormData) => ({
@@ -51,8 +74,18 @@ export function VacationRequestForm({
     setSuccessMessage("");
   }
 
+  function updateAbsenceType(value: AbsenceType) {
+    setFormData((currentFormData) => ({
+      ...currentFormData,
+      absenceType: value,
+    }));
+
+    setErrorMessage("");
+    setSuccessMessage("");
+  }
+
   function handleSubmit() {
-    if (!formData.employee) {
+    if (!formData.employeeId) {
       setErrorMessage("Bitte wähle einen Mitarbeiter aus.");
       return;
     }
@@ -74,13 +107,13 @@ export function VacationRequestForm({
 
     if (requestedDays <= 0) {
       setErrorMessage(
-        "Für den ausgewählten Zeitraum wurden keine Urlaubstage berechnet."
+        "Für den ausgewählten Zeitraum wurden keine Abwesenheitstage berechnet."
       );
       return;
     }
 
     setSuccessMessage(
-      `Der Urlaubsantrag über ${requestedDays} Urlaubstage wurde erfolgreich vorbereitet. In dieser Mockup-Version wird er noch nicht gespeichert.`
+      `Der Antrag über ${requestedDays} Abwesenheitstage wurde erfolgreich vorbereitet. In dieser Mockup-Version wird er noch nicht gespeichert.`
     );
   }
 
@@ -99,17 +132,25 @@ export function VacationRequestForm({
           <span className="text-sm font-semibold text-slate-700">
             Mitarbeiter
           </span>
+
           <select
-            value={formData.employee}
-            onChange={(event) => updateField("employee", event.target.value)}
-            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+            value={formData.employeeId}
+            disabled={isEmployeeSelectionDisabled}
+            onChange={(event) => updateField("employeeId", event.target.value)}
+            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600 disabled:bg-slate-100 disabled:text-slate-500"
           >
-            <option value="">Bitte auswählen</option>
-            <option value="Max Müller">Max Müller</option>
-            <option value="Anna Becker">Anna Becker</option>
-            <option value="Jonas Weber">Jonas Weber</option>
-            <option value="Lisa Schneider">Lisa Schneider</option>
+            {selectableEmployees.map((employee) => (
+              <option key={employee.id} value={employee.id}>
+                {employee.name}
+              </option>
+            ))}
           </select>
+
+          {isEmployeeSelectionDisabled ? (
+            <p className="text-sm text-slate-500">
+              Für normale Mitarbeiter ist nur der eigene Antrag möglich.
+            </p>
+          ) : null}
         </label>
 
         <div className="grid gap-5 md:grid-cols-2">
@@ -145,16 +186,27 @@ export function VacationRequestForm({
 
           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm text-slate-500">Beantragte Urlaubstage</p>
+              <p className="text-sm text-slate-500">
+                Beantragte Abwesenheitstage
+              </p>
               <p className="mt-1 text-3xl font-bold text-slate-950">
                 {requestedDays}
               </p>
             </div>
 
-            <p className="max-w-sm text-sm text-slate-500">
-              Wochenenden werden in dieser Mockup-Version nicht mitgezählt.
-              Feiertage werden später ergänzt.
-            </p>
+            <div className="max-w-sm text-sm text-slate-500">
+              <p>
+                Wochenenden werden in dieser Mockup-Version nicht mitgezählt.
+                Feiertage werden später ergänzt.
+              </p>
+
+              {formData.absenceType === "Sonderurlaub" ? (
+                <p className="mt-2 text-amber-700">
+                  Sonderurlaub wird als Abwesenheit berechnet, reduziert aber
+                  den regulären Urlaubssaldo nicht automatisch.
+                </p>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -165,7 +217,7 @@ export function VacationRequestForm({
           <select
             value={formData.absenceType}
             onChange={(event) =>
-              updateField("absenceType", event.target.value)
+              updateAbsenceType(event.target.value as AbsenceType)
             }
             className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
           >

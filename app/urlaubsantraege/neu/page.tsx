@@ -5,14 +5,33 @@ import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { VacationBalanceCard } from "@/components/VacationBalanceCard";
 import { VacationRequestForm } from "@/components/VacationRequestForm";
-import { getVacationBalanceByEmployeeId } from "@/lib/mock-queries";
-
-const currentEmployeeId = "emp-001";
+import { currentUser } from "@/lib/current-user";
+import {
+  getSelectableEmployeesForVacationRequest,
+  getVacationBalanceByEmployeeId,
+} from "@/lib/mock-queries";
+import type { AbsenceType } from "@/lib/types";
 
 export default function NewVacationRequestPage() {
-  const [requestedDays, setRequestedDays] = useState(0);
+  const selectableEmployees = getSelectableEmployeesForVacationRequest(
+    currentUser.employeeId,
+    currentUser.role
+  );
 
-  const vacationBalance = getVacationBalanceByEmployeeId(currentEmployeeId);
+  const defaultEmployeeId = selectableEmployees[0]?.id ?? currentUser.employeeId;
+
+  const [selectedEmployeeId, setSelectedEmployeeId] =
+    useState(defaultEmployeeId);
+  const [requestedDays, setRequestedDays] = useState(0);
+  const [selectedAbsenceType, setSelectedAbsenceType] =
+    useState<AbsenceType>("Urlaub");
+
+  const vacationBalance = getVacationBalanceByEmployeeId(selectedEmployeeId);
+
+  const consumesVacationBalance = selectedAbsenceType === "Urlaub";
+
+  const requestedVacationDays =
+    consumesVacationBalance && requestedDays > 0 ? requestedDays : undefined;
 
   return (
     <>
@@ -23,7 +42,13 @@ export default function NewVacationRequestPage() {
       />
 
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <VacationRequestForm onRequestedDaysChange={setRequestedDays} />
+        <VacationRequestForm
+          selectableEmployees={selectableEmployees}
+          defaultEmployeeId={defaultEmployeeId}
+          onEmployeeChange={setSelectedEmployeeId}
+          onRequestedDaysChange={setRequestedDays}
+          onAbsenceTypeChange={setSelectedAbsenceType}
+        />
 
         {vacationBalance ? (
           <VacationBalanceCard
@@ -31,7 +56,7 @@ export default function NewVacationRequestPage() {
             used={vacationBalance.used}
             pending={vacationBalance.pending}
             available={vacationBalance.available}
-            requestedDays={requestedDays > 0 ? requestedDays : undefined}
+            requestedDays={requestedVacationDays}
             description="Mockup-Übersicht für den aktuell ausgewählten Mitarbeiter."
           />
         ) : null}

@@ -1,25 +1,32 @@
+export type UserRole = "employee" | "manager" | "hr" | "admin";
+
+export type CompanySettings = {
+  defaultVacationDaysPerYear: number;
+};
+
 export type RequestStatus = "Genehmigt" | "Ausstehend" | "Abgelehnt";
 
 export type AbsenceType = "Urlaub" | "Sonderurlaub";
 
-export type UserRole = "employee" | "manager" | "hr" | "admin";
-
-
-export type CompanySettings = {
-  defaultVacationDaysPerYear: number;
+export type Department = {
+  id: string;
+  name: string;
+  managerId: string;
+  finalApproverId?: string;
 };
 
 export type VacationRequest = {
   id: string;
   employeeId: string;
   absenceType: AbsenceType;
-  period: string;
+  startDate: string;
+  endDate: string;
   days: number;
   status: RequestStatus;
   createdAt: string;
-  comment?: string;
   approvalStepsCompleted: number;
   approvalStepsRequired: number;
+  comment?: string;
 };
 
 export type VacationBalance = {
@@ -34,6 +41,16 @@ export type VacationBalance = {
   expiresAt?: string;
 };
 
+export type Employee = {
+  id: string;
+  name: string;
+  departmentId: string;
+  role: string;
+  employmentStartDate: string;
+  contractVacationDaysPerYear: number;
+  isActive: boolean;
+};
+
 export type UpcomingAbsence = {
   name: string;
   department: string;
@@ -45,21 +62,4 @@ export type DashboardStat = {
   value: string;
   description: string;
   variant?: "default" | "warning";
-};
-
-export type Employee = {
-  id: string;
-  name: string;
-  departmentId: string;
-  role: string;
-  employmentStartDate: string;
-  contractVacationDaysPerYear: number;
-  isActive: boolean;
-};
-
-export type Department = {
-  id: string;
-  name: string;
-  managerId: string;
-  finalApproverId?: string;
 };
