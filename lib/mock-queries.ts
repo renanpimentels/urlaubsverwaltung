@@ -3,6 +3,7 @@ import {
   companySettings,
   departments,
   employees,
+  users,
   vacationBalances,
   vacationRequests,
 } from "@/lib/mock-data";
@@ -256,4 +257,22 @@ export function canCreateEmployee(role: UserRole) {
 
 export function canAccessSettings(role: UserRole) {
   return role === "hr" || role === "admin";
+}
+
+export function getUserById(id: string) {
+  return users.find((user) => user.id === id);
+}
+
+export function getUserByEmployeeId(employeeId: string) {
+  return users.find((user) => user.employeeId === employeeId);
+}
+
+export function getCurrentEmployeeByUserId(userId: string) {
+  const user = getUserById(userId);
+
+  if (!user) {
+    return undefined;
+  }
+
+  return getEmployeeById(user.employeeId);
 }
