@@ -1,7 +1,7 @@
+import { formatDate } from "@/lib/date-formatters";
 import { getDepartmentById } from "@/lib/mock-queries";
 import type { Employee } from "@/lib/types";
-import { formatDate } from "@/lib/date-formatters";
-
+import { calculateProRatedVacationEntitlement } from "@/lib/vacation-entitlement";
 
 type EmployeeCardProps = {
   employee: Employee;
@@ -9,6 +9,13 @@ type EmployeeCardProps = {
 
 export function EmployeeCard({ employee }: EmployeeCardProps) {
   const department = getDepartmentById(employee.departmentId);
+  const currentYear = new Date().getFullYear();
+
+  const calculatedEntitlement = calculateProRatedVacationEntitlement(
+    employee.employmentStartDate,
+    employee.contractVacationDaysPerYear,
+    currentYear
+  );
 
   return (
     <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -47,6 +54,16 @@ export function EmployeeCard({ employee }: EmployeeCardProps) {
           </p>
           <p className="mt-1 font-medium">
             {employee.contractVacationDaysPerYear} Tage
+          </p>
+        </div>
+
+        <div className="rounded-2xl bg-slate-50 p-4">
+          <p className="text-sm font-semibold text-slate-500">
+            Berechneter Anspruch {currentYear}
+          </p>
+          <p className="mt-1 font-medium">{calculatedEntitlement} Tage</p>
+          <p className="mt-1 text-sm text-slate-500">
+            Mockup-Berechnung anhand des Eintrittsdatums.
           </p>
         </div>
 
