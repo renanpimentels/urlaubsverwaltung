@@ -137,8 +137,10 @@ export function getSelectableEmployeesForVacationRequest(
   if (canViewManagedDepartmentData(role)) {
     const managedDepartmentIds = getManagedDepartmentIdsForEmployee(employeeId);
 
-    return employees.filter((employee) =>
-      managedDepartmentIds.includes(employee.departmentId)
+    return employees.filter(
+      (employee) =>
+        employee.id === employeeId ||
+        managedDepartmentIds.includes(employee.departmentId)
     );
   }
 
