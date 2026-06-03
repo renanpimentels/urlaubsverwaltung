@@ -1,4 +1,3 @@
-export type UserRole = "employee" | "manager" | "hr" | "admin";
 
 export type CompanySettings = {
   defaultVacationDaysPerYear: number;
@@ -9,6 +8,16 @@ export type RequestStatus = "Genehmigt" | "Ausstehend" | "Abgelehnt";
 export type AbsenceType = "Urlaub" | "Sonderurlaub";
 
 export type ApprovalDecisionType = "approved" | "rejected";
+
+export type UserRole = "employee" | "manager" | "hr" | "admin";
+
+export type User = {
+  id: string;
+  employeeId: string;
+  email: string;
+  role: UserRole;
+  isActive: boolean;
+};
 
 
 export type Department = {

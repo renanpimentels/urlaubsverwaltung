@@ -5,6 +5,7 @@ import type {
   Department,
   Employee,
   UpcomingAbsence,
+  User,
   VacationBalance,
   VacationRequest,
 } from "./types";
@@ -12,6 +13,121 @@ import type {
 export const companySettings: CompanySettings = {
   defaultVacationDaysPerYear: 30,
 };
+
+export const users: User[] = [
+  {
+    id: "user-001",
+    employeeId: "emp-001",
+    email: "michael.scott@dundermifflin.com",
+    role: "admin",
+    isActive: true,
+  },
+  {
+    id: "user-002",
+    employeeId: "emp-002",
+    email: "dwight.schrute@dundermifflin.com",
+    role: "manager",
+    isActive: true,
+  },
+  {
+    id: "user-003",
+    employeeId: "emp-003",
+    email: "oscar.martinez@dundermifflin.com",
+    role: "manager",
+    isActive: true,
+  },
+  {
+    id: "user-004",
+    employeeId: "emp-004",
+    email: "angela.martin@dundermifflin.com",
+    role: "employee",
+    isActive: true,
+  },
+  {
+    id: "user-005",
+    employeeId: "emp-005",
+    email: "kevin.malone@dundermifflin.com",
+    role: "employee",
+    isActive: true,
+  },
+  {
+    id: "user-006",
+    employeeId: "emp-006",
+    email: "jim.halpert@dundermifflin.com",
+    role: "employee",
+    isActive: true,
+  },
+  {
+    id: "user-007",
+    employeeId: "emp-007",
+    email: "pam.beesly@dundermifflin.com",
+    role: "employee",
+    isActive: true,
+  },
+  {
+    id: "user-008",
+    employeeId: "emp-008",
+    email: "stanley.hudson@dundermifflin.com",
+    role: "employee",
+    isActive: true,
+  },
+  {
+    id: "user-009",
+    employeeId: "emp-009",
+    email: "phyllis.vance@dundermifflin.com",
+    role: "employee",
+    isActive: true,
+  },
+  {
+    id: "user-010",
+    employeeId: "emp-010",
+    email: "andy.bernard@dundermifflin.com",
+    role: "employee",
+    isActive: true,
+  },
+  {
+    id: "user-011",
+    employeeId: "emp-011",
+    email: "meredith.palmer@dundermifflin.com",
+    role: "employee",
+    isActive: true,
+  },
+  {
+    id: "user-012",
+    employeeId: "emp-012",
+    email: "kelly.kapoor@dundermifflin.com",
+    role: "employee",
+    isActive: true,
+  },
+  {
+    id: "user-013",
+    employeeId: "emp-013",
+    email: "ryan.howard@dundermifflin.com",
+    role: "employee",
+    isActive: true,
+  },
+  {
+    id: "user-014",
+    employeeId: "emp-014",
+    email: "toby.flenderson@dundermifflin.com",
+    role: "hr",
+    isActive: true,
+  },
+  {
+    id: "user-015",
+    employeeId: "emp-015",
+    email: "darryl.philbin@dundermifflin.com",
+    role: "manager",
+    isActive: true,
+  },
+  {
+    id: "user-016",
+    employeeId: "emp-016",
+    email: "creed.bratton@dundermifflin.com",
+    role: "employee",
+    isActive: true,
+  },
+];
 
 export const departments: Department[] = [
   {
