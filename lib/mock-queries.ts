@@ -251,3 +251,7 @@ export function getApprovalDecisionByRequestIdAndStep(
 export function canCreateEmployee(role: UserRole) {
   return role === "hr" || role === "admin";
 }
+
+export function canAccessSettings(role: UserRole) {
+  return role === "hr" || role === "admin";
+}
