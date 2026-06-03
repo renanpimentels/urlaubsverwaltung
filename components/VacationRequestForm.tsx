@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { calculateBusinessDays } from "@/lib/vacation-calculations";
+
 type FormState = {
   employee: string;
   startDate: string;
@@ -23,6 +25,11 @@ export function VacationRequestForm() {
   const [formData, setFormData] = useState<FormState>(initialFormState);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
+  const requestedDays = calculateBusinessDays(
+    formData.startDate,
+    formData.endDate
+  );
 
   function updateField(field: keyof FormState, value: string) {
     setFormData((currentFormData) => ({
@@ -55,8 +62,15 @@ export function VacationRequestForm() {
       return;
     }
 
+    if (requestedDays <= 0) {
+      setErrorMessage(
+        "Für den ausgewählten Zeitraum wurden keine Urlaubstage berechnet."
+      );
+      return;
+    }
+
     setSuccessMessage(
-      "Der Urlaubsantrag wurde erfolgreich vorbereitet. In dieser Mockup-Version wird er noch nicht gespeichert."
+      `Der Urlaubsantrag über ${requestedDays} Urlaubstage wurde erfolgreich vorbereitet. In dieser Mockup-Version wird er noch nicht gespeichert.`
     );
   }
 
@@ -114,20 +128,40 @@ export function VacationRequestForm() {
           </label>
         </div>
 
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-sm font-semibold text-slate-700">
+            Zeitraum-Auswertung
+          </p>
+
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm text-slate-500">Beantragte Urlaubstage</p>
+              <p className="mt-1 text-3xl font-bold text-slate-950">
+                {requestedDays}
+              </p>
+            </div>
+
+            <p className="max-w-sm text-sm text-slate-500">
+              Wochenenden werden in dieser Mockup-Version nicht mitgezählt.
+              Feiertage werden später ergänzt.
+            </p>
+          </div>
+        </div>
+
         <label className="grid gap-2">
           <span className="text-sm font-semibold text-slate-700">
             Abwesenheitsart
           </span>
           <select
-              value={formData.absenceType}
-              onChange={(event) =>
-                updateField("absenceType", event.target.value)
-              }
-              className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
-            >
-              <option value="Urlaub">Urlaub</option>
-              <option value="Sonderurlaub">Sonderurlaub</option>
-            </select>
+            value={formData.absenceType}
+            onChange={(event) =>
+              updateField("absenceType", event.target.value)
+            }
+            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+          >
+            <option value="Urlaub">Urlaub</option>
+            <option value="Sonderurlaub">Sonderurlaub</option>
+          </select>
         </label>
 
         <label className="grid gap-2">
