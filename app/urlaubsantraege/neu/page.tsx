@@ -1,13 +1,17 @@
+"use client";
+
+import { useState } from "react";
+
 import { PageHeader } from "@/components/PageHeader";
 import { VacationBalanceCard } from "@/components/VacationBalanceCard";
 import { VacationRequestForm } from "@/components/VacationRequestForm";
-//import { vacationBalances } from "@/lib/mock-data";
 import { getVacationBalanceByEmployeeId } from "@/lib/mock-queries";
 
 const currentEmployeeId = "emp-001";
 
 export default function NewVacationRequestPage() {
-  
+  const [requestedDays, setRequestedDays] = useState(0);
+
   const vacationBalance = getVacationBalanceByEmployeeId(currentEmployeeId);
 
   return (
@@ -19,7 +23,7 @@ export default function NewVacationRequestPage() {
       />
 
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <VacationRequestForm />
+        <VacationRequestForm onRequestedDaysChange={setRequestedDays} />
 
         {vacationBalance ? (
           <VacationBalanceCard
@@ -27,6 +31,7 @@ export default function NewVacationRequestPage() {
             used={vacationBalance.used}
             pending={vacationBalance.pending}
             available={vacationBalance.available}
+            requestedDays={requestedDays > 0 ? requestedDays : undefined}
             description="Mockup-Übersicht für den aktuell ausgewählten Mitarbeiter."
           />
         ) : null}

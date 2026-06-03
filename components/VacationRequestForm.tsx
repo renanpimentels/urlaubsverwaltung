@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { calculateBusinessDays } from "@/lib/vacation-calculations";
 
@@ -13,6 +13,10 @@ type FormState = {
   comment: string;
 };
 
+type VacationRequestFormProps = {
+  onRequestedDaysChange?: (requestedDays: number) => void;
+};
+
 const initialFormState: FormState = {
   employee: "",
   startDate: "",
@@ -21,7 +25,9 @@ const initialFormState: FormState = {
   comment: "",
 };
 
-export function VacationRequestForm() {
+export function VacationRequestForm({
+  onRequestedDaysChange,
+}: VacationRequestFormProps) {
   const [formData, setFormData] = useState<FormState>(initialFormState);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -30,6 +36,10 @@ export function VacationRequestForm() {
     formData.startDate,
     formData.endDate
   );
+
+  useEffect(() => {
+    onRequestedDaysChange?.(requestedDays);
+  }, [onRequestedDaysChange, requestedDays]);
 
   function updateField(field: keyof FormState, value: string) {
     setFormData((currentFormData) => ({
