@@ -6,13 +6,15 @@ import { PageHeader } from "@/components/PageHeader";
 import { VacationRequestCard } from "@/components/VacationRequestCard";
 import { currentUser } from "@/lib/current-user";
 import {
-  getApprovableRequestsForEmployee,
   getEmployeeById,
+  getNextApproverIdForVacationRequest,
+  getVisibleApprovalRequestsForUser,
 } from "@/lib/mock-queries";
 import type { RequestStatus, VacationRequest } from "@/lib/types";
 
-const initialPendingRequests = getApprovableRequestsForEmployee(
-  currentUser.employeeId
+const initialPendingRequests = getVisibleApprovalRequestsForUser(
+  currentUser.employeeId,
+  currentUser.role
 );
 
 type DecisionMessage = {
@@ -48,8 +50,8 @@ export function ApprovalsList() {
     <>
       <PageHeader
         eyebrow="Genehmigungen"
-        title="Meine offenen Freigaben"
-        description="Hier siehst du Urlaubsanträge, bei denen du aktuell als nächster Genehmiger eingetragen bist."
+        title="Offene Freigaben"
+        description="Hier siehst du Urlaubsanträge, die du gemäß deiner Rolle prüfen darfst."
         action={
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm font-semibold text-amber-800">
             {pendingRequests.length} offene Freigaben

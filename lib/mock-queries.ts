@@ -84,9 +84,12 @@ export function getVisibleVacationRequestsForUser(
     return vacationRequests.filter((request) => {
       const requestEmployee = getEmployeeById(request.employeeId);
 
-      return requestEmployee
-        ? managedDepartmentIds.includes(requestEmployee.departmentId)
-        : false;
+      return (
+        request.employeeId === employeeId ||
+        (requestEmployee
+          ? managedDepartmentIds.includes(requestEmployee.departmentId)
+          : false)
+      );
     });
   }
 
@@ -110,8 +113,10 @@ export function getVisibleEmployeesForUser(employeeId: string, role: UserRole) {
   if (canViewManagedDepartmentData(role)) {
     const managedDepartmentIds = getManagedDepartmentIdsForEmployee(employeeId);
 
-    return employees.filter((employee) =>
-      managedDepartmentIds.includes(employee.departmentId)
+    return employees.filter(
+      (employee) =>
+        employee.id === employeeId ||
+        managedDepartmentIds.includes(employee.departmentId)
     );
   }
 
@@ -146,6 +151,10 @@ export function canUserViewEmployee(
     return true;
   }
 
+  if (currentEmployeeId === targetEmployeeId) {
+    return true;
+  }
+
   if (canViewManagedDepartmentData(role)) {
     const targetEmployee = getEmployeeById(targetEmployeeId);
 
@@ -159,7 +168,7 @@ export function canUserViewEmployee(
     return managedDepartmentIds.includes(targetEmployee.departmentId);
   }
 
-  return currentEmployeeId === targetEmployeeId;
+  return false;
 }
 
 export function getNextApproverIdForVacationRequest(request: VacationRequest) {
@@ -200,4 +209,19 @@ export function getApprovableRequestsForEmployee(employeeId: string) {
 
     return nextApproverId === employeeId;
   });
+}
+
+export function getVisibleApprovalRequestsForUser(
+  employeeId: string,
+  role: UserRole
+) {
+  if (role === "employee") {
+    return [];
+  }
+
+  if (canViewAllEmployeeData(role)) {
+    return getPendingVacationRequests();
+  }
+
+  return getApprovableRequestsForEmployee(employeeId);
 }
