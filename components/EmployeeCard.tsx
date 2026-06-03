@@ -6,6 +6,9 @@ import {
 import type { Employee } from "@/lib/types";
 import { calculateProRatedVacationEntitlement } from "@/lib/vacation-entitlement";
 
+import Link from "next/link";
+
+
 type EmployeeCardProps = {
   employee: Employee;
 };
@@ -98,6 +101,13 @@ export function EmployeeCard({ employee }: EmployeeCardProps) {
             </p>
           </div>
         </div>
+
+        <Link
+          href={`/mitarbeiter/${employee.id}`}
+          className="mt-4 inline-flex text-sm font-semibold text-teal-700 hover:text-teal-800"
+        >
+          Details anzeigen
+        </Link>
 
       </div>
     </article>
