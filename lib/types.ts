@@ -43,6 +43,8 @@ export type Employee = {
   name: string;
   departmentId: string;
   role: string;
+  employmentStartDate: string;
+  contractVacationDaysPerYear: number;
   vacationDaysTotal: number;
   vacationDaysUsed: number;
   vacationDaysRemaining: number;
