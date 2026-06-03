@@ -1,10 +1,13 @@
 import {
+  approvalDecisions,
   companySettings,
   departments,
   employees,
   vacationBalances,
   vacationRequests,
 } from "@/lib/mock-data";
+
+
 import type { UserRole, VacationRequest } from "@/lib/types";
 
 export function getCompanySettings() {
@@ -226,4 +229,21 @@ export function getVisibleApprovalRequestsForUser(
   return getApprovableRequestsForEmployee(employeeId);
 }
 
+export function getApprovalDecisionsByRequestId(vacationRequestId: string) {
+  return approvalDecisions
+    .filter((decision) => decision.vacationRequestId === vacationRequestId)
+    .sort((firstDecision, secondDecision) => {
+      return firstDecision.stepOrder - secondDecision.stepOrder;
+    });
+}
 
+export function getApprovalDecisionByRequestIdAndStep(
+  vacationRequestId: string,
+  stepOrder: number
+) {
+  return approvalDecisions.find(
+    (decision) =>
+      decision.vacationRequestId === vacationRequestId &&
+      decision.stepOrder === stepOrder
+  );
+}

@@ -1,4 +1,5 @@
 import type {
+  ApprovalDecision,
   CompanySettings,
   DashboardStat,
   Department,
@@ -330,6 +331,72 @@ export const vacationRequests: VacationRequest[] = [
     comment: "Winterurlaub",
   },
 ];
+
+
+export const approvalDecisions: ApprovalDecision[] = [
+  {
+    id: "approval-001",
+    vacationRequestId: "req-001",
+    approverEmployeeId: "emp-001",
+    stepOrder: 1,
+    decision: "approved",
+    decidedAt: "2026-05-21",
+    comment: "Freigegeben durch Abteilungsleitung.",
+  },
+  {
+    id: "approval-002",
+    vacationRequestId: "req-001",
+    approverEmployeeId: "emp-003",
+    stepOrder: 2,
+    decision: "approved",
+    decidedAt: "2026-05-22",
+    comment: "Finale Freigabe erteilt.",
+  },
+  {
+    id: "approval-003",
+    vacationRequestId: "req-003",
+    approverEmployeeId: "emp-001",
+    stepOrder: 1,
+    decision: "approved",
+    decidedAt: "2026-06-02",
+    comment: "Weitergeleitet zur finalen Freigabe.",
+  },
+  {
+    id: "approval-004",
+    vacationRequestId: "req-005",
+    approverEmployeeId: "emp-003",
+    stepOrder: 1,
+    decision: "approved",
+    decidedAt: "2026-06-05",
+    comment: "Buchhaltung hat zugestimmt.",
+  },
+  {
+    id: "approval-005",
+    vacationRequestId: "req-006",
+    approverEmployeeId: "emp-001",
+    stepOrder: 1,
+    decision: "rejected",
+    decidedAt: "2026-06-07",
+    comment: "Zeitraum wegen Teamplanung abgelehnt.",
+  },
+  {
+    id: "approval-006",
+    vacationRequestId: "req-009",
+    approverEmployeeId: "emp-001",
+    stepOrder: 1,
+    decision: "approved",
+    decidedAt: "2026-06-10",
+  },
+  {
+    id: "approval-007",
+    vacationRequestId: "req-009",
+    approverEmployeeId: "emp-003",
+    stepOrder: 2,
+    decision: "approved",
+    decidedAt: "2026-06-11",
+  },
+];
+
 
 export const dashboardStats: DashboardStat[] = [
   {
