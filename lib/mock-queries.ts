@@ -30,8 +30,17 @@ export function getVacationRequestById(id: string) {
   return vacationRequests.find((request) => request.id === id);
 }
 
-export function getVacationBalanceByEmployeeId(employeeId: string) {
-  return vacationBalances.find((balance) => balance.employeeId === employeeId);
+export function getVacationBalanceByEmployeeId(
+  employeeId: string,
+  year = new Date().getFullYear()
+) {
+  return vacationBalances.find(
+    (balance) => balance.employeeId === employeeId && balance.year === year
+  );
+}
+
+export function getVacationBalancesByEmployeeId(employeeId: string) {
+  return vacationBalances.filter((balance) => balance.employeeId === employeeId);
 }
 
 export function getPendingVacationRequests() {

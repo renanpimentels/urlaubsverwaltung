@@ -1,5 +1,8 @@
 import { formatDate } from "@/lib/date-formatters";
-import { getDepartmentById } from "@/lib/mock-queries";
+import {
+  getDepartmentById,
+  getVacationBalanceByEmployeeId,
+} from "@/lib/mock-queries";
 import type { Employee } from "@/lib/types";
 import { calculateProRatedVacationEntitlement } from "@/lib/vacation-entitlement";
 
@@ -9,6 +12,7 @@ type EmployeeCardProps = {
 
 export function EmployeeCard({ employee }: EmployeeCardProps) {
   const department = getDepartmentById(employee.departmentId);
+  const vacationBalance = getVacationBalanceByEmployeeId(employee.id);
   const currentYear = new Date().getFullYear();
 
   const calculatedEntitlement = calculateProRatedVacationEntitlement(
@@ -67,28 +71,34 @@ export function EmployeeCard({ employee }: EmployeeCardProps) {
           </p>
         </div>
 
+        <div className="rounded-2xl bg-slate-50 p-4">
+          <p className="text-sm font-semibold text-slate-500">Saldojahr</p>
+          <p className="mt-1 font-medium">{vacationBalance?.year ?? "—"}</p>
+        </div>
+
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl bg-slate-50 p-4">
             <p className="text-sm font-semibold text-slate-500">Gesamt</p>
             <p className="mt-1 text-2xl font-bold">
-              {employee.vacationDaysTotal}
+              {vacationBalance?.total ?? 0}
             </p>
           </div>
 
           <div className="rounded-2xl bg-slate-50 p-4">
             <p className="text-sm font-semibold text-slate-500">Genommen</p>
             <p className="mt-1 text-2xl font-bold">
-              {employee.vacationDaysUsed}
+              {vacationBalance?.used ?? 0}
             </p>
           </div>
 
           <div className="rounded-2xl bg-teal-50 p-4">
             <p className="text-sm font-semibold text-teal-700">Verfügbar</p>
             <p className="mt-1 text-2xl font-bold text-teal-800">
-              {employee.vacationDaysRemaining}
+              {vacationBalance?.available ?? 0}
             </p>
           </div>
         </div>
+
       </div>
     </article>
   );
