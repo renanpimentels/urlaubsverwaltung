@@ -8,11 +8,24 @@ export type RequestStatus = "Genehmigt" | "Ausstehend" | "Abgelehnt";
 
 export type AbsenceType = "Urlaub" | "Sonderurlaub";
 
+export type ApprovalDecisionType = "approved" | "rejected";
+
+
 export type Department = {
   id: string;
   name: string;
   managerId: string;
   finalApproverId?: string;
+};
+
+export type ApprovalDecision = {
+  id: string;
+  vacationRequestId: string;
+  approverEmployeeId: string;
+  stepOrder: number;
+  decision: ApprovalDecisionType;
+  decidedAt: string;
+  comment?: string;
 };
 
 export type VacationRequest = {
