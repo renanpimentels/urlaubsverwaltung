@@ -57,7 +57,7 @@ export function VacationBalanceCard({
         {requestedDays !== undefined ? (
           <div className="rounded-2xl border border-slate-200 p-4">
             <p className="text-sm font-semibold text-slate-500">
-              Beantragte Tage
+              Beantragte Urlaubstage
             </p>
             <p className="mt-1 text-2xl font-bold">{requestedDays}</p>
 

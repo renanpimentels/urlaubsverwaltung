@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import type { Employee } from "@/lib/types";
+import type { AbsenceType, Employee } from "@/lib/types";
 import { calculateBusinessDays } from "@/lib/vacation-calculations";
 
 type FormState = {
   employeeId: string;
   startDate: string;
   endDate: string;
-  absenceType: string;
+  absenceType: AbsenceType;
   comment: string;
 };
 
@@ -19,6 +19,7 @@ type VacationRequestFormProps = {
   defaultEmployeeId: string;
   onEmployeeChange?: (employeeId: string) => void;
   onRequestedDaysChange?: (requestedDays: number) => void;
+  onAbsenceTypeChange?: (absenceType: AbsenceType) => void;
 };
 
 const initialFormState: FormState = {
@@ -34,11 +35,13 @@ export function VacationRequestForm({
   defaultEmployeeId,
   onEmployeeChange,
   onRequestedDaysChange,
+  onAbsenceTypeChange,
 }: VacationRequestFormProps) {
   const [formData, setFormData] = useState<FormState>({
     ...initialFormState,
     employeeId: defaultEmployeeId,
   });
+
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -57,10 +60,24 @@ export function VacationRequestForm({
     onEmployeeChange?.(formData.employeeId);
   }, [formData.employeeId, onEmployeeChange]);
 
+  useEffect(() => {
+    onAbsenceTypeChange?.(formData.absenceType);
+  }, [formData.absenceType, onAbsenceTypeChange]);
+
   function updateField(field: keyof FormState, value: string) {
     setFormData((currentFormData) => ({
       ...currentFormData,
       [field]: value,
+    }));
+
+    setErrorMessage("");
+    setSuccessMessage("");
+  }
+
+  function updateAbsenceType(value: AbsenceType) {
+    setFormData((currentFormData) => ({
+      ...currentFormData,
+      absenceType: value,
     }));
 
     setErrorMessage("");
@@ -90,13 +107,13 @@ export function VacationRequestForm({
 
     if (requestedDays <= 0) {
       setErrorMessage(
-        "Für den ausgewählten Zeitraum wurden keine Urlaubstage berechnet."
+        "Für den ausgewählten Zeitraum wurden keine Abwesenheitstage berechnet."
       );
       return;
     }
 
     setSuccessMessage(
-      `Der Urlaubsantrag über ${requestedDays} Urlaubstage wurde erfolgreich vorbereitet. In dieser Mockup-Version wird er noch nicht gespeichert.`
+      `Der Antrag über ${requestedDays} Abwesenheitstage wurde erfolgreich vorbereitet. In dieser Mockup-Version wird er noch nicht gespeichert.`
     );
   }
 
@@ -169,16 +186,27 @@ export function VacationRequestForm({
 
           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm text-slate-500">Beantragte Urlaubstage</p>
+              <p className="text-sm text-slate-500">
+                Beantragte Abwesenheitstage
+              </p>
               <p className="mt-1 text-3xl font-bold text-slate-950">
                 {requestedDays}
               </p>
             </div>
 
-            <p className="max-w-sm text-sm text-slate-500">
-              Wochenenden werden in dieser Mockup-Version nicht mitgezählt.
-              Feiertage werden später ergänzt.
-            </p>
+            <div className="max-w-sm text-sm text-slate-500">
+              <p>
+                Wochenenden werden in dieser Mockup-Version nicht mitgezählt.
+                Feiertage werden später ergänzt.
+              </p>
+
+              {formData.absenceType === "Sonderurlaub" ? (
+                <p className="mt-2 text-amber-700">
+                  Sonderurlaub wird als Abwesenheit berechnet, reduziert aber
+                  den regulären Urlaubssaldo nicht automatisch.
+                </p>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -189,7 +217,7 @@ export function VacationRequestForm({
           <select
             value={formData.absenceType}
             onChange={(event) =>
-              updateField("absenceType", event.target.value)
+              updateAbsenceType(event.target.value as AbsenceType)
             }
             className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
           >

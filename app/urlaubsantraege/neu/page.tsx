@@ -10,6 +10,7 @@ import {
   getSelectableEmployeesForVacationRequest,
   getVacationBalanceByEmployeeId,
 } from "@/lib/mock-queries";
+import type { AbsenceType } from "@/lib/types";
 
 export default function NewVacationRequestPage() {
   const selectableEmployees = getSelectableEmployeesForVacationRequest(
@@ -17,15 +18,20 @@ export default function NewVacationRequestPage() {
     currentUser.role
   );
 
-  const defaultEmployeeId =
-    selectableEmployees[0]?.id ?? currentUser.employeeId;
+  const defaultEmployeeId = selectableEmployees[0]?.id ?? currentUser.employeeId;
 
   const [selectedEmployeeId, setSelectedEmployeeId] =
     useState(defaultEmployeeId);
   const [requestedDays, setRequestedDays] = useState(0);
+  const [selectedAbsenceType, setSelectedAbsenceType] =
+    useState<AbsenceType>("Urlaub");
 
-  const vacationBalance =
-    getVacationBalanceByEmployeeId(selectedEmployeeId);
+  const vacationBalance = getVacationBalanceByEmployeeId(selectedEmployeeId);
+
+  const consumesVacationBalance = selectedAbsenceType === "Urlaub";
+
+  const requestedVacationDays =
+    consumesVacationBalance && requestedDays > 0 ? requestedDays : undefined;
 
   return (
     <>
@@ -41,6 +47,7 @@ export default function NewVacationRequestPage() {
           defaultEmployeeId={defaultEmployeeId}
           onEmployeeChange={setSelectedEmployeeId}
           onRequestedDaysChange={setRequestedDays}
+          onAbsenceTypeChange={setSelectedAbsenceType}
         />
 
         {vacationBalance ? (
@@ -49,7 +56,7 @@ export default function NewVacationRequestPage() {
             used={vacationBalance.used}
             pending={vacationBalance.pending}
             available={vacationBalance.available}
-            requestedDays={requestedDays > 0 ? requestedDays : undefined}
+            requestedDays={requestedVacationDays}
             description="Mockup-Übersicht für den aktuell ausgewählten Mitarbeiter."
           />
         ) : null}
