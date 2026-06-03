@@ -1,6 +1,6 @@
+import { DepartmentSettingsList } from "@/components/DepartmentSettingsList";
 import { PageHeader } from "@/components/PageHeader";
-import { companySettings, departments } from "@/lib/mock-data";
-import { getEmployeeById } from "@/lib/mock-queries";
+import { companySettings, departments, employees } from "@/lib/mock-data";
 
 export default function SettingsPage() {
   return (
@@ -37,60 +37,10 @@ export default function SettingsPage() {
           </div>
         </article>
 
-        <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-5">
-            <h2 className="text-xl font-bold">Abteilungen</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Übersicht über Abteilungen, Manager und finale Genehmiger.
-            </p>
-          </div>
-
-          <div className="grid gap-3">
-            {departments.map((department) => {
-              const manager = getEmployeeById(department.managerId);
-
-              const finalApprover = department.finalApproverId
-                ? getEmployeeById(department.finalApproverId)
-                : undefined;
-
-              return (
-                <div
-                  key={department.id}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-                >
-                  <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
-                    <div>
-                      <h3 className="font-semibold">{department.name}</h3>
-                      <p className="mt-1 text-sm text-slate-500">
-                        Abteilungs-ID: {department.id}
-                      </p>
-                    </div>
-
-                    <div className="grid gap-3 text-sm md:min-w-80">
-                      <div className="rounded-xl bg-white p-3">
-                        <p className="font-semibold text-slate-500">Manager</p>
-                        <p className="mt-1 text-slate-900">
-                          {manager ? manager.name : "Nicht zugewiesen"}
-                        </p>
-                      </div>
-
-                      <div className="rounded-xl bg-white p-3">
-                        <p className="font-semibold text-slate-500">
-                          Final Approver
-                        </p>
-                        <p className="mt-1 text-slate-900">
-                          {finalApprover
-                            ? finalApprover.name
-                            : "Nicht zugewiesen"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </article>
+        <DepartmentSettingsList
+          departments={departments}
+          employees={employees}
+        />
       </section>
     </>
   );
