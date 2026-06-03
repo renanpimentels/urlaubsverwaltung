@@ -4,15 +4,16 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { VacationBalanceCard } from "@/components/VacationBalanceCard";
+import { currentUser } from "@/lib/current-user";
 import { formatDate, formatDateRange } from "@/lib/date-formatters";
 import {
+  canUserViewEmployee,
   getDepartmentById,
   getEmployeeById,
   getVacationBalanceByEmployeeId,
   getVacationBalancesByEmployeeId,
   getVisibleVacationRequestsForUser,
 } from "@/lib/mock-queries";
-import type { UserRole } from "@/lib/types";
 
 type EmployeeDetailPageProps = {
   params: Promise<{
@@ -31,13 +32,23 @@ export default async function EmployeeDetailPage({
     notFound();
   }
 
+  const canViewEmployee = canUserViewEmployee(
+    currentUser.employeeId,
+    currentUser.role,
+    employee.id
+  );
+
+  if (!canViewEmployee) {
+    notFound();
+  }
+
   const department = getDepartmentById(employee.departmentId);
   const currentBalance = getVacationBalanceByEmployeeId(employee.id);
   const allBalances = getVacationBalancesByEmployeeId(employee.id);
 
   const employeeRequests = getVisibleVacationRequestsForUser(
     employee.id,
-    "employee" as UserRole
+    "employee"
   );
 
   const carriedOverBalances = allBalances.filter(
