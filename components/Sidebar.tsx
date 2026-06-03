@@ -7,6 +7,7 @@ const navItems = [
   { label: "Urlaubsanträge", href: "/urlaubsantraege" },
   { label: "Mitarbeiter", href: "/mitarbeiter" },
   { label: "Genehmigungen", href: "/genehmigungen" },
+  { label: "Einstellungen", href: "/einstellungen" },
   { label: "Kalender", href: "#" },
 ];
 
