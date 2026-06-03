@@ -1,4 +1,5 @@
 import {
+  companySettings,
   departments,
   employees,
   vacationBalances,
@@ -6,6 +7,12 @@ import {
 } from "@/lib/mock-data";
 
 import type { UserRole } from "@/lib/types";
+
+
+
+export function getCompanySettings() {
+  return companySettings;
+}
 
 
 export function getDepartmentById(id: string) {

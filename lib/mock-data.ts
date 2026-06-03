@@ -1,11 +1,16 @@
 import type {
+  CompanySettings,
   DashboardStat,
+  Department,
   Employee,
   UpcomingAbsence,
   VacationBalance,
   VacationRequest,
-  Department
 } from "./types";
+
+export const companySettings: CompanySettings = {
+  defaultVacationDaysPerYear: 30,
+};
 
 
 export const departments: Department[] = [
