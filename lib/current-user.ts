@@ -1,6 +1,6 @@
 import { getUserById } from "@/lib/mock-queries";
 
-export const currentUser = getUserById("user-014");
+export const currentUser = getUserById("user-001");
 
 if (!currentUser) {
   throw new Error("Current user not found.");
