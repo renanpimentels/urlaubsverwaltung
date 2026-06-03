@@ -1,8 +1,16 @@
+import { notFound } from "next/navigation";
+
 import { EmployeeForm } from "@/components/EmployeeForm";
 import { PageHeader } from "@/components/PageHeader";
+import { currentUser } from "@/lib/current-user";
 import { companySettings, departments } from "@/lib/mock-data";
+import { canCreateEmployee } from "@/lib/mock-queries";
 
 export default function NewEmployeePage() {
+  if (!canCreateEmployee(currentUser.role)) {
+    notFound();
+  }
+
   return (
     <>
       <PageHeader
