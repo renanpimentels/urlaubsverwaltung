@@ -5,7 +5,7 @@ import {
   vacationBalances,
   vacationRequests,
 } from "@/lib/mock-data";
-import type { UserRole } from "@/lib/types";
+import type { UserRole, VacationRequest } from "@/lib/types";
 
 export function getCompanySettings() {
   return companySettings;
@@ -135,10 +135,31 @@ export function getSelectableEmployeesForVacationRequest(
   return employees.filter((employee) => employee.id === employeeId);
 }
 
-export function getNextApproverIdForRequest(requestId: string) {
-  const request = getVacationRequestById(requestId);
+export function canUserViewEmployee(
+  currentEmployeeId: string,
+  role: UserRole,
+  targetEmployeeId: string
+) {
+  if (canViewAllEmployeeData(role)) {
+    return true;
+  }
 
-  if (!request || request.status !== "Ausstehend") {
+  const currentEmployee = getEmployeeById(currentEmployeeId);
+  const targetEmployee = getEmployeeById(targetEmployeeId);
+
+  if (!currentEmployee || !targetEmployee) {
+    return false;
+  }
+
+  if (canViewDepartmentEmployeeData(role)) {
+    return currentEmployee.departmentId === targetEmployee.departmentId;
+  }
+
+  return currentEmployeeId === targetEmployeeId;
+}
+
+export function getNextApproverIdForVacationRequest(request: VacationRequest) {
+  if (request.status !== "Ausstehend") {
     return undefined;
   }
 
@@ -157,6 +178,16 @@ export function getNextApproverIdForRequest(requestId: string) {
   }
 
   return undefined;
+}
+
+export function getNextApproverIdForRequest(requestId: string) {
+  const request = getVacationRequestById(requestId);
+
+  if (!request) {
+    return undefined;
+  }
+
+  return getNextApproverIdForVacationRequest(request);
 }
 
 export function getApprovableRequestsForEmployee(employeeId: string) {
