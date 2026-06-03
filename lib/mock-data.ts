@@ -113,7 +113,7 @@ export const vacationRequests: VacationRequest[] = [
     days: 10,
     status: "Ausstehend",
     createdAt: "28.05.2026",
-    approvalStepsCompleted: 1,
+    approvalStepsCompleted: 0,
     approvalStepsRequired: 2,
     comment: "Familienurlaub",
   },
