@@ -1,12 +1,13 @@
+import Link from "next/link";
+
 import { EmployeeCard } from "@/components/EmployeeCard";
 import { PageHeader } from "@/components/PageHeader";
 import { currentUser } from "@/lib/current-user";
 import {
+  canCreateEmployee,
   getEmployeeById,
   getVisibleEmployeesForUser,
 } from "@/lib/mock-queries";
-
-import Link from "next/link";
 
 export default function EmployeesPage() {
   const currentEmployee = getEmployeeById(currentUser.employeeId);
@@ -16,7 +17,7 @@ export default function EmployeesPage() {
     currentUser.role
   );
 
-  const canCreateEmployee = currentUser.role === "admin";
+  const canCreateNewEmployee = canCreateEmployee(currentUser.role);
 
   return (
     <>
@@ -27,7 +28,7 @@ export default function EmployeesPage() {
           currentEmployee?.name ?? "den aktuellen Benutzer"
         } sichtbar sind.`}
         action={
-          canCreateEmployee ? (
+          canCreateNewEmployee ? (
             <Link
               href="/mitarbeiter-erstellen"
               className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"

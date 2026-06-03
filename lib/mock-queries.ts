@@ -247,3 +247,7 @@ export function getApprovalDecisionByRequestIdAndStep(
       decision.stepOrder === stepOrder
   );
 }
+
+export function canCreateEmployee(role: UserRole) {
+  return role === "hr" || role === "admin";
+}
