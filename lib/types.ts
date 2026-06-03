@@ -4,6 +4,11 @@ export type AbsenceType = "Urlaub" | "Sonderurlaub";
 
 export type UserRole = "employee" | "manager" | "hr" | "admin";
 
+
+export type CompanySettings = {
+  defaultVacationDaysPerYear: number;
+};
+
 export type VacationRequest = {
   id: string;
   employeeId: string;
