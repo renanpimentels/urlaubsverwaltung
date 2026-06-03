@@ -18,11 +18,15 @@ export type VacationRequest = {
 };
 
 export type VacationBalance = {
+  id: string;
   employeeId: string;
+  year: number;
   total: number;
   used: number;
   pending: number;
   available: number;
+  carriedOver: number;
+  expiresAt?: string;
 };
 
 export type UpcomingAbsence = {
@@ -45,9 +49,6 @@ export type Employee = {
   role: string;
   employmentStartDate: string;
   contractVacationDaysPerYear: number;
-  vacationDaysTotal: number;
-  vacationDaysUsed: number;
-  vacationDaysRemaining: number;
   isActive: boolean;
 };
 
