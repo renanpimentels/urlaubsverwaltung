@@ -148,3 +148,26 @@ export function getVisibleEmployeesForUser(employeeId: string, role: UserRole) {
 
   return employees.filter((employee) => employee.id === employeeId);
 }
+
+export function getSelectableEmployeesForVacationRequest(
+  employeeId: string,
+  role: UserRole
+) {
+  if (canViewAllEmployeeData(role)) {
+    return employees;
+  }
+
+  const currentEmployee = getEmployeeById(employeeId);
+
+  if (!currentEmployee) {
+    return [];
+  }
+
+  if (canViewDepartmentEmployeeData(role)) {
+    return employees.filter(
+      (employee) => employee.departmentId === currentEmployee.departmentId
+    );
+  }
+
+  return employees.filter((employee) => employee.id === employeeId);
+}

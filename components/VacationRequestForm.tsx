@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import type { Employee } from "@/lib/types";
 import { calculateBusinessDays } from "@/lib/vacation-calculations";
 
 type FormState = {
-  employee: string;
+  employeeId: string;
   startDate: string;
   endDate: string;
   absenceType: string;
@@ -14,11 +15,14 @@ type FormState = {
 };
 
 type VacationRequestFormProps = {
+  selectableEmployees: Employee[];
+  defaultEmployeeId: string;
+  onEmployeeChange?: (employeeId: string) => void;
   onRequestedDaysChange?: (requestedDays: number) => void;
 };
 
 const initialFormState: FormState = {
-  employee: "",
+  employeeId: "",
   startDate: "",
   endDate: "",
   absenceType: "Urlaub",
@@ -26,9 +30,15 @@ const initialFormState: FormState = {
 };
 
 export function VacationRequestForm({
+  selectableEmployees,
+  defaultEmployeeId,
+  onEmployeeChange,
   onRequestedDaysChange,
 }: VacationRequestFormProps) {
-  const [formData, setFormData] = useState<FormState>(initialFormState);
+  const [formData, setFormData] = useState<FormState>({
+    ...initialFormState,
+    employeeId: defaultEmployeeId,
+  });
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -37,9 +47,15 @@ export function VacationRequestForm({
     formData.endDate
   );
 
+  const isEmployeeSelectionDisabled = selectableEmployees.length <= 1;
+
   useEffect(() => {
     onRequestedDaysChange?.(requestedDays);
   }, [onRequestedDaysChange, requestedDays]);
+
+  useEffect(() => {
+    onEmployeeChange?.(formData.employeeId);
+  }, [formData.employeeId, onEmployeeChange]);
 
   function updateField(field: keyof FormState, value: string) {
     setFormData((currentFormData) => ({
@@ -52,7 +68,7 @@ export function VacationRequestForm({
   }
 
   function handleSubmit() {
-    if (!formData.employee) {
+    if (!formData.employeeId) {
       setErrorMessage("Bitte wähle einen Mitarbeiter aus.");
       return;
     }
@@ -99,17 +115,25 @@ export function VacationRequestForm({
           <span className="text-sm font-semibold text-slate-700">
             Mitarbeiter
           </span>
+
           <select
-            value={formData.employee}
-            onChange={(event) => updateField("employee", event.target.value)}
-            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+            value={formData.employeeId}
+            disabled={isEmployeeSelectionDisabled}
+            onChange={(event) => updateField("employeeId", event.target.value)}
+            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600 disabled:bg-slate-100 disabled:text-slate-500"
           >
-            <option value="">Bitte auswählen</option>
-            <option value="Max Müller">Max Müller</option>
-            <option value="Anna Becker">Anna Becker</option>
-            <option value="Jonas Weber">Jonas Weber</option>
-            <option value="Lisa Schneider">Lisa Schneider</option>
+            {selectableEmployees.map((employee) => (
+              <option key={employee.id} value={employee.id}>
+                {employee.name}
+              </option>
+            ))}
           </select>
+
+          {isEmployeeSelectionDisabled ? (
+            <p className="text-sm text-slate-500">
+              Für normale Mitarbeiter ist nur der eigene Antrag möglich.
+            </p>
+          ) : null}
         </label>
 
         <div className="grid gap-5 md:grid-cols-2">
