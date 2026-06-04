@@ -27,7 +27,7 @@ CREATE TABLE "User" (
 CREATE TABLE "Employee" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "departmentId" TEXT NOT NULL,
+    "departmentId" TEXT,
     "position" TEXT NOT NULL,
     "employmentStartDate" TIMESTAMP(3) NOT NULL,
     "contractVacationDaysPerYear" INTEGER NOT NULL,
@@ -124,7 +124,7 @@ CREATE UNIQUE INDEX "VacationBalance_employeeId_year_key" ON "VacationBalance"("
 ALTER TABLE "User" ADD CONSTRAINT "User_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Employee" ADD CONSTRAINT "Employee_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "Department"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Employee" ADD CONSTRAINT "Employee_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "Department"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Department" ADD CONSTRAINT "Department_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "Employee"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
