@@ -3,16 +3,22 @@ import Link from "next/link";
 import { EmployeeCard } from "@/components/EmployeeCard";
 import { PageHeader } from "@/components/PageHeader";
 import { currentUser } from "@/lib/current-user";
+import { canCreateEmployee, getEmployeeById } from "@/lib/mock-queries";
 import {
-  canCreateEmployee,
-  getEmployeeById,
-  getVisibleEmployeesForUser,
-} from "@/lib/mock-queries";
+  getEmployeeByIdFromDb,
+  getVisibleEmployeesForUserFromDb,
+} from "@/lib/prisma-queries";
 
-export default function EmployeesPage() {
-  const currentEmployee = getEmployeeById(currentUser.employeeId);
+export default async function EmployeesPage() {
+  const currentEmployee = currentUser.employeeId
+    ? await getEmployeeByIdFromDb(currentUser.employeeId)
+    : undefined;
 
-  const visibleEmployees = getVisibleEmployeesForUser(
+  const fallbackCurrentEmployee = currentUser.employeeId
+    ? getEmployeeById(currentUser.employeeId)
+    : undefined;
+
+  const visibleEmployees = await getVisibleEmployeesForUserFromDb(
     currentUser.employeeId,
     currentUser.role
   );
@@ -25,7 +31,9 @@ export default function EmployeesPage() {
         eyebrow="Teamübersicht"
         title="Mitarbeiter"
         description={`Hier siehst du die Mitarbeiter, die für ${
-          currentEmployee?.name ?? "den aktuellen Benutzer"
+          currentEmployee?.name ??
+          fallbackCurrentEmployee?.name ??
+          "den aktuellen Benutzer"
         } sichtbar sind.`}
         action={
           canCreateNewEmployee ? (
