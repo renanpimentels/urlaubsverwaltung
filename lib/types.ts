@@ -12,7 +12,11 @@ export type CompanySettings = {
   defaultVacationDaysPerYear: number;
 };
 
-export type RequestStatus = "Genehmigt" | "Ausstehend" | "Abgelehnt";
+export type RequestStatus =
+  | "Genehmigt"
+  | "Ausstehend"
+  | "Abgelehnt"
+  | "Storniert";
 
 export type AbsenceType = "Urlaub" | "Sonderurlaub";
 

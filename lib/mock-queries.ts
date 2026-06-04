@@ -304,3 +304,27 @@ export function canCreateEmployee(role: UserRole) {
 export function canAccessSettings(role: UserRole) {
   return role === "hr" || role === "admin";
 }
+
+export function canCancelOwnVacationRequest(
+  request: VacationRequest,
+  currentEmployeeId: string | undefined
+) {
+  return (
+    Boolean(currentEmployeeId) &&
+    request.employeeId === currentEmployeeId &&
+    request.status === "Ausstehend" &&
+    request.approvalStepsCompleted === 0
+  );
+}
+
+export function canEditOwnVacationRequest(
+  request: VacationRequest,
+  currentEmployeeId: string | undefined
+) {
+  return (
+    Boolean(currentEmployeeId) &&
+    request.employeeId === currentEmployeeId &&
+    request.status === "Ausstehend" &&
+    request.approvalStepsCompleted === 0
+  );
+}

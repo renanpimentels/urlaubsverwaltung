@@ -10,6 +10,7 @@ const statusStyles: Record<RequestStatus, string> = {
   Genehmigt: "bg-green-100 text-green-700",
   Ausstehend: "bg-amber-100 text-amber-700",
   Abgelehnt: "bg-red-100 text-red-700",
+  Storniert: "bg-slate-100 text-slate-600",
 };
 
 export function StatusBadge({
@@ -17,19 +18,18 @@ export function StatusBadge({
   approvalStepsCompleted,
   approvalStepsRequired,
 }: StatusBadgeProps) {
-  const shouldShowApprovalProgress =
+  const showApprovalProgress =
     status === "Ausstehend" &&
-    approvalStepsCompleted !== undefined &&
-    approvalStepsRequired !== undefined;
+    typeof approvalStepsCompleted === "number" &&
+    typeof approvalStepsRequired === "number";
 
   return (
     <span
-      className={`inline-flex w-fit rounded-full px-3 py-1 text-sm font-semibold ${statusStyles[status]}`}
+      className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${statusStyles[status]}`}
     >
-      {status}
-      {shouldShowApprovalProgress
-        ? ` ${approvalStepsCompleted}/${approvalStepsRequired}`
-        : ""}
+      {showApprovalProgress
+        ? `${status} ${approvalStepsCompleted}/${approvalStepsRequired}`
+        : status}
     </span>
   );
 }
