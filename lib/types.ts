@@ -77,6 +77,12 @@ export type ApprovalDecision = {
   comment?: string;
 };
 
+export type ApprovalDecisionWithApprover = ApprovalDecision & {
+  approverName?: string;
+};
+
+
+
 export type UpcomingAbsence = {
   name: string;
   department: string;
