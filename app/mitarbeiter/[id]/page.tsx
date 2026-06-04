@@ -4,52 +4,69 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { VacationBalanceCard } from "@/components/VacationBalanceCard";
+import { currentUser } from "@/lib/current-user";
 import { formatDate, formatDateRange } from "@/lib/date-formatters";
 import {
-  getApprovalDecisionsByRequestId,
+  canUserViewEmployee,
   getDepartmentById,
   getEmployeeById,
   getVacationBalanceByEmployeeId,
-  getVacationRequestById,
+  getVacationBalancesByEmployeeId,
+  getVisibleVacationRequestsForUser,
 } from "@/lib/mock-queries";
 
-type VacationRequestDetailPageProps = {
+type EmployeeDetailPageProps = {
   params: Promise<{
     id: string;
   }>;
 };
 
-export default async function VacationRequestDetailPage({
+export default async function EmployeeDetailPage({
   params,
-}: VacationRequestDetailPageProps) {
+}: EmployeeDetailPageProps) {
   const { id } = await params;
 
-  const request = getVacationRequestById(id);
+  const employee = getEmployeeById(id);
 
-  if (!request) {
+  if (!employee) {
     notFound();
   }
 
-  const employee = getEmployeeById(request.employeeId);
-  const department = employee
-    ? getDepartmentById(employee.departmentId)
-    : undefined;
+  const canViewEmployee = canUserViewEmployee(
+    currentUser.employeeId,
+    currentUser.role,
+    employee.id
+  );
 
-  const vacationBalance = getVacationBalanceByEmployeeId(request.employeeId);
-  const approvalDecisions = getApprovalDecisionsByRequestId(request.id);
+  if (!canViewEmployee) {
+    notFound();
+  }
+
+  const department = getDepartmentById(employee.departmentId);
+  const currentBalance = getVacationBalanceByEmployeeId(employee.id);
+  const allBalances = getVacationBalancesByEmployeeId(employee.id);
+
+  const employeeRequests = getVisibleVacationRequestsForUser(
+    employee.id,
+    "employee"
+  );
+
+  const carriedOverBalances = allBalances.filter(
+    (balance) => balance.carriedOver > 0
+  );
 
   return (
     <>
       <PageHeader
-        eyebrow="Antragsdetails"
-        title={request.absenceType}
-        description="Detailansicht eines Urlaubsantrags."
+        eyebrow="Mitarbeiterprofil"
+        title={employee.name}
+        description="Übersicht über Stammdaten, Urlaubssaldo und Anträge dieses Mitarbeiters."
         action={
           <Link
-            href="/urlaubsantraege"
+            href="/mitarbeiter"
             className="rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 hover:bg-slate-50"
           >
-            Zurück zur Übersicht
+            Zurück
           </Link>
         }
       />
@@ -57,31 +74,9 @@ export default async function VacationRequestDetailPage({
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <div className="grid gap-6">
           <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-              <div>
-                <h2 className="text-xl font-bold">Antrag</h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Übersicht über Zeitraum, Mitarbeiter und Status.
-                </p>
-              </div>
+            <h2 className="text-xl font-bold">Stammdaten</h2>
 
-              <StatusBadge
-                status={request.status}
-                approvalStepsCompleted={request.approvalStepsCompleted}
-                approvalStepsRequired={request.approvalStepsRequired}
-              />
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="text-sm font-semibold text-slate-500">
-                  Mitarbeiter
-                </p>
-                <p className="mt-1 font-medium">
-                  {employee ? employee.name : "Unbekannter Mitarbeiter"}
-                </p>
-              </div>
-
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl bg-slate-50 p-4">
                 <p className="text-sm font-semibold text-slate-500">
                   Abteilung
@@ -93,92 +88,87 @@ export default async function VacationRequestDetailPage({
 
               <div className="rounded-2xl bg-slate-50 p-4">
                 <p className="text-sm font-semibold text-slate-500">
-                  Abwesenheitsart
+                  Position
                 </p>
-                <p className="mt-1 font-medium">{request.absenceType}</p>
+                <p className="mt-1 font-medium">{employee.role}</p>
               </div>
 
               <div className="rounded-2xl bg-slate-50 p-4">
                 <p className="text-sm font-semibold text-slate-500">
-                  Zeitraum
+                  Eintrittsdatum
                 </p>
                 <p className="mt-1 font-medium">
-                  {formatDateRange(request.startDate, request.endDate)}
+                  {formatDate(employee.employmentStartDate)}
                 </p>
-              </div>
-
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="text-sm font-semibold text-slate-500">Tage</p>
-                <p className="mt-1 font-medium">{request.days} Tage</p>
               </div>
 
               <div className="rounded-2xl bg-slate-50 p-4">
                 <p className="text-sm font-semibold text-slate-500">
-                  Erstellt am
+                  Vertraglicher Jahresurlaub
                 </p>
                 <p className="mt-1 font-medium">
-                  {formatDate(request.createdAt)}
+                  {employee.contractVacationDaysPerYear} Tage
                 </p>
               </div>
 
-              {request.comment ? (
-                <div className="rounded-2xl bg-slate-50 p-4 md:col-span-2">
-                  <p className="text-sm font-semibold text-slate-500">
-                    Bemerkung
-                  </p>
-                  <p className="mt-1 font-medium">{request.comment}</p>
-                </div>
-              ) : null}
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-sm font-semibold text-slate-500">Status</p>
+                <p className="mt-1 font-medium">
+                  {employee.isActive ? "Aktiv" : "Inaktiv"}
+                </p>
+              </div>
             </div>
           </article>
 
           <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="mb-5">
-              <h2 className="text-xl font-bold">Freigabehistorie</h2>
+              <h2 className="text-xl font-bold">Urlaubsanträge</h2>
               <p className="mt-1 text-sm text-slate-500">
-                Dokumentierte Entscheidungen zu diesem Antrag.
+                Anträge dieses Mitarbeiters.
               </p>
             </div>
 
             <div className="grid gap-3">
-              {approvalDecisions.map((decision) => {
-                const approver = getEmployeeById(decision.approverEmployeeId);
+              {employeeRequests.map((request) => (
+                <div
+                  key={request.id}
+                  className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center"
+                >
+                  <div>
+                    <h3 className="font-semibold">{request.absenceType}</h3>
 
-                return (
-                  <div
-                    key={decision.id}
-                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-                  >
-                    <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-start">
-                      <div>
-                        <p className="font-semibold">
-                          Schritt {decision.stepOrder}:{" "}
-                          {decision.decision === "approved"
-                            ? "Genehmigt"
-                            : "Abgelehnt"}
-                        </p>
-
-                        <p className="mt-1 text-sm text-slate-500">
-                          {approver
-                            ? approver.name
-                            : "Unbekannter Genehmiger"}{" "}
-                          · {formatDate(decision.decidedAt)}
-                        </p>
-                      </div>
-                    </div>
-
-                    {decision.comment ? (
-                      <p className="mt-3 text-sm text-slate-600">
-                        {decision.comment}
+                    {request.comment ? (
+                      <p className="mt-1 text-sm text-slate-500">
+                        {request.comment}
                       </p>
                     ) : null}
-                  </div>
-                );
-              })}
 
-              {approvalDecisions.length === 0 ? (
+                    <p className="mt-1 text-sm text-slate-500">
+                      {formatDateRange(request.startDate, request.endDate)} ·{" "}
+                      {request.days} Tage
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col items-start gap-3 sm:items-end">
+                    <StatusBadge
+                      status={request.status}
+                      approvalStepsCompleted={request.approvalStepsCompleted}
+                      approvalStepsRequired={request.approvalStepsRequired}
+                    />
+
+                    <Link
+                      href={`/urlaubsantraege/${request.id}`}
+                      className="text-sm font-semibold text-teal-700 hover:text-teal-800"
+                    >
+                      Antrag öffnen
+                    </Link>
+                  </div>
+                </div>
+              ))}
+
+              {employeeRequests.length === 0 ? (
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-                  Für diesen Antrag wurde noch keine Entscheidung dokumentiert.
+                  Keine Anträge für diesen Mitarbeiter gefunden.
                 </div>
               ) : null}
             </div>
@@ -186,77 +176,46 @@ export default async function VacationRequestDetailPage({
         </div>
 
         <aside className="grid gap-6">
-          <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold">Aktionen</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Aktionen sind aktuell nur als Mockup vorbereitet.
-            </p>
-
-            <div className="mt-5 grid gap-3">
-              {request.status === "Ausstehend" ? (
-                <>
-                  <button className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800">
-                    Genehmigen
-                  </button>
-
-                  <button className="rounded-xl border border-red-200 bg-red-50 px-5 py-3 font-semibold text-red-700 hover:bg-red-100">
-                    Ablehnen
-                  </button>
-                </>
-              ) : (
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-                  Für diesen Antrag sind keine offenen Aktionen verfügbar.
-                </div>
-              )}
-            </div>
-          </article>
-
-          {vacationBalance ? (
+          {currentBalance ? (
             <VacationBalanceCard
-              total={vacationBalance.total}
-              used={vacationBalance.used}
-              pending={vacationBalance.pending}
-              available={vacationBalance.available}
-              requestedDays={
-                request.absenceType === "Urlaub" ? request.days : undefined
-              }
-              title={`Urlaubssaldo ${vacationBalance.year}`}
-              description="Mockup-Übersicht zur Bewertung dieses Antrags."
+              total={currentBalance.total}
+              used={currentBalance.used}
+              pending={currentBalance.pending}
+              available={currentBalance.available}
+              title={`Urlaubssaldo ${currentBalance.year}`}
+              description="Aktueller Urlaubssaldo dieses Mitarbeiters."
             />
           ) : null}
 
           <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold">Administrative Informationen</h2>
+            <h2 className="text-xl font-bold">Resturlaub</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Übertragene Urlaubstage aus Vorjahren.
+            </p>
 
-            <div className="mt-5 grid gap-3 text-sm">
-              <div className="flex justify-between gap-4 border-b border-slate-100 pb-3">
-                <span className="text-slate-500">Antrags-ID</span>
-                <span className="font-medium text-slate-800">
-                  {request.id}
-                </span>
-              </div>
+            <div className="mt-5 grid gap-3">
+              {carriedOverBalances.map((balance) => (
+                <div
+                  key={balance.id}
+                  className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800"
+                >
+                  <p className="font-semibold">
+                    {balance.carriedOver} Tage aus {balance.year}
+                  </p>
 
-              <div className="flex justify-between gap-4 border-b border-slate-100 pb-3">
-                <span className="text-slate-500">Mitarbeiter-ID</span>
-                <span className="font-medium text-slate-800">
-                  {request.employeeId}
-                </span>
-              </div>
+                  {balance.expiresAt ? (
+                    <p className="mt-1">
+                      Ablaufdatum: {formatDate(balance.expiresAt)}
+                    </p>
+                  ) : null}
+                </div>
+              ))}
 
-              <div className="flex justify-between gap-4 border-b border-slate-100 pb-3">
-                <span className="text-slate-500">Freigabe</span>
-                <span className="font-medium text-slate-800">
-                  {request.approvalStepsCompleted}/
-                  {request.approvalStepsRequired}
-                </span>
-              </div>
-
-              <div className="flex justify-between gap-4">
-                <span className="text-slate-500">Status</span>
-                <span className="font-medium text-slate-800">
-                  {request.status}
-                </span>
-              </div>
+              {carriedOverBalances.length === 0 ? (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+                  Kein Resturlaub aus Vorjahren vorhanden.
+                </div>
+              ) : null}
             </div>
           </article>
         </aside>

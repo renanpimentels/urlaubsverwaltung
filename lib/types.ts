@@ -1,3 +1,12 @@
+export type UserRole = "employee" | "manager" | "hr" | "admin";
+
+export type User = {
+  id: string;
+  employeeId?: string;
+  email: string;
+  role: UserRole;
+  isActive: boolean;
+};
 
 export type CompanySettings = {
   defaultVacationDaysPerYear: number;
@@ -9,17 +18,6 @@ export type AbsenceType = "Urlaub" | "Sonderurlaub";
 
 export type ApprovalDecisionType = "approved" | "rejected";
 
-export type UserRole = "employee" | "manager" | "hr" | "admin";
-
-export type User = {
-  id: string;
-  employeeId: string;
-  email: string;
-  role: UserRole;
-  isActive: boolean;
-};
-
-
 export type Department = {
   id: string;
   name: string;
@@ -27,14 +25,14 @@ export type Department = {
   finalApproverId?: string;
 };
 
-export type ApprovalDecision = {
+export type Employee = {
   id: string;
-  vacationRequestId: string;
-  approverEmployeeId: string;
-  stepOrder: number;
-  decision: ApprovalDecisionType;
-  decidedAt: string;
-  comment?: string;
+  name: string;
+  departmentId: string;
+  role: string;
+  employmentStartDate: string;
+  contractVacationDaysPerYear: number;
+  isActive: boolean;
 };
 
 export type VacationRequest = {
@@ -63,14 +61,14 @@ export type VacationBalance = {
   expiresAt?: string;
 };
 
-export type Employee = {
+export type ApprovalDecision = {
   id: string;
-  name: string;
-  departmentId: string;
-  role: string;
-  employmentStartDate: string;
-  contractVacationDaysPerYear: number;
-  isActive: boolean;
+  vacationRequestId: string;
+  approverEmployeeId: string;
+  stepOrder: number;
+  decision: ApprovalDecisionType;
+  decidedAt: string;
+  comment?: string;
 };
 
 export type UpcomingAbsence = {
