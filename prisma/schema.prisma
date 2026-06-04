@@ -1,13 +1,140 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  employeeId String?  @unique
+  email      String   @unique
+  role       UserRole
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  employee                 Employee?          @relation(fields: [employeeId], references: [id])
+  createdVacationRequests  VacationRequest[]  @relation("CreatedVacationRequests")
+  decidedApprovalDecisions ApprovalDecision[] @relation("DecidedApprovalDecisions")
+}
+
+model Employee {
+  id                          String   @id @default(cuid())
+  name                        String
+  departmentId                String
+  position                    String
+  employmentStartDate         DateTime
+  contractVacationDaysPerYear Int
+  isActive                    Boolean  @default(true)
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+
+  department        Department         @relation(fields: [departmentId], references: [id])
+  user              User?
+  vacationRequests  VacationRequest[]
+  vacationBalances  VacationBalance[]
+  approvalDecisions ApprovalDecision[]
+
+  managedDepartments       Department[] @relation("DepartmentManager")
+  finalApprovalDepartments Department[] @relation("DepartmentFinalApprover")
+}
+
+model Department {
+  id              String   @id @default(cuid())
+  name            String
+  managerId       String
+  finalApproverId String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  manager       Employee   @relation("DepartmentManager", fields: [managerId], references: [id])
+  finalApprover Employee?  @relation("DepartmentFinalApprover", fields: [finalApproverId], references: [id])
+  employees     Employee[]
+}
+
+model CompanySettings {
+  id                         String   @id @default(cuid())
+  defaultVacationDaysPerYear Int
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+}
+
+model VacationRequest {
+  id                     String        @id @default(cuid())
+  employeeId             String
+  createdByUserId        String?
+  absenceType            AbsenceType
+  startDate              DateTime
+  endDate                DateTime
+  days                   Int
+  status                 RequestStatus
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  approvalStepsCompleted Int
+  approvalStepsRequired  Int
+  comment                String?
+
+  employee          Employee           @relation(fields: [employeeId], references: [id])
+  createdByUser     User?              @relation("CreatedVacationRequests", fields: [createdByUserId], references: [id])
+  approvalDecisions ApprovalDecision[]
+}
+
+model VacationBalance {
+  id          String    @id @default(cuid())
+  employeeId  String
+  year        Int
+  total       Int
+  used        Int
+  pending     Int
+  available   Int
+  carriedOver Int
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, year])
+}
+
+model ApprovalDecision {
+  id                 String               @id @default(cuid())
+  vacationRequestId  String
+  approverEmployeeId String
+  decidedByUserId    String?
+  stepOrder          Int
+  decision           ApprovalDecisionType
+  decidedAt          DateTime
+  comment            String?
+
+  vacationRequest VacationRequest @relation(fields: [vacationRequestId], references: [id])
+  approver        Employee        @relation(fields: [approverEmployeeId], references: [id])
+  decidedByUser   User?           @relation("DecidedApprovalDecisions", fields: [decidedByUserId], references: [id])
+}
+
+enum UserRole {
+  employee
+  manager
+  hr
+  admin
+}
+
+enum AbsenceType {
+  Urlaub
+  Sonderurlaub
+}
+
+enum RequestStatus {
+  Genehmigt
+  Ausstehend
+  Abgelehnt
+  Storniert
+}
+
+enum ApprovalDecisionType {
+  approved
+  rejected
 }
