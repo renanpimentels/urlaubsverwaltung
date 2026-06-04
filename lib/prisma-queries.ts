@@ -338,3 +338,93 @@ export async function getVisibleUpcomingAbsencesForUserFromDb(
 
   return visibleRequests.filter((request) => request.status === "Genehmigt");
 }
+
+
+export async function getNextApproverIdForVacationRequestFromDb(
+  request: VacationRequest
+) {
+  if (request.status !== "Ausstehend") {
+    return undefined;
+  }
+
+  const employee = await prisma.employee.findUnique({
+    where: {
+      id: request.employeeId,
+    },
+    select: {
+      departmentId: true,
+    },
+  });
+
+  if (!employee?.departmentId) {
+    return undefined;
+  }
+
+  const department = await prisma.department.findUnique({
+    where: {
+      id: employee.departmentId,
+    },
+    select: {
+      managerId: true,
+      finalApproverId: true,
+    },
+  });
+
+  if (!department) {
+    return undefined;
+  }
+
+  if (request.approvalStepsCompleted === 0) {
+    return department.managerId;
+  }
+
+  if (request.approvalStepsCompleted === 1) {
+    return department.finalApproverId ?? undefined;
+  }
+
+  return undefined;
+}
+
+export async function getVisibleApprovalRequestsForUserFromDb(
+  employeeId: string | undefined,
+  role: UserRole
+) {
+  if (role === "employee") {
+    return [];
+  }
+
+  const pendingRequests = await prisma.vacationRequest.findMany({
+    where: {
+      status: "Ausstehend",
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  const mappedPendingRequests = pendingRequests.map(
+    mapPrismaVacationRequestToAppVacationRequest
+  );
+
+  if (role === "hr" || role === "admin") {
+    return mappedPendingRequests;
+  }
+
+  if (!employeeId) {
+    return [];
+  }
+
+  const approvableRequests = [];
+
+  for (const request of mappedPendingRequests) {
+    const nextApproverId = await getNextApproverIdForVacationRequestFromDb(
+      request
+    );
+
+    if (nextApproverId === employeeId) {
+      approvableRequests.push(request);
+    }
+  }
+
+  return approvableRequests;
+}
