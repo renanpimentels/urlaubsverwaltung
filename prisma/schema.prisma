@@ -23,7 +23,7 @@ model User {
 model Employee {
   id                          String   @id @default(cuid())
   name                        String
-  departmentId                String
+  departmentId                String?
   position                    String
   employmentStartDate         DateTime
   contractVacationDaysPerYear Int
@@ -31,14 +31,14 @@ model Employee {
   createdAt                   DateTime @default(now())
   updatedAt                   DateTime @updatedAt
 
-  department        Department         @relation(fields: [departmentId], references: [id])
-  user              User?
-  vacationRequests  VacationRequest[]
-  vacationBalances  VacationBalance[]
-  approvalDecisions ApprovalDecision[]
+  department                  Department? @relation(fields: [departmentId], references: [id])
+  user                        User?
+  vacationRequests            VacationRequest[]
+  vacationBalances            VacationBalance[]
+  approvalDecisions           ApprovalDecision[]
 
-  managedDepartments       Department[] @relation("DepartmentManager")
-  finalApprovalDepartments Department[] @relation("DepartmentFinalApprover")
+  managedDepartments          Department[] @relation("DepartmentManager")
+  finalApprovalDepartments    Department[] @relation("DepartmentFinalApprover")
 }
 
 model Department {
