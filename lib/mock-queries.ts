@@ -7,12 +7,28 @@ import {
   vacationBalances,
   vacationRequests,
 } from "@/lib/mock-data";
-
-
 import type { UserRole, VacationRequest } from "@/lib/types";
 
 export function getCompanySettings() {
   return companySettings;
+}
+
+export function getUserById(id: string) {
+  return users.find((user) => user.id === id);
+}
+
+export function getUserByEmployeeId(employeeId: string) {
+  return users.find((user) => user.employeeId === employeeId);
+}
+
+export function getCurrentEmployeeByUserId(userId: string) {
+  const user = getUserById(userId);
+
+  if (!user?.employeeId) {
+    return undefined;
+  }
+
+  return getEmployeeById(user.employeeId);
 }
 
 export function getDepartmentById(id: string) {
@@ -74,12 +90,21 @@ export function canViewManagedDepartmentData(role: UserRole) {
   return role === "manager";
 }
 
+// Alias para não quebrar código antigo, caso ainda exista algum import antigo.
+export function canViewDepartmentEmployeeData(role: UserRole) {
+  return canViewManagedDepartmentData(role);
+}
+
 export function getVisibleVacationRequestsForUser(
-  employeeId: string,
+  employeeId: string | undefined,
   role: UserRole
 ) {
   if (canViewAllEmployeeData(role)) {
     return vacationRequests;
+  }
+
+  if (!employeeId) {
+    return [];
   }
 
   if (canViewManagedDepartmentData(role)) {
@@ -101,7 +126,7 @@ export function getVisibleVacationRequestsForUser(
 }
 
 export function getVisibleUpcomingAbsencesForUser(
-  employeeId: string,
+  employeeId: string | undefined,
   role: UserRole
 ) {
   const visibleRequests = getVisibleVacationRequestsForUser(employeeId, role);
@@ -109,9 +134,16 @@ export function getVisibleUpcomingAbsencesForUser(
   return visibleRequests.filter((request) => request.status === "Genehmigt");
 }
 
-export function getVisibleEmployeesForUser(employeeId: string, role: UserRole) {
+export function getVisibleEmployeesForUser(
+  employeeId: string | undefined,
+  role: UserRole
+) {
   if (canViewAllEmployeeData(role)) {
     return employees;
+  }
+
+  if (!employeeId) {
+    return [];
   }
 
   if (canViewManagedDepartmentData(role)) {
@@ -128,11 +160,15 @@ export function getVisibleEmployeesForUser(employeeId: string, role: UserRole) {
 }
 
 export function getSelectableEmployeesForVacationRequest(
-  employeeId: string,
+  employeeId: string | undefined,
   role: UserRole
 ) {
   if (canViewAllEmployeeData(role)) {
     return employees;
+  }
+
+  if (!employeeId) {
+    return [];
   }
 
   if (canViewManagedDepartmentData(role)) {
@@ -149,12 +185,16 @@ export function getSelectableEmployeesForVacationRequest(
 }
 
 export function canUserViewEmployee(
-  currentEmployeeId: string,
+  currentEmployeeId: string | undefined,
   role: UserRole,
   targetEmployeeId: string
 ) {
   if (canViewAllEmployeeData(role)) {
     return true;
+  }
+
+  if (!currentEmployeeId) {
+    return false;
   }
 
   if (currentEmployeeId === targetEmployeeId) {
@@ -209,7 +249,13 @@ export function getNextApproverIdForRequest(requestId: string) {
   return getNextApproverIdForVacationRequest(request);
 }
 
-export function getApprovableRequestsForEmployee(employeeId: string) {
+export function getApprovableRequestsForEmployee(
+  employeeId: string | undefined
+) {
+  if (!employeeId) {
+    return [];
+  }
+
   return getPendingVacationRequests().filter((request) => {
     const nextApproverId = getNextApproverIdForRequest(request.id);
 
@@ -218,7 +264,7 @@ export function getApprovableRequestsForEmployee(employeeId: string) {
 }
 
 export function getVisibleApprovalRequestsForUser(
-  employeeId: string,
+  employeeId: string | undefined,
   role: UserRole
 ) {
   if (role === "employee") {
@@ -257,22 +303,4 @@ export function canCreateEmployee(role: UserRole) {
 
 export function canAccessSettings(role: UserRole) {
   return role === "hr" || role === "admin";
-}
-
-export function getUserById(id: string) {
-  return users.find((user) => user.id === id);
-}
-
-export function getUserByEmployeeId(employeeId: string) {
-  return users.find((user) => user.employeeId === employeeId);
-}
-
-export function getCurrentEmployeeByUserId(userId: string) {
-  const user = getUserById(userId);
-
-  if (!user) {
-    return undefined;
-  }
-
-  return getEmployeeById(user.employeeId);
 }

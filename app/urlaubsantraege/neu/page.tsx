@@ -18,7 +18,7 @@ export default function NewVacationRequestPage() {
     currentUser.role
   );
 
-  const defaultEmployeeId = selectableEmployees[0]?.id ?? currentUser.employeeId;
+  const defaultEmployeeId = selectableEmployees[0]?.id ?? "";
 
   const [selectedEmployeeId, setSelectedEmployeeId] =
     useState(defaultEmployeeId);
@@ -26,7 +26,9 @@ export default function NewVacationRequestPage() {
   const [selectedAbsenceType, setSelectedAbsenceType] =
     useState<AbsenceType>("Urlaub");
 
-  const vacationBalance = getVacationBalanceByEmployeeId(selectedEmployeeId);
+  const vacationBalance = selectedEmployeeId
+    ? getVacationBalanceByEmployeeId(selectedEmployeeId)
+    : undefined;
 
   const consumesVacationBalance = selectedAbsenceType === "Urlaub";
 
@@ -59,7 +61,14 @@ export default function NewVacationRequestPage() {
             requestedDays={requestedVacationDays}
             description="Mockup-Übersicht für den aktuell ausgewählten Mitarbeiter."
           />
-        ) : null}
+        ) : (
+          <aside className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-xl font-bold">Urlaubssaldo</h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Wähle einen Mitarbeiter aus, um den Urlaubssaldo anzuzeigen.
+            </p>
+          </aside>
+        )}
       </section>
     </>
   );
