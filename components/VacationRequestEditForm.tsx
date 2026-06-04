@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
+import { updateVacationRequestAction } from "@/lib/actions/vacation-request-edit-actions";
 import { calculateBusinessDays } from "@/lib/vacation-calculations";
 import type { AbsenceType, VacationRequest } from "@/lib/types";
 
@@ -29,6 +30,7 @@ export function VacationRequestEditForm({
 
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [isPending, startTransition] = useTransition();
 
   const requestedDays = calculateBusinessDays(
     formData.startDate,
@@ -78,9 +80,30 @@ export function VacationRequestEditForm({
       return;
     }
 
-    setSuccessMessage(
-      `Der Antrag wurde lokal aktualisiert. Neuer Zeitraum: ${requestedDays} Abwesenheitstage. In dieser Mockup-Version wird die Änderung noch nicht dauerhaft gespeichert.`
-    );
+    startTransition(async () => {
+      try {
+        const result = await updateVacationRequestAction({
+          requestId: request.id,
+          absenceType: formData.absenceType,
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          comment: formData.comment,
+        });
+
+        setFormData({
+          startDate: result.startDate,
+          endDate: result.endDate,
+          absenceType: result.absenceType,
+          comment: result.comment,
+        });
+
+        setSuccessMessage(
+          `${result.message} Neuer Zeitraum: ${result.days} Abwesenheitstage.`
+        );
+      } catch {
+        setErrorMessage("Der Antrag konnte nicht gespeichert werden.");
+      }
+    });
   }
 
   return (
@@ -137,8 +160,8 @@ export function VacationRequestEditForm({
 
             <div className="max-w-sm text-sm text-slate-500">
               <p>
-                Wochenenden werden in dieser Mockup-Version nicht mitgezählt.
-                Feiertage werden später ergänzt.
+                Wochenenden werden in dieser Version nicht mitgezählt. Feiertage
+                werden später ergänzt.
               </p>
 
               {formData.absenceType === "Sonderurlaub" ? (
@@ -196,19 +219,20 @@ export function VacationRequestEditForm({
           <button
             type="button"
             onClick={handleSubmit}
-            className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
+            disabled={isPending}
+            className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Änderungen speichern
+            {isPending ? "Wird gespeichert..." : "Änderungen speichern"}
           </button>
 
           <Link
             href={`/urlaubsantraege/${request.id}`}
             className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 hover:bg-slate-50"
           >
-            Abbrechen
+            Zurück zum Antrag
           </Link>
         </div>
       </div>
-    </form>
+    </form> 
   );
 }
