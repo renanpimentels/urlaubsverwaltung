@@ -9,6 +9,7 @@ import {
   approveVacationRequestAction,
   rejectVacationRequestAction,
 } from "@/lib/actions/vacation-request-approval-actions";
+import { cancelVacationRequestAction } from "@/lib/actions/vacation-request-cancellation-actions";
 import { currentUser } from "@/lib/current-user";
 import { formatDate, formatDateRange } from "@/lib/date-formatters";
 import {
@@ -123,14 +124,22 @@ export function VacationRequestDetail({
       return;
     }
 
-    setRequest((currentRequest) => ({
-      ...currentRequest,
-      status: "Storniert",
-    }));
+    startTransition(async () => {
+      try {
+        const result = await cancelVacationRequestAction(request.id);
 
-    setMessage(
-      "Der Antrag wurde lokal storniert. In dieser Mockup-Version wird die Änderung noch nicht dauerhaft gespeichert."
-    );
+        setRequest((currentRequest) => ({
+          ...currentRequest,
+          status: result.status,
+          approvalStepsCompleted: result.approvalStepsCompleted,
+        }));
+
+        setApprovalActionCompleted(true);
+        setMessage(result.message);
+      } catch {
+        setMessage("Der Antrag konnte nicht storniert werden.");
+      }
+    });
   }
 
   return (
@@ -311,9 +320,10 @@ export function VacationRequestDetail({
               <button
                 type="button"
                 onClick={handleCancelRequest}
-                className="rounded-xl border border-red-200 bg-red-50 px-5 py-3 font-semibold text-red-700 hover:bg-red-100"
+                disabled={isPending}
+                className="rounded-xl border border-red-200 bg-red-50 px-5 py-3 font-semibold text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Antrag stornieren
+                {isPending ? "Wird gespeichert..." : "Antrag stornieren"}
               </button>
             ) : null}
 
