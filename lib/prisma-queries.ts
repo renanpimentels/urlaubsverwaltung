@@ -293,7 +293,9 @@ export async function getVacationRequestByIdFromDb(id: string) {
     },
   });
 
-  return request ? mapPrismaVacationRequestToAppVacationRequest(request) : undefined;
+  return request
+    ? mapPrismaVacationRequestToAppVacationRequest(request)
+    : undefined;
 }
 
 export async function getApprovalDecisionsByRequestIdFromDb(
@@ -382,4 +384,48 @@ export async function getNextApproverIdForVacationRequestFromDb(
   }
 
   return undefined;
+}
+
+export async function getVisibleApprovalRequestsForUserFromDb(
+  employeeId: string | undefined,
+  role: UserRole
+) {
+  if (role === "employee") {
+    return [];
+  }
+
+  const pendingRequests = await prisma.vacationRequest.findMany({
+    where: {
+      status: "Ausstehend",
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  const mappedPendingRequests = pendingRequests.map(
+    mapPrismaVacationRequestToAppVacationRequest
+  );
+
+  if (role === "hr" || role === "admin") {
+    return mappedPendingRequests;
+  }
+
+  if (!employeeId) {
+    return [];
+  }
+
+  const approvableRequests = [];
+
+  for (const request of mappedPendingRequests) {
+    const nextApproverId = await getNextApproverIdForVacationRequestFromDb(
+      request
+    );
+
+    if (nextApproverId === employeeId) {
+      approvableRequests.push(request);
+    }
+  }
+
+  return approvableRequests;
 }
