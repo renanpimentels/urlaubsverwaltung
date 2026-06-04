@@ -6,14 +6,14 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { VacationBalanceCard } from "@/components/VacationBalanceCard";
 import { currentUser } from "@/lib/current-user";
 import { formatDate, formatDateRange } from "@/lib/date-formatters";
+import { canUserViewEmployee } from "@/lib/mock-queries";
 import {
-  canUserViewEmployee,
-  getDepartmentById,
-  getEmployeeById,
-  getVacationBalanceByEmployeeId,
-  getVacationBalancesByEmployeeId,
-  getVisibleVacationRequestsForUser,
-} from "@/lib/mock-queries";
+  getDepartmentByIdFromDb,
+  getEmployeeByIdFromDb,
+  getVacationBalanceByEmployeeIdFromDb,
+  getVacationBalancesByEmployeeIdFromDb,
+  getVacationRequestsByEmployeeIdFromDb,
+} from "@/lib/prisma-queries";
 
 type EmployeeDetailPageProps = {
   params: Promise<{
@@ -26,7 +26,7 @@ export default async function EmployeeDetailPage({
 }: EmployeeDetailPageProps) {
   const { id } = await params;
 
-  const employee = getEmployeeById(id);
+  const employee = await getEmployeeByIdFromDb(id);
 
   if (!employee) {
     notFound();
@@ -42,13 +42,14 @@ export default async function EmployeeDetailPage({
     notFound();
   }
 
-  const department = getDepartmentById(employee.departmentId);
-  const currentBalance = getVacationBalanceByEmployeeId(employee.id);
-  const allBalances = getVacationBalancesByEmployeeId(employee.id);
+  const department = employee.departmentId
+    ? await getDepartmentByIdFromDb(employee.departmentId)
+    : undefined;
 
-  const employeeRequests = getVisibleVacationRequestsForUser(
-    employee.id,
-    "employee"
+  const currentBalance = await getVacationBalanceByEmployeeIdFromDb(employee.id);
+  const allBalances = await getVacationBalancesByEmployeeIdFromDb(employee.id);
+  const employeeRequests = await getVacationRequestsByEmployeeIdFromDb(
+    employee.id
   );
 
   const carriedOverBalances = allBalances.filter(

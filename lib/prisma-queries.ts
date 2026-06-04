@@ -1,5 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import type { Employee, UserRole } from "@/lib/types";
+import type {
+  Employee,
+  RequestStatus,
+  UserRole,
+  VacationBalance,
+  VacationRequest,
+} from "@/lib/types";
 
 function mapPrismaEmployeeToAppEmployee(employee: {
   id: string;
@@ -23,6 +29,60 @@ function mapPrismaEmployeeToAppEmployee(employee: {
   };
 }
 
+function mapPrismaVacationBalanceToAppVacationBalance(balance: {
+  id: string;
+  employeeId: string;
+  year: number;
+  total: number;
+  used: number;
+  pending: number;
+  available: number;
+  carriedOver: number;
+  expiresAt: Date | null;
+}): VacationBalance {
+  return {
+    id: balance.id,
+    employeeId: balance.employeeId,
+    year: balance.year,
+    total: balance.total,
+    used: balance.used,
+    pending: balance.pending,
+    available: balance.available,
+    carriedOver: balance.carriedOver,
+    expiresAt: balance.expiresAt
+      ? balance.expiresAt.toISOString().slice(0, 10)
+      : undefined,
+  };
+}
+
+function mapPrismaVacationRequestToAppVacationRequest(request: {
+  id: string;
+  employeeId: string;
+  absenceType: "Urlaub" | "Sonderurlaub";
+  startDate: Date;
+  endDate: Date;
+  days: number;
+  status: RequestStatus;
+  createdAt: Date;
+  approvalStepsCompleted: number;
+  approvalStepsRequired: number;
+  comment: string | null;
+}): VacationRequest {
+  return {
+    id: request.id,
+    employeeId: request.employeeId,
+    absenceType: request.absenceType,
+    startDate: request.startDate.toISOString().slice(0, 10),
+    endDate: request.endDate.toISOString().slice(0, 10),
+    days: request.days,
+    status: request.status,
+    createdAt: request.createdAt.toISOString().slice(0, 10),
+    approvalStepsCompleted: request.approvalStepsCompleted,
+    approvalStepsRequired: request.approvalStepsRequired,
+    comment: request.comment ?? undefined,
+  };
+}
+
 export async function getEmployeeByIdFromDb(id: string) {
   const employee = await prisma.employee.findUnique({
     where: {
@@ -31,6 +91,60 @@ export async function getEmployeeByIdFromDb(id: string) {
   });
 
   return employee ? mapPrismaEmployeeToAppEmployee(employee) : undefined;
+}
+
+export async function getDepartmentByIdFromDb(id: string) {
+  return prisma.department.findUnique({
+    where: {
+      id,
+    },
+  });
+}
+
+export async function getVacationBalanceByEmployeeIdFromDb(
+  employeeId: string,
+  year = new Date().getFullYear()
+) {
+  const balance = await prisma.vacationBalance.findUnique({
+    where: {
+      employeeId_year: {
+        employeeId,
+        year,
+      },
+    },
+  });
+
+  return balance ? mapPrismaVacationBalanceToAppVacationBalance(balance) : undefined;
+}
+
+export async function getVacationBalancesByEmployeeIdFromDb(
+  employeeId: string
+) {
+  const balances = await prisma.vacationBalance.findMany({
+    where: {
+      employeeId,
+    },
+    orderBy: {
+      year: "desc",
+    },
+  });
+
+  return balances.map(mapPrismaVacationBalanceToAppVacationBalance);
+}
+
+export async function getVacationRequestsByEmployeeIdFromDb(
+  employeeId: string
+) {
+  const requests = await prisma.vacationRequest.findMany({
+    where: {
+      employeeId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return requests.map(mapPrismaVacationRequestToAppVacationRequest);
 }
 
 export async function getVisibleEmployeesForUserFromDb(
