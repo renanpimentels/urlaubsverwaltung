@@ -114,7 +114,9 @@ export async function getVacationBalanceByEmployeeIdFromDb(
     },
   });
 
-  return balance ? mapPrismaVacationBalanceToAppVacationBalance(balance) : undefined;
+  return balance
+    ? mapPrismaVacationBalanceToAppVacationBalance(balance)
+    : undefined;
 }
 
 export async function getVacationBalancesByEmployeeIdFromDb(
@@ -207,4 +209,78 @@ export async function getVisibleEmployeesForUserFromDb(
   });
 
   return employees.map(mapPrismaEmployeeToAppEmployee);
+}
+
+export async function getVisibleVacationRequestsForUserFromDb(
+  employeeId: string | undefined,
+  role: UserRole
+) {
+  if (role === "hr" || role === "admin") {
+    const requests = await prisma.vacationRequest.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return requests.map(mapPrismaVacationRequestToAppVacationRequest);
+  }
+
+  if (!employeeId) {
+    return [];
+  }
+
+  if (role === "manager") {
+    const managedDepartments = await prisma.department.findMany({
+      where: {
+        managerId: employeeId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const managedDepartmentIds = managedDepartments.map(
+      (department) => department.id
+    );
+
+    const managedEmployees = await prisma.employee.findMany({
+      where: {
+        departmentId: {
+          in: managedDepartmentIds,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const visibleEmployeeIds = [
+      employeeId,
+      ...managedEmployees.map((employee) => employee.id),
+    ];
+
+    const requests = await prisma.vacationRequest.findMany({
+      where: {
+        employeeId: {
+          in: visibleEmployeeIds,
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return requests.map(mapPrismaVacationRequestToAppVacationRequest);
+  }
+
+  const requests = await prisma.vacationRequest.findMany({
+    where: {
+      employeeId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return requests.map(mapPrismaVacationRequestToAppVacationRequest);
 }
