@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import type {
+  ApprovalDecisionWithApprover,
   Employee,
   RequestStatus,
   UserRole,
   VacationBalance,
   VacationRequest,
-  ApprovalDecision,
 } from "@/lib/types";
 
 function mapPrismaEmployeeToAppEmployee(employee: {
@@ -298,10 +298,17 @@ export async function getVacationRequestByIdFromDb(id: string) {
 
 export async function getApprovalDecisionsByRequestIdFromDb(
   vacationRequestId: string
-) : Promise<ApprovalDecision[]> {
+): Promise<ApprovalDecisionWithApprover[]> {
   const decisions = await prisma.approvalDecision.findMany({
     where: {
       vacationRequestId,
+    },
+    include: {
+      approver: {
+        select: {
+          name: true,
+        },
+      },
     },
     orderBy: {
       stepOrder: "asc",
@@ -316,5 +323,6 @@ export async function getApprovalDecisionsByRequestIdFromDb(
     decision: decision.decision,
     decidedAt: decision.decidedAt.toISOString().slice(0, 10),
     comment: decision.comment ?? undefined,
+    approverName: decision.approver.name,
   }));
 }

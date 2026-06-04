@@ -12,7 +12,7 @@ import {
   canEditOwnVacationRequest,
 } from "@/lib/mock-queries";
 import type {
-  ApprovalDecision,
+  ApprovalDecisionWithApprover,
   Department,
   Employee,
   VacationBalance,
@@ -24,7 +24,7 @@ type VacationRequestDetailProps = {
   employee?: Employee;
   department?: Department | null;
   vacationBalance?: VacationBalance;
-  approvalDecisions: ApprovalDecision[];
+  approvalDecisions: ApprovalDecisionWithApprover[];
 };
 
 export function VacationRequestDetail({
@@ -165,7 +165,11 @@ export function VacationRequestDetail({
                     </p>
 
                     <p className="mt-1 text-sm text-slate-500">
-                      {formatDate(decision.decidedAt)}
+                      {decision.approverName
+                        ? `${decision.approverName} · ${formatDate(
+                            decision.decidedAt
+                          )}`
+                        : formatDate(decision.decidedAt)}
                     </p>
                   </div>
                 </div>
