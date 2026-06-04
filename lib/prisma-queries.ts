@@ -5,6 +5,7 @@ import type {
   UserRole,
   VacationBalance,
   VacationRequest,
+  ApprovalDecision,
 } from "@/lib/types";
 
 function mapPrismaEmployeeToAppEmployee(employee: {
@@ -283,4 +284,37 @@ export async function getVisibleVacationRequestsForUserFromDb(
   });
 
   return requests.map(mapPrismaVacationRequestToAppVacationRequest);
+}
+
+export async function getVacationRequestByIdFromDb(id: string) {
+  const request = await prisma.vacationRequest.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  return request ? mapPrismaVacationRequestToAppVacationRequest(request) : undefined;
+}
+
+export async function getApprovalDecisionsByRequestIdFromDb(
+  vacationRequestId: string
+) : Promise<ApprovalDecision[]> {
+  const decisions = await prisma.approvalDecision.findMany({
+    where: {
+      vacationRequestId,
+    },
+    orderBy: {
+      stepOrder: "asc",
+    },
+  });
+
+  return decisions.map((decision) => ({
+    id: decision.id,
+    vacationRequestId: decision.vacationRequestId,
+    approverEmployeeId: decision.approverEmployeeId,
+    stepOrder: decision.stepOrder,
+    decision: decision.decision,
+    decidedAt: decision.decidedAt.toISOString().slice(0, 10),
+    comment: decision.comment ?? undefined,
+  }));
 }

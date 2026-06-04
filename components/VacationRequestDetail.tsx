@@ -10,30 +10,32 @@ import { formatDate, formatDateRange } from "@/lib/date-formatters";
 import {
   canCancelOwnVacationRequest,
   canEditOwnVacationRequest,
-  getApprovalDecisionsByRequestId,
-  getDepartmentById,
-  getEmployeeById,
-  getVacationBalanceByEmployeeId,
 } from "@/lib/mock-queries";
-import type { VacationRequest } from "@/lib/types";
+import type {
+  ApprovalDecision,
+  Department,
+  Employee,
+  VacationBalance,
+  VacationRequest,
+} from "@/lib/types";
 
 type VacationRequestDetailProps = {
   initialRequest: VacationRequest;
+  employee?: Employee;
+  department?: Department | null;
+  vacationBalance?: VacationBalance;
+  approvalDecisions: ApprovalDecision[];
 };
 
 export function VacationRequestDetail({
   initialRequest,
+  employee,
+  department,
+  vacationBalance,
+  approvalDecisions,
 }: VacationRequestDetailProps) {
   const [request, setRequest] = useState<VacationRequest>(initialRequest);
   const [message, setMessage] = useState("");
-
-  const employee = getEmployeeById(request.employeeId);
-  const department = employee
-    ? getDepartmentById(employee.departmentId)
-    : undefined;
-
-  const vacationBalance = getVacationBalanceByEmployeeId(request.employeeId);
-  const approvalDecisions = getApprovalDecisionsByRequestId(request.id);
 
   const canCancelRequest = canCancelOwnVacationRequest(
     request,
@@ -148,38 +150,33 @@ export function VacationRequestDetail({
           </div>
 
           <div className="grid gap-3">
-            {approvalDecisions.map((decision) => {
-              const approver = getEmployeeById(decision.approverEmployeeId);
-
-              return (
-                <div
-                  key={decision.id}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-                >
-                  <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-start">
-                    <div>
-                      <p className="font-semibold">
-                        Schritt {decision.stepOrder}:{" "}
-                        {decision.decision === "approved"
-                          ? "Genehmigt"
-                          : "Abgelehnt"}
-                      </p>
-
-                      <p className="mt-1 text-sm text-slate-500">
-                        {approver ? approver.name : "Unbekannter Genehmiger"} ·{" "}
-                        {formatDate(decision.decidedAt)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {decision.comment ? (
-                    <p className="mt-3 text-sm text-slate-600">
-                      {decision.comment}
+            {approvalDecisions.map((decision) => (
+              <div
+                key={decision.id}
+                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+              >
+                <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-start">
+                  <div>
+                    <p className="font-semibold">
+                      Schritt {decision.stepOrder}:{" "}
+                      {decision.decision === "approved"
+                        ? "Genehmigt"
+                        : "Abgelehnt"}
                     </p>
-                  ) : null}
+
+                    <p className="mt-1 text-sm text-slate-500">
+                      {formatDate(decision.decidedAt)}
+                    </p>
+                  </div>
                 </div>
-              );
-            })}
+
+                {decision.comment ? (
+                  <p className="mt-3 text-sm text-slate-600">
+                    {decision.comment}
+                  </p>
+                ) : null}
+              </div>
+            ))}
 
             {approvalDecisions.length === 0 ? (
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
