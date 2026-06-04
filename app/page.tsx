@@ -7,29 +7,31 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { currentUser } from "@/lib/current-user";
 import { formatDateRange } from "@/lib/date-formatters";
 import {
-  getDepartmentById,
-  getEmployeeById,
-  getVacationBalanceByEmployeeId,
-  getVisibleUpcomingAbsencesForUser,
-  getVisibleVacationRequestsForUser,
-} from "@/lib/mock-queries";
+  getDepartmentByIdFromDb,
+  getEmployeeByIdFromDb,
+  getVacationBalanceByEmployeeIdFromDb,
+  getVisibleUpcomingAbsencesForUserFromDb,
+  getVisibleVacationRequestsForUserFromDb,
+} from "@/lib/prisma-queries";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
   const currentEmployeeId = currentUser.employeeId;
 
   if (!currentEmployeeId) {
     notFound();
   }
 
-  const currentEmployee = getEmployeeById(currentEmployeeId);
-  const vacationBalance = getVacationBalanceByEmployeeId(currentEmployeeId);
+  const currentEmployee = await getEmployeeByIdFromDb(currentEmployeeId);
+  const vacationBalance = await getVacationBalanceByEmployeeIdFromDb(
+    currentEmployeeId
+  );
 
-  const visibleVacationRequests = getVisibleVacationRequestsForUser(
+  const visibleVacationRequests = await getVisibleVacationRequestsForUserFromDb(
     currentEmployeeId,
     currentUser.role
   );
 
-  const visibleUpcomingAbsences = getVisibleUpcomingAbsencesForUser(
+  const visibleUpcomingAbsences = await getVisibleUpcomingAbsencesForUserFromDb(
     currentEmployeeId,
     currentUser.role
   );
@@ -57,6 +59,36 @@ export default function DashboardPage() {
       variant: "warning" as const,
     },
   ];
+
+  const vacationRequestsWithEmployees = await Promise.all(
+    visibleVacationRequests.map(async (request) => {
+      const employee = await getEmployeeByIdFromDb(request.employeeId);
+      const department = employee?.departmentId
+        ? await getDepartmentByIdFromDb(employee.departmentId)
+        : undefined;
+
+      return {
+        request,
+        employee,
+        department,
+      };
+    })
+  );
+
+  const upcomingAbsencesWithEmployees = await Promise.all(
+    visibleUpcomingAbsences.map(async (request) => {
+      const employee = await getEmployeeByIdFromDb(request.employeeId);
+      const department = employee?.departmentId
+        ? await getDepartmentByIdFromDb(employee.departmentId)
+        : undefined;
+
+      return {
+        request,
+        employee,
+        department,
+      };
+    })
+  );
 
   return (
     <>
@@ -105,13 +137,8 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid gap-3">
-            {visibleVacationRequests.map((request) => {
-              const employee = getEmployeeById(request.employeeId);
-              const department = employee
-                ? getDepartmentById(employee.departmentId)
-                : undefined;
-
-              return (
+            {vacationRequestsWithEmployees.map(
+              ({ request, employee, department }) => (
                 <div
                   key={request.id}
                   className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center"
@@ -142,10 +169,10 @@ export default function DashboardPage() {
                     approvalStepsRequired={request.approvalStepsRequired}
                   />
                 </div>
-              );
-            })}
+              )
+            )}
 
-            {visibleVacationRequests.length === 0 ? (
+            {vacationRequestsWithEmployees.length === 0 ? (
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
                 Keine Urlaubsanträge gefunden.
               </div>
@@ -162,13 +189,8 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid gap-3">
-            {visibleUpcomingAbsences.map((request) => {
-              const employee = getEmployeeById(request.employeeId);
-              const department = employee
-                ? getDepartmentById(employee.departmentId)
-                : undefined;
-
-              return (
+            {upcomingAbsencesWithEmployees.map(
+              ({ request, employee, department }) => (
                 <div
                   key={request.id}
                   className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
@@ -182,10 +204,10 @@ export default function DashboardPage() {
                     {formatDateRange(request.startDate, request.endDate)}
                   </p>
                 </div>
-              );
-            })}
+              )
+            )}
 
-            {visibleUpcomingAbsences.length === 0 ? (
+            {upcomingAbsencesWithEmployees.length === 0 ? (
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
                 Keine kommenden Abwesenheiten gefunden.
               </div>

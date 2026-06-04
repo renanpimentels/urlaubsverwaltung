@@ -326,3 +326,15 @@ export async function getApprovalDecisionsByRequestIdFromDb(
     approverName: decision.approver.name,
   }));
 }
+
+export async function getVisibleUpcomingAbsencesForUserFromDb(
+  employeeId: string | undefined,
+  role: UserRole
+) {
+  const visibleRequests = await getVisibleVacationRequestsForUserFromDb(
+    employeeId,
+    role
+  );
+
+  return visibleRequests.filter((request) => request.status === "Genehmigt");
+}
