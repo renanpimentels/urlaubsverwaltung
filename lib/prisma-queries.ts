@@ -293,7 +293,9 @@ export async function getVacationRequestByIdFromDb(id: string) {
     },
   });
 
-  return request ? mapPrismaVacationRequestToAppVacationRequest(request) : undefined;
+  return request
+    ? mapPrismaVacationRequestToAppVacationRequest(request)
+    : undefined;
 }
 
 export async function getApprovalDecisionsByRequestIdFromDb(
@@ -338,7 +340,6 @@ export async function getVisibleUpcomingAbsencesForUserFromDb(
 
   return visibleRequests.filter((request) => request.status === "Genehmigt");
 }
-
 
 export async function getNextApproverIdForVacationRequestFromDb(
   request: VacationRequest
