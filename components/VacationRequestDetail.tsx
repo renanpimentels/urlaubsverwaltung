@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import { StatusBadge } from "@/components/StatusBadge";
 import { VacationBalanceCard } from "@/components/VacationBalanceCard";
+import {
+  approveVacationRequestAction,
+  rejectVacationRequestAction,
+} from "@/lib/actions/vacation-request-approval-actions";
 import { currentUser } from "@/lib/current-user";
 import { formatDate, formatDateRange } from "@/lib/date-formatters";
 import {
@@ -40,6 +44,8 @@ export function VacationRequestDetail({
 }: VacationRequestDetailProps) {
   const [request, setRequest] = useState<VacationRequest>(initialRequest);
   const [message, setMessage] = useState("");
+  const [isPending, startTransition] = useTransition();
+  const [approvalActionCompleted, setApprovalActionCompleted] = useState(false);
 
   const canCancelRequest = canCancelOwnVacationRequest(
     request,
@@ -51,12 +57,14 @@ export function VacationRequestDetail({
     currentUser.employeeId
   );
 
-  const canApproveRequest = canApproveVacationRequestWithNextApprover(
-    request,
-    nextApproverId,
-    currentUser.employeeId,
-    currentUser.role
-  );
+  const canApproveRequest =
+    !approvalActionCompleted &&
+    canApproveVacationRequestWithNextApprover(
+      request,
+      nextApproverId,
+      currentUser.employeeId,
+      currentUser.role
+    );
 
   const approvalIsOverride = isApprovalOverride(
     nextApproverId,
@@ -69,23 +77,22 @@ export function VacationRequestDetail({
       return;
     }
 
-    setRequest((currentRequest) => {
-      const nextCompletedSteps = currentRequest.approvalStepsCompleted + 1;
-      const isFullyApproved =
-        nextCompletedSteps >= currentRequest.approvalStepsRequired;
+    startTransition(async () => {
+      try {
+        const result = await approveVacationRequestAction(request.id);
 
-      return {
-        ...currentRequest,
-        approvalStepsCompleted: nextCompletedSteps,
-        status: isFullyApproved ? "Genehmigt" : "Ausstehend",
-      };
+        setRequest((currentRequest) => ({
+          ...currentRequest,
+          status: result.status,
+          approvalStepsCompleted: result.approvalStepsCompleted,
+        }));
+
+        setApprovalActionCompleted(true);
+        setMessage(result.message);
+      } catch {
+        setMessage("Der Antrag konnte nicht genehmigt werden.");
+      }
     });
-
-    setMessage(
-      approvalIsOverride
-        ? "Der Antrag wurde lokal per HR/Admin-Override genehmigt. In dieser Mockup-Version wird die Änderung noch nicht dauerhaft gespeichert."
-        : "Der Antrag wurde lokal genehmigt. In dieser Mockup-Version wird die Änderung noch nicht dauerhaft gespeichert."
-    );
   }
 
   function handleRejectRequest() {
@@ -93,16 +100,22 @@ export function VacationRequestDetail({
       return;
     }
 
-    setRequest((currentRequest) => ({
-      ...currentRequest,
-      status: "Abgelehnt",
-    }));
+    startTransition(async () => {
+      try {
+        const result = await rejectVacationRequestAction(request.id);
 
-    setMessage(
-      approvalIsOverride
-        ? "Der Antrag wurde lokal per HR/Admin-Override abgelehnt. In dieser Mockup-Version wird die Änderung noch nicht dauerhaft gespeichert."
-        : "Der Antrag wurde lokal abgelehnt. In dieser Mockup-Version wird die Änderung noch nicht dauerhaft gespeichert."
-    );
+        setRequest((currentRequest) => ({
+          ...currentRequest,
+          status: result.status,
+          approvalStepsCompleted: result.approvalStepsCompleted,
+        }));
+
+        setApprovalActionCompleted(true);
+        setMessage(result.message);
+      } catch {
+        setMessage("Der Antrag konnte nicht abgelehnt werden.");
+      }
+    });
   }
 
   function handleCancelRequest() {
@@ -268,17 +281,19 @@ export function VacationRequestDetail({
                 <button
                   type="button"
                   onClick={handleApproveRequest}
-                  className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
+                  disabled={isPending}
+                  className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Genehmigen
+                  {isPending ? "Wird gespeichert..." : "Genehmigen"}
                 </button>
 
                 <button
                   type="button"
                   onClick={handleRejectRequest}
-                  className="rounded-xl border border-red-200 bg-red-50 px-5 py-3 font-semibold text-red-700 hover:bg-red-100"
+                  disabled={isPending}
+                  className="rounded-xl border border-red-200 bg-red-50 px-5 py-3 font-semibold text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Ablehnen
+                  {isPending ? "Wird gespeichert..." : "Ablehnen"}
                 </button>
               </>
             ) : null}
