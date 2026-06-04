@@ -338,3 +338,48 @@ export async function getVisibleUpcomingAbsencesForUserFromDb(
 
   return visibleRequests.filter((request) => request.status === "Genehmigt");
 }
+
+export async function getNextApproverIdForVacationRequestFromDb(
+  request: VacationRequest
+) {
+  if (request.status !== "Ausstehend") {
+    return undefined;
+  }
+
+  const employee = await prisma.employee.findUnique({
+    where: {
+      id: request.employeeId,
+    },
+    select: {
+      departmentId: true,
+    },
+  });
+
+  if (!employee?.departmentId) {
+    return undefined;
+  }
+
+  const department = await prisma.department.findUnique({
+    where: {
+      id: employee.departmentId,
+    },
+    select: {
+      managerId: true,
+      finalApproverId: true,
+    },
+  });
+
+  if (!department) {
+    return undefined;
+  }
+
+  if (request.approvalStepsCompleted === 0) {
+    return department.managerId;
+  }
+
+  if (request.approvalStepsCompleted === 1) {
+    return department.finalApproverId ?? undefined;
+  }
+
+  return undefined;
+}

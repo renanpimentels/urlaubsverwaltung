@@ -9,6 +9,7 @@ import {
   getEmployeeByIdFromDb,
   getVacationBalanceByEmployeeIdFromDb,
   getVacationRequestByIdFromDb,
+  getNextApproverIdForVacationRequestFromDb,
 } from "@/lib/prisma-queries";
 
 type VacationRequestDetailPageProps = {
@@ -51,6 +52,9 @@ export default async function VacationRequestDetailPage({
     request.id
   );
 
+  const nextApproverId = await getNextApproverIdForVacationRequestFromDb(request);
+
+
   return (
     <>
       <PageHeader
@@ -73,6 +77,7 @@ export default async function VacationRequestDetailPage({
         department={department}
         vacationBalance={vacationBalance}
         approvalDecisions={approvalDecisions}
+        nextApproverId={nextApproverId}
       />
     </>
   );

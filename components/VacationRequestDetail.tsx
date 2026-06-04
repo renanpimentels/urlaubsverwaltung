@@ -8,8 +8,10 @@ import { VacationBalanceCard } from "@/components/VacationBalanceCard";
 import { currentUser } from "@/lib/current-user";
 import { formatDate, formatDateRange } from "@/lib/date-formatters";
 import {
+  canApproveVacationRequestWithNextApprover,
   canCancelOwnVacationRequest,
   canEditOwnVacationRequest,
+  isApprovalOverride,
 } from "@/lib/mock-queries";
 import type {
   ApprovalDecisionWithApprover,
@@ -25,6 +27,7 @@ type VacationRequestDetailProps = {
   department?: Department | null;
   vacationBalance?: VacationBalance;
   approvalDecisions: ApprovalDecisionWithApprover[];
+  nextApproverId?: string;
 };
 
 export function VacationRequestDetail({
@@ -33,6 +36,7 @@ export function VacationRequestDetail({
   department,
   vacationBalance,
   approvalDecisions,
+  nextApproverId,
 }: VacationRequestDetailProps) {
   const [request, setRequest] = useState<VacationRequest>(initialRequest);
   const [message, setMessage] = useState("");
@@ -46,6 +50,60 @@ export function VacationRequestDetail({
     request,
     currentUser.employeeId
   );
+
+  const canApproveRequest = canApproveVacationRequestWithNextApprover(
+    request,
+    nextApproverId,
+    currentUser.employeeId,
+    currentUser.role
+  );
+
+  const approvalIsOverride = isApprovalOverride(
+    nextApproverId,
+    currentUser.employeeId,
+    currentUser.role
+  );
+
+  function handleApproveRequest() {
+    if (!canApproveRequest) {
+      return;
+    }
+
+    setRequest((currentRequest) => {
+      const nextCompletedSteps = currentRequest.approvalStepsCompleted + 1;
+      const isFullyApproved =
+        nextCompletedSteps >= currentRequest.approvalStepsRequired;
+
+      return {
+        ...currentRequest,
+        approvalStepsCompleted: nextCompletedSteps,
+        status: isFullyApproved ? "Genehmigt" : "Ausstehend",
+      };
+    });
+
+    setMessage(
+      approvalIsOverride
+        ? "Der Antrag wurde lokal per HR/Admin-Override genehmigt. In dieser Mockup-Version wird die Änderung noch nicht dauerhaft gespeichert."
+        : "Der Antrag wurde lokal genehmigt. In dieser Mockup-Version wird die Änderung noch nicht dauerhaft gespeichert."
+    );
+  }
+
+  function handleRejectRequest() {
+    if (!canApproveRequest) {
+      return;
+    }
+
+    setRequest((currentRequest) => ({
+      ...currentRequest,
+      status: "Abgelehnt",
+    }));
+
+    setMessage(
+      approvalIsOverride
+        ? "Der Antrag wurde lokal per HR/Admin-Override abgelehnt. In dieser Mockup-Version wird die Änderung noch nicht dauerhaft gespeichert."
+        : "Der Antrag wurde lokal abgelehnt. In dieser Mockup-Version wird die Änderung noch nicht dauerhaft gespeichert."
+    );
+  }
 
   function handleCancelRequest() {
     if (!canCancelRequest) {
@@ -199,6 +257,32 @@ export function VacationRequestDetail({
           </p>
 
           <div className="mt-5 grid gap-3">
+            {canApproveRequest ? (
+              <>
+                {approvalIsOverride ? (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                    Du bearbeitest diesen Antrag als HR/Admin-Override.
+                  </div>
+                ) : null}
+
+                <button
+                  type="button"
+                  onClick={handleApproveRequest}
+                  className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
+                >
+                  Genehmigen
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleRejectRequest}
+                  className="rounded-xl border border-red-200 bg-red-50 px-5 py-3 font-semibold text-red-700 hover:bg-red-100"
+                >
+                  Ablehnen
+                </button>
+              </>
+            ) : null}
+
             {canEditRequest ? (
               <Link
                 href={`/urlaubsantraege/${request.id}/bearbeiten`}
@@ -218,10 +302,9 @@ export function VacationRequestDetail({
               </button>
             ) : null}
 
-            {!canEditRequest && !canCancelRequest ? (
+            {!canApproveRequest && !canEditRequest && !canCancelRequest ? (
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-                Für diesen Antrag sind aktuell keine eigenen Aktionen
-                verfügbar.
+                Für diesen Antrag sind aktuell keine Aktionen verfügbar.
               </div>
             ) : null}
           </div>
