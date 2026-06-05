@@ -1,8 +1,8 @@
 
 
-//export const currentUserId = "user-017";
+export const currentUserId = "user-001";
 
-export const currentUserId = "cmq0zmayl0001tcln6fnmnfs1";
+//export const currentUserId = "cmq0zmayl0001tcln6fnmnfs1";
 
 
 

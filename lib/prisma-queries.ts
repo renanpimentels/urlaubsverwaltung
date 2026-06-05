@@ -582,9 +582,6 @@ export async function getCompanySettingsFromDb() {
 
 export async function getDepartmentsWithApproversFromDb() {
   return prisma.department.findMany({
-    where: {
-      isActive: true,
-    },
     include: {
       manager: {
         select: {
@@ -605,6 +602,7 @@ export async function getDepartmentsWithApproversFromDb() {
       employees: {
         select: {
           id: true,
+          isActive: true,
         },
       },
     },
