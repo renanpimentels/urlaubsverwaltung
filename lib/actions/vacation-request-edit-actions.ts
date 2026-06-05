@@ -2,6 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 
+import {
+  applyVacationBalanceChange,
+  getVacationBalanceYearFromDate,
+} from "@/lib/actions/vacation-balance-service";
 import { currentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/prisma";
 import type { AbsenceType } from "@/lib/types";
@@ -52,23 +56,46 @@ export async function updateVacationRequestAction(
     throw new Error("End date cannot be before start date.");
   }
 
-  const days = calculateBusinessDays(input.startDate, input.endDate);
+  const newDays = calculateBusinessDays(input.startDate, input.endDate);
 
-  if (days <= 0) {
+  if (newDays <= 0) {
     throw new Error("The selected period has no calculated absence days.");
   }
 
-  const updatedRequest = await prisma.vacationRequest.update({
-    where: {
-      id: request.id,
-    },
-    data: {
-      absenceType: input.absenceType,
-      startDate: new Date(input.startDate),
-      endDate: new Date(input.endDate),
-      days,
-      comment: input.comment.trim() || null,
-    },
+  const oldBalanceYear = getVacationBalanceYearFromDate(request.startDate);
+  const newStartDate = new Date(input.startDate);
+  const newEndDate = new Date(input.endDate);
+  const newBalanceYear = getVacationBalanceYearFromDate(newStartDate);
+
+  const updatedRequest = await prisma.$transaction(async (transaction) => {
+    if (request.absenceType === "Urlaub") {
+      await applyVacationBalanceChange(transaction, {
+        employeeId: request.employeeId,
+        year: oldBalanceYear,
+        pendingDelta: -request.days,
+      });
+    }
+
+    if (input.absenceType === "Urlaub") {
+      await applyVacationBalanceChange(transaction, {
+        employeeId: request.employeeId,
+        year: newBalanceYear,
+        pendingDelta: newDays,
+      });
+    }
+
+    return transaction.vacationRequest.update({
+      where: {
+        id: request.id,
+      },
+      data: {
+        absenceType: input.absenceType,
+        startDate: newStartDate,
+        endDate: newEndDate,
+        days: newDays,
+        comment: input.comment.trim() || null,
+      },
+    });
   });
 
   revalidatePath("/");
@@ -86,4 +113,3 @@ export async function updateVacationRequestAction(
     message: "Der Antrag wurde gespeichert.",
   };
 }
-

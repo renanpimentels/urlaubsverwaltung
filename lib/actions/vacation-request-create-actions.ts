@@ -2,6 +2,10 @@
 
 import { redirect } from "next/navigation";
 
+import {
+  applyVacationBalanceChange,
+  getVacationBalanceYearFromDate,
+} from "@/lib/actions/vacation-balance-service";
 import { currentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/prisma";
 import type { AbsenceType, UserRole } from "@/lib/types";
@@ -114,20 +118,35 @@ export async function createVacationRequestAction(
     throw new Error("The selected period has no calculated absence days.");
   }
 
-  const request = await prisma.vacationRequest.create({
-    data: {
-      employeeId: input.employeeId,
-      createdByUserId: currentUser.id,
-      absenceType: input.absenceType,
-      startDate: new Date(input.startDate),
-      endDate: new Date(input.endDate),
-      days,
-      status: "Ausstehend",
-      approvalStepsCompleted: 0,
-      approvalStepsRequired: 2,
-      comment: input.comment.trim() || null,
-    },
+  const startDate = new Date(input.startDate);
+  let createdRequestId = "";
+
+  await prisma.$transaction(async (transaction) => {
+    const request = await transaction.vacationRequest.create({
+      data: {
+        employeeId: input.employeeId,
+        createdByUserId: currentUser.id,
+        absenceType: input.absenceType,
+        startDate,
+        endDate: new Date(input.endDate),
+        days,
+        status: "Ausstehend",
+        approvalStepsCompleted: 0,
+        approvalStepsRequired: 2,
+        comment: input.comment.trim() || null,
+      },
+    });
+
+    createdRequestId = request.id;
+
+    if (input.absenceType === "Urlaub") {
+      await applyVacationBalanceChange(transaction, {
+        employeeId: input.employeeId,
+        year: getVacationBalanceYearFromDate(startDate),
+        pendingDelta: days,
+      });
+    }
   });
 
-  redirect(`/urlaubsantraege/${request.id}`);
+  redirect(`/urlaubsantraege/${createdRequestId}`);
 }

@@ -2,6 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 
+import {
+  applyVacationBalanceChange,
+  getVacationBalanceYearFromDate,
+} from "@/lib/actions/vacation-balance-service";
 import { currentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/prisma";
 
@@ -114,6 +118,15 @@ export async function approveVacationRequestAction(requestId: string) {
       },
     });
 
+    if (isFullyApproved && request.absenceType === "Urlaub") {
+      await applyVacationBalanceChange(transaction, {
+        employeeId: request.employeeId,
+        year: getVacationBalanceYearFromDate(request.startDate),
+        pendingDelta: -request.days,
+        usedDelta: request.days,
+      });
+    }
+
     return transaction.vacationRequest.update({
       where: {
         id: request.id,
@@ -125,6 +138,7 @@ export async function approveVacationRequestAction(requestId: string) {
     });
   });
 
+  revalidatePath("/");
   revalidatePath("/genehmigungen");
   revalidatePath("/urlaubsantraege");
   revalidatePath(`/urlaubsantraege/${request.id}`);
@@ -183,6 +197,14 @@ export async function rejectVacationRequestAction(requestId: string) {
       },
     });
 
+    if (request.absenceType === "Urlaub") {
+      await applyVacationBalanceChange(transaction, {
+        employeeId: request.employeeId,
+        year: getVacationBalanceYearFromDate(request.startDate),
+        pendingDelta: -request.days,
+      });
+    }
+
     return transaction.vacationRequest.update({
       where: {
         id: request.id,
@@ -193,6 +215,7 @@ export async function rejectVacationRequestAction(requestId: string) {
     });
   });
 
+  revalidatePath("/");
   revalidatePath("/genehmigungen");
   revalidatePath("/urlaubsantraege");
   revalidatePath(`/urlaubsantraege/${request.id}`);
