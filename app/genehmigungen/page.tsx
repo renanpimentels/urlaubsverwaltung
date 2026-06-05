@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { PageHeader } from "@/components/PageHeader";
 import { VacationRequestCard } from "@/components/VacationRequestCard";
 import { currentUser } from "@/lib/current-user";
@@ -42,14 +40,6 @@ export default async function ApprovalsPage() {
             key={request.id}
             request={request}
             employee={employee}
-            actions={
-              <Link
-                href={`/urlaubsantraege/${request.id}`}
-                className="rounded-xl bg-teal-700 px-5 py-3 text-center font-semibold text-white shadow-sm hover:bg-teal-800"
-              >
-                Antrag prüfen
-              </Link>
-            }
           />
         ))}
 
