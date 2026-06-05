@@ -4,10 +4,10 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { VacationBalanceCard } from "@/components/VacationBalanceCard";
-import { currentUser } from "@/lib/current-user";
+import { getCurrentUserFromDb } from "@/lib/current-user-server";
 import { formatDate, formatDateRange } from "@/lib/date-formatters";
-import { canUserViewEmployeeFromDb } from "@/lib/prisma-queries";
 import {
+  canUserViewEmployeeFromDb,
   getDepartmentByIdFromDb,
   getEmployeeByIdFromDb,
   getVacationBalanceByEmployeeIdFromDb,
@@ -24,6 +24,7 @@ type EmployeeDetailPageProps = {
 export default async function EmployeeDetailPage({
   params,
 }: EmployeeDetailPageProps) {
+  const currentUser = await getCurrentUserFromDb();
   const { id } = await params;
 
   const employee = await getEmployeeByIdFromDb(id);
@@ -46,14 +47,16 @@ export default async function EmployeeDetailPage({
     ? await getDepartmentByIdFromDb(employee.departmentId)
     : undefined;
 
-  const currentBalance = await getVacationBalanceByEmployeeIdFromDb(employee.id);
-  const allBalances = await getVacationBalancesByEmployeeIdFromDb(employee.id);
-  const employeeRequests = await getVacationRequestsByEmployeeIdFromDb(
+  const currentVacationBalance = await getVacationBalanceByEmployeeIdFromDb(
     employee.id
   );
 
-  const carriedOverBalances = allBalances.filter(
-    (balance) => balance.carriedOver > 0
+  const vacationBalances = await getVacationBalancesByEmployeeIdFromDb(
+    employee.id
+  );
+
+  const vacationRequests = await getVacationRequestsByEmployeeIdFromDb(
+    employee.id
   );
 
   return (
@@ -61,13 +64,13 @@ export default async function EmployeeDetailPage({
       <PageHeader
         eyebrow="Mitarbeiterprofil"
         title={employee.name}
-        description="Übersicht über Stammdaten, Urlaubssaldo und Anträge dieses Mitarbeiters."
+        description="Detailansicht eines Mitarbeiters mit Urlaubssaldo und Anträgen."
         action={
           <Link
             href="/mitarbeiter"
             className="rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 hover:bg-slate-50"
           >
-            Zurück
+            Zurück zur Übersicht
           </Link>
         }
       />
@@ -75,16 +78,29 @@ export default async function EmployeeDetailPage({
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <div className="grid gap-6">
           <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold">Stammdaten</h2>
+            <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+              <div>
+                <h2 className="text-xl font-bold">Stammdaten</h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Grundlegende Mitarbeiterinformationen.
+                </p>
+              </div>
 
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <span
+                className={`rounded-full px-3 py-1 text-sm font-semibold ${
+                  employee.isActive
+                    ? "bg-green-100 text-green-700"
+                    : "bg-slate-100 text-slate-600"
+                }`}
+              >
+                {employee.isActive ? "Aktiv" : "Inaktiv"}
+              </span>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="text-sm font-semibold text-slate-500">
-                  Abteilung
-                </p>
-                <p className="mt-1 font-medium">
-                  {department ? department.name : "Keine Abteilung"}
-                </p>
+                <p className="text-sm font-semibold text-slate-500">Name</p>
+                <p className="mt-1 font-medium">{employee.name}</p>
               </div>
 
               <div className="rounded-2xl bg-slate-50 p-4">
@@ -96,6 +112,15 @@ export default async function EmployeeDetailPage({
 
               <div className="rounded-2xl bg-slate-50 p-4">
                 <p className="text-sm font-semibold text-slate-500">
+                  Abteilung
+                </p>
+                <p className="mt-1 font-medium">
+                  {department ? department.name : "Keine Abteilung"}
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-sm font-semibold text-slate-500">
                   Eintrittsdatum
                 </p>
                 <p className="mt-1 font-medium">
@@ -103,19 +128,12 @@ export default async function EmployeeDetailPage({
                 </p>
               </div>
 
-              <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="rounded-2xl bg-slate-50 p-4 md:col-span-2">
                 <p className="text-sm font-semibold text-slate-500">
                   Vertraglicher Jahresurlaub
                 </p>
                 <p className="mt-1 font-medium">
-                  {employee.contractVacationDaysPerYear} Tage
-                </p>
-              </div>
-
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="text-sm font-semibold text-slate-500">Status</p>
-                <p className="mt-1 font-medium">
-                  {employee.isActive ? "Aktiv" : "Inaktiv"}
+                  {employee.contractVacationDaysPerYear} Tage pro Jahr
                 </p>
               </div>
             </div>
@@ -130,46 +148,39 @@ export default async function EmployeeDetailPage({
             </div>
 
             <div className="grid gap-3">
-              {employeeRequests.map((request) => (
+              {vacationRequests.map((request) => (
                 <div
                   key={request.id}
-                  className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center"
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
                 >
-                  <div>
-                    <h3 className="font-semibold">{request.absenceType}</h3>
+                  <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                    <div>
+                      <h3 className="font-semibold">{request.absenceType}</h3>
 
-                    {request.comment ? (
                       <p className="mt-1 text-sm text-slate-500">
-                        {request.comment}
+                        {formatDateRange(request.startDate, request.endDate)} ·{" "}
+                        {request.days} Tage
                       </p>
-                    ) : null}
 
-                    <p className="mt-1 text-sm text-slate-500">
-                      {formatDateRange(request.startDate, request.endDate)} ·{" "}
-                      {request.days} Tage
-                    </p>
-                  </div>
+                      {request.comment ? (
+                        <p className="mt-1 text-sm text-slate-500">
+                          {request.comment}
+                        </p>
+                      ) : null}
+                    </div>
 
-                  <div className="flex flex-col items-start gap-3 sm:items-end">
                     <StatusBadge
                       status={request.status}
                       approvalStepsCompleted={request.approvalStepsCompleted}
                       approvalStepsRequired={request.approvalStepsRequired}
                     />
-
-                    <Link
-                      href={`/urlaubsantraege/${request.id}`}
-                      className="text-sm font-semibold text-teal-700 hover:text-teal-800"
-                    >
-                      Antrag öffnen
-                    </Link>
                   </div>
                 </div>
               ))}
 
-              {employeeRequests.length === 0 ? (
+              {vacationRequests.length === 0 ? (
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-                  Keine Anträge für diesen Mitarbeiter gefunden.
+                  Für diesen Mitarbeiter wurden keine Urlaubsanträge gefunden.
                 </div>
               ) : null}
             </div>
@@ -177,44 +188,49 @@ export default async function EmployeeDetailPage({
         </div>
 
         <aside className="grid gap-6">
-          {currentBalance ? (
+          {currentVacationBalance ? (
             <VacationBalanceCard
-              total={currentBalance.total}
-              used={currentBalance.used}
-              pending={currentBalance.pending}
-              available={currentBalance.available}
-              title={`Urlaubssaldo ${currentBalance.year}`}
+              total={currentVacationBalance.total}
+              used={currentVacationBalance.used}
+              pending={currentVacationBalance.pending}
+              available={currentVacationBalance.available}
+              title={`Urlaubssaldo ${currentVacationBalance.year}`}
               description="Aktueller Urlaubssaldo dieses Mitarbeiters."
             />
           ) : null}
 
           <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold">Resturlaub</h2>
+            <h2 className="text-xl font-bold">Saldohistorie</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Übertragene Urlaubstage aus Vorjahren.
+              Übersicht der gespeicherten Urlaubssalden.
             </p>
 
             <div className="mt-5 grid gap-3">
-              {carriedOverBalances.map((balance) => (
+              {vacationBalances.map((balance) => (
                 <div
                   key={balance.id}
-                  className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800"
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm"
                 >
-                  <p className="font-semibold">
-                    {balance.carriedOver} Tage aus {balance.year}
-                  </p>
+                  <div className="flex justify-between gap-4">
+                    <span className="font-semibold text-slate-800">
+                      {balance.year}
+                    </span>
+                    <span className="text-slate-600">
+                      {balance.available} verfügbar
+                    </span>
+                  </div>
 
-                  {balance.expiresAt ? (
-                    <p className="mt-1">
-                      Ablaufdatum: {formatDate(balance.expiresAt)}
-                    </p>
-                  ) : null}
+                  <div className="mt-2 grid grid-cols-3 gap-2 text-slate-500">
+                    <span>{balance.used} genommen</span>
+                    <span>{balance.pending} offen</span>
+                    <span>{balance.total} gesamt</span>
+                  </div>
                 </div>
               ))}
 
-              {carriedOverBalances.length === 0 ? (
+              {vacationBalances.length === 0 ? (
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-                  Kein Resturlaub aus Vorjahren vorhanden.
+                  Keine Salden gefunden.
                 </div>
               ) : null}
             </div>

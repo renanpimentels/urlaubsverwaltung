@@ -1,17 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
+import { createEmployeeAction } from "@/lib/actions/employee-create-actions";
 import type { CompanySettings, Department } from "@/lib/types";
 
 type FormState = {
   name: string;
+  email: string;
   departmentId: string;
-  role: string;
+  position: string;
   employmentStartDate: string;
   contractVacationDaysPerYear: number;
-  isActive: boolean;
 };
 
 type EmployeeFormProps = {
@@ -25,28 +26,24 @@ export function EmployeeForm({
 }: EmployeeFormProps) {
   const [formData, setFormData] = useState<FormState>({
     name: "",
+    email: "",
     departmentId: departments[0]?.id ?? "",
-    role: "",
+    position: "",
     employmentStartDate: "",
     contractVacationDaysPerYear:
       companySettings.defaultVacationDaysPerYear,
-    isActive: true,
   });
 
   const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [isPending, startTransition] = useTransition();
 
-  function updateField(
-    field: keyof FormState,
-    value: string | number | boolean
-  ) {
+  function updateField(field: keyof FormState, value: string | number) {
     setFormData((currentFormData) => ({
       ...currentFormData,
       [field]: value,
     }));
 
     setErrorMessage("");
-    setSuccessMessage("");
   }
 
   function handleSubmit() {
@@ -55,12 +52,17 @@ export function EmployeeForm({
       return;
     }
 
+    if (!formData.email.trim()) {
+      setErrorMessage("Bitte gib eine E-Mail-Adresse ein.");
+      return;
+    }
+
     if (!formData.departmentId) {
       setErrorMessage("Bitte wähle eine Abteilung aus.");
       return;
     }
 
-    if (!formData.role.trim()) {
+    if (!formData.position.trim()) {
       setErrorMessage("Bitte gib eine Position ein.");
       return;
     }
@@ -70,16 +72,32 @@ export function EmployeeForm({
       return;
     }
 
-    if (formData.contractVacationDaysPerYear <= 0) {
+    if (
+      !Number.isInteger(formData.contractVacationDaysPerYear) ||
+      formData.contractVacationDaysPerYear < 1 ||
+      formData.contractVacationDaysPerYear > 60
+    ) {
       setErrorMessage(
-        "Der vertragliche Jahresurlaub muss größer als 0 sein."
+        "Der vertragliche Jahresurlaub muss zwischen 1 und 60 Tagen liegen."
       );
       return;
     }
 
-    setSuccessMessage(
-      `Der Mitarbeiter "${formData.name}" wurde lokal vorbereitet. In dieser Mockup-Version wird er noch nicht gespeichert.`
-    );
+    startTransition(async () => {
+      try {
+        await createEmployeeAction({
+          name: formData.name,
+          email: formData.email,
+          departmentId: formData.departmentId,
+          position: formData.position,
+          employmentStartDate: formData.employmentStartDate,
+          contractVacationDaysPerYear:
+            formData.contractVacationDaysPerYear,
+        });
+      } catch {
+        setErrorMessage("Der Mitarbeiter konnte nicht erstellt werden.");
+      }
+    });
   }
 
   return (
@@ -100,6 +118,17 @@ export function EmployeeForm({
             value={formData.name}
             onChange={(event) => updateField("name", event.target.value)}
             placeholder="z. B. Holly Flax"
+            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+          />
+        </label>
+
+        <label className="grid gap-2">
+          <span className="text-sm font-semibold text-slate-700">E-Mail</span>
+          <input
+            type="email"
+            value={formData.email}
+            onChange={(event) => updateField("email", event.target.value)}
+            placeholder="z. B. holly.flax@example.com"
             className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
           />
         </label>
@@ -130,8 +159,8 @@ export function EmployeeForm({
             </span>
             <input
               type="text"
-              value={formData.role}
-              onChange={(event) => updateField("role", event.target.value)}
+              value={formData.position}
+              onChange={(event) => updateField("position", event.target.value)}
               placeholder="z. B. HR Representative"
               className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
             />
@@ -160,6 +189,7 @@ export function EmployeeForm({
             <input
               type="number"
               min={1}
+              max={60}
               value={formData.contractVacationDaysPerYear}
               onChange={(event) =>
                 updateField(
@@ -176,34 +206,9 @@ export function EmployeeForm({
           </label>
         </div>
 
-        <label className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4">
-          <input
-            type="checkbox"
-            checked={formData.isActive}
-            onChange={(event) =>
-              updateField("isActive", event.target.checked)
-            }
-            className="h-5 w-5"
-          />
-          <span>
-            <span className="block font-semibold text-slate-700">
-              Mitarbeiter ist aktiv
-            </span>
-            <span className="text-sm text-slate-500">
-              Aktive Mitarbeiter können im System Urlaubsanträge erstellen.
-            </span>
-          </span>
-        </label>
-
         {errorMessage ? (
           <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
             {errorMessage}
-          </div>
-        ) : null}
-
-        {successMessage ? (
-          <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
-            {successMessage}
           </div>
         ) : null}
 
@@ -211,9 +216,10 @@ export function EmployeeForm({
           <button
             type="button"
             onClick={handleSubmit}
-            className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
+            disabled={isPending}
+            className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Mitarbeiter erstellen
+            {isPending ? "Wird erstellt..." : "Mitarbeiter erstellen"}
           </button>
 
           <Link
