@@ -6,7 +6,7 @@ import {
   applyVacationBalanceChange,
   getVacationBalanceYearFromDate,
 } from "@/lib/actions/vacation-balance-service";
-import { currentUser } from "@/lib/current-user";
+import { getCurrentUserFromDb } from "@/lib/current-user-server";
 import { prisma } from "@/lib/prisma";
 import type { AbsenceType, UserRole } from "@/lib/types";
 import { calculateBusinessDays } from "@/lib/vacation-calculations";
@@ -19,10 +19,17 @@ type CreateVacationRequestInput = {
   comment: string;
 };
 
-async function getManagedDepartmentIdsForEmployee(employeeId: string) {
+async function getResponsibleDepartmentIdsForEmployee(employeeId: string) {
   const departments = await prisma.department.findMany({
     where: {
-      managerId: employeeId,
+      OR: [
+        {
+          managerId: employeeId,
+        },
+        {
+          finalApproverId: employeeId,
+        },
+      ],
     },
     select: {
       id: true,
@@ -63,11 +70,10 @@ async function canCreateVacationRequestForEmployee(
       return false;
     }
 
-    const managedDepartmentIds = await getManagedDepartmentIdsForEmployee(
-      currentEmployeeId
-    );
+    const responsibleDepartmentIds =
+      await getResponsibleDepartmentIdsForEmployee(currentEmployeeId);
 
-    return managedDepartmentIds.includes(selectedEmployee.departmentId);
+    return responsibleDepartmentIds.includes(selectedEmployee.departmentId);
   }
 
   return false;
@@ -76,6 +82,8 @@ async function canCreateVacationRequestForEmployee(
 export async function createVacationRequestAction(
   input: CreateVacationRequestInput
 ) {
+  const currentUser = await getCurrentUserFromDb();
+
   if (!input.employeeId) {
     throw new Error("Employee is required.");
   }

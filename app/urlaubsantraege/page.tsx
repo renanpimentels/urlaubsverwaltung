@@ -2,13 +2,15 @@ import Link from "next/link";
 
 import { PageHeader } from "@/components/PageHeader";
 import { VacationRequestCard } from "@/components/VacationRequestCard";
-import { currentUser } from "@/lib/current-user";
+import { getCurrentUserFromDb } from "@/lib/current-user-server";
 import {
   getEmployeeByIdFromDb,
   getVisibleVacationRequestsForUserFromDb,
 } from "@/lib/prisma-queries";
 
 export default async function VacationRequestsPage() {
+  const currentUser = await getCurrentUserFromDb();
+
   const visibleRequests = await getVisibleVacationRequestsForUserFromDb(
     currentUser.employeeId,
     currentUser.role

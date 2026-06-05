@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 
-import { currentUser } from "@/lib/current-user";
-import { canAccessSettings } from "@/lib/mock-queries";
+import {
+  canAccessSettingsRole,
+  getCurrentUserFromDb,
+} from "@/lib/current-user-server";
 import { prisma } from "@/lib/prisma";
 
 type UpdateCompanySettingsInput = {
@@ -16,81 +18,18 @@ type UpdateDepartmentApproversInput = {
   finalApproverId: string;
 };
 
-function assertCanAccessSettings() {
-  if (!canAccessSettings(currentUser.role)) {
+async function assertCanAccessSettings() {
+  const currentUser = await getCurrentUserFromDb();
+
+  if (!canAccessSettingsRole(currentUser.role)) {
     throw new Error("Current user cannot access settings.");
-  }
-}
-
-async function promoteEmployeeUserToManagerIfNeeded(employeeId: string) {
-  const user = await prisma.user.findUnique({
-    where: {
-      employeeId,
-    },
-  });
-
-  if (!user) {
-    return;
-  }
-
-  if (user.role === "employee") {
-    await prisma.user.update({
-      where: {
-        id: user.id,
-      },
-      data: {
-        role: "manager",
-      },
-    });
-  }
-}
-
-async function demoteManagerUserToEmployeeIfNoLongerApprover(
-  employeeId: string
-) {
-  const user = await prisma.user.findUnique({
-    where: {
-      employeeId,
-    },
-  });
-
-  if (!user) {
-    return;
-  }
-
-  if (user.role !== "manager") {
-    return;
-  }
-
-  const responsibleDepartments = await prisma.department.count({
-    where: {
-      OR: [
-        {
-          managerId: employeeId,
-        },
-        {
-          finalApproverId: employeeId,
-        },
-      ],
-    },
-  });
-
-  if (responsibleDepartments === 0) {
-    await prisma.user.update({
-      where: {
-        id: user.id,
-      },
-      data: {
-        role: "employee",
-      },
-    });
   }
 }
 
 export async function updateCompanySettingsAction(
   input: UpdateCompanySettingsInput
 ) {
-  assertCanAccessSettings();
+  await assertCanAccessSettings();
 
   if (!Number.isInteger(input.defaultVacationDaysPerYear)) {
     throw new Error("Default vacation days must be an integer.");
@@ -137,7 +76,7 @@ export async function updateCompanySettingsAction(
 export async function updateDepartmentApproversAction(
   input: UpdateDepartmentApproversInput
 ) {
-  assertCanAccessSettings();
+  await assertCanAccessSettings();
 
   if (!input.departmentId) {
     throw new Error("Department is required.");

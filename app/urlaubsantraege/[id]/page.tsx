@@ -3,13 +3,14 @@ import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/PageHeader";
 import { VacationRequestDetail } from "@/components/VacationRequestDetail";
+import { getCurrentUserFromDb } from "@/lib/current-user-server";
 import {
   getApprovalDecisionsByRequestIdFromDb,
   getDepartmentByIdFromDb,
   getEmployeeByIdFromDb,
+  getNextApproverIdForVacationRequestFromDb,
   getVacationBalanceByEmployeeIdFromDb,
   getVacationRequestByIdFromDb,
-  getNextApproverIdForVacationRequestFromDb,
 } from "@/lib/prisma-queries";
 
 type VacationRequestDetailPageProps = {
@@ -21,6 +22,7 @@ type VacationRequestDetailPageProps = {
 export default async function VacationRequestDetailPage({
   params,
 }: VacationRequestDetailPageProps) {
+  const currentUser = await getCurrentUserFromDb();
   const { id } = await params;
 
   const request = await getVacationRequestByIdFromDb(id);
@@ -32,8 +34,8 @@ export default async function VacationRequestDetailPage({
   const employee = await getEmployeeByIdFromDb(request.employeeId);
 
   const departmentFromDb = employee?.departmentId
-  ? await getDepartmentByIdFromDb(employee.departmentId)
-  : undefined;
+    ? await getDepartmentByIdFromDb(employee.departmentId)
+    : undefined;
 
   const department = departmentFromDb
     ? {
@@ -52,8 +54,9 @@ export default async function VacationRequestDetailPage({
     request.id
   );
 
-  const nextApproverId = await getNextApproverIdForVacationRequestFromDb(request);
-
+  const nextApproverId = await getNextApproverIdForVacationRequestFromDb(
+    request
+  );
 
   return (
     <>
@@ -72,6 +75,7 @@ export default async function VacationRequestDetailPage({
       />
 
       <VacationRequestDetail
+        currentUser={currentUser}
         initialRequest={request}
         employee={employee}
         department={department}

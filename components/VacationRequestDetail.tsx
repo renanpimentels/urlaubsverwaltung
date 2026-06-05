@@ -10,7 +10,6 @@ import {
   rejectVacationRequestAction,
 } from "@/lib/actions/vacation-request-approval-actions";
 import { cancelVacationRequestAction } from "@/lib/actions/vacation-request-cancellation-actions";
-import { currentUser } from "@/lib/current-user";
 import { formatDate, formatDateRange } from "@/lib/date-formatters";
 import {
   canApproveVacationRequestWithNextApprover,
@@ -22,11 +21,19 @@ import type {
   ApprovalDecisionWithApprover,
   Department,
   Employee,
+  UserRole,
   VacationBalance,
   VacationRequest,
 } from "@/lib/types";
 
+type CurrentUserForClient = {
+  id: string;
+  employeeId?: string;
+  role: UserRole;
+};
+
 type VacationRequestDetailProps = {
+  currentUser: CurrentUserForClient;
   initialRequest: VacationRequest;
   employee?: Employee;
   department?: Department | null;
@@ -36,6 +43,7 @@ type VacationRequestDetailProps = {
 };
 
 export function VacationRequestDetail({
+  currentUser,
   initialRequest,
   employee,
   department,
@@ -235,24 +243,20 @@ export function VacationRequestDetail({
                 key={decision.id}
                 className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
               >
-                <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-start">
-                  <div>
-                    <p className="font-semibold">
-                      Schritt {decision.stepOrder}:{" "}
-                      {decision.decision === "approved"
-                        ? "Genehmigt"
-                        : "Abgelehnt"}
-                    </p>
+                <p className="font-semibold">
+                  Schritt {decision.stepOrder}:{" "}
+                  {decision.decision === "approved"
+                    ? "Genehmigt"
+                    : "Abgelehnt"}
+                </p>
 
-                    <p className="mt-1 text-sm text-slate-500">
-                      {decision.approverName
-                        ? `${decision.approverName} · ${formatDate(
-                            decision.decidedAt
-                          )}`
-                        : formatDate(decision.decidedAt)}
-                    </p>
-                  </div>
-                </div>
+                <p className="mt-1 text-sm text-slate-500">
+                  {decision.approverName
+                    ? `${decision.approverName} · ${formatDate(
+                        decision.decidedAt
+                      )}`
+                    : formatDate(decision.decidedAt)}
+                </p>
 
                 {decision.comment ? (
                   <p className="mt-3 text-sm text-slate-600">
@@ -347,7 +351,7 @@ export function VacationRequestDetail({
                 : undefined
             }
             title={`Urlaubssaldo ${vacationBalance.year}`}
-            description="Mockup-Übersicht zur Bewertung dieses Antrags."
+            description="Übersicht zur Bewertung dieses Antrags."
           />
         ) : null}
 

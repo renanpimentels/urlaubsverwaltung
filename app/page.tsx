@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
-import { currentUser } from "@/lib/current-user";
+import { getCurrentUserFromDb } from "@/lib/current-user-server";
 import { formatDateRange } from "@/lib/date-formatters";
 import {
   getDepartmentByIdFromDb,
@@ -15,6 +15,7 @@ import {
 } from "@/lib/prisma-queries";
 
 export default async function DashboardPage() {
+  const currentUser = await getCurrentUserFromDb();
   const currentEmployeeId = currentUser.employeeId;
 
   if (!currentEmployeeId) {

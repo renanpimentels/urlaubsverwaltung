@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 import { CompanySettingsForm } from "@/components/CompanySettingsForm";
 import { DepartmentApproverForm } from "@/components/DepartmentApproverForm";
 import { PageHeader } from "@/components/PageHeader";
-import { currentUser } from "@/lib/current-user";
-import { canAccessSettings } from "@/lib/mock-queries";
+import {
+  canAccessSettingsRole,
+  getCurrentUserFromDb,
+} from "@/lib/current-user-server";
 import {
   getCompanySettingsFromDb,
   getDepartmentsWithApproversFromDb,
@@ -12,7 +14,9 @@ import {
 } from "@/lib/prisma-queries";
 
 export default async function SettingsPage() {
-  if (!canAccessSettings(currentUser.role)) {
+  const currentUser = await getCurrentUserFromDb();
+
+  if (!canAccessSettingsRole(currentUser.role)) {
     notFound();
   }
 
