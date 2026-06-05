@@ -429,3 +429,11 @@ export async function getVisibleApprovalRequestsForUserFromDb(
 
   return approvableRequests;
 }
+
+
+export async function getSelectableEmployeesForVacationRequestFromDb(
+  employeeId: string | undefined,
+  role: UserRole
+) {
+  return getVisibleEmployeesForUserFromDb(employeeId, role);
+}

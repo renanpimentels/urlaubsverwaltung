@@ -1,33 +1,17 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState, useTransition } from "react";
 
-import type { AbsenceType, Employee } from "@/lib/types";
+import { createVacationRequestAction } from "@/lib/actions/vacation-request-create-actions";
 import { calculateBusinessDays } from "@/lib/vacation-calculations";
-
-type FormState = {
-  employeeId: string;
-  startDate: string;
-  endDate: string;
-  absenceType: AbsenceType;
-  comment: string;
-};
+import type { AbsenceType, Employee } from "@/lib/types";
 
 type VacationRequestFormProps = {
   selectableEmployees: Employee[];
   defaultEmployeeId: string;
   onEmployeeChange?: (employeeId: string) => void;
-  onRequestedDaysChange?: (requestedDays: number) => void;
+  onRequestedDaysChange?: (days: number) => void;
   onAbsenceTypeChange?: (absenceType: AbsenceType) => void;
-};
-
-const initialFormState: FormState = {
-  employeeId: "",
-  startDate: "",
-  endDate: "",
-  absenceType: "Urlaub",
-  comment: "",
 };
 
 export function VacationRequestForm({
@@ -37,70 +21,61 @@ export function VacationRequestForm({
   onRequestedDaysChange,
   onAbsenceTypeChange,
 }: VacationRequestFormProps) {
-  const [formData, setFormData] = useState<FormState>({
-    ...initialFormState,
-    employeeId: defaultEmployeeId,
-  });
-
+  const [employeeId, setEmployeeId] = useState(defaultEmployeeId);
+  const [absenceType, setAbsenceType] = useState<AbsenceType>("Urlaub");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [comment, setComment] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [isPending, startTransition] = useTransition();
 
-  const requestedDays = calculateBusinessDays(
-    formData.startDate,
-    formData.endDate
-  );
+  const requestedDays = calculateBusinessDays(startDate, endDate);
 
-  const isEmployeeSelectionDisabled = selectableEmployees.length <= 1;
-
-  useEffect(() => {
-    onRequestedDaysChange?.(requestedDays);
-  }, [onRequestedDaysChange, requestedDays]);
-
-  useEffect(() => {
-    onEmployeeChange?.(formData.employeeId);
-  }, [formData.employeeId, onEmployeeChange]);
-
-  useEffect(() => {
-    onAbsenceTypeChange?.(formData.absenceType);
-  }, [formData.absenceType, onAbsenceTypeChange]);
-
-  function updateField(field: keyof FormState, value: string) {
-    setFormData((currentFormData) => ({
-      ...currentFormData,
-      [field]: value,
-    }));
-
+  function handleEmployeeChange(value: string) {
+    setEmployeeId(value);
     setErrorMessage("");
-    setSuccessMessage("");
+    onEmployeeChange?.(value);
   }
 
-  function updateAbsenceType(value: AbsenceType) {
-    setFormData((currentFormData) => ({
-      ...currentFormData,
-      absenceType: value,
-    }));
-
+  function handleAbsenceTypeChange(value: AbsenceType) {
+    setAbsenceType(value);
     setErrorMessage("");
-    setSuccessMessage("");
+    onAbsenceTypeChange?.(value);
+  }
+
+  function handleStartDateChange(value: string) {
+    setStartDate(value);
+    setErrorMessage("");
+
+    const days = calculateBusinessDays(value, endDate);
+    onRequestedDaysChange?.(days);
+  }
+
+  function handleEndDateChange(value: string) {
+    setEndDate(value);
+    setErrorMessage("");
+
+    const days = calculateBusinessDays(startDate, value);
+    onRequestedDaysChange?.(days);
   }
 
   function handleSubmit() {
-    if (!formData.employeeId) {
+    if (!employeeId) {
       setErrorMessage("Bitte wähle einen Mitarbeiter aus.");
       return;
     }
 
-    if (!formData.startDate) {
+    if (!startDate) {
       setErrorMessage("Bitte wähle ein Startdatum aus.");
       return;
     }
 
-    if (!formData.endDate) {
+    if (!endDate) {
       setErrorMessage("Bitte wähle ein Enddatum aus.");
       return;
     }
 
-    if (formData.endDate < formData.startDate) {
+    if (endDate < startDate) {
       setErrorMessage("Das Enddatum darf nicht vor dem Startdatum liegen.");
       return;
     }
@@ -112,9 +87,19 @@ export function VacationRequestForm({
       return;
     }
 
-    setSuccessMessage(
-      `Der Antrag über ${requestedDays} Abwesenheitstage wurde erfolgreich vorbereitet. In dieser Mockup-Version wird er noch nicht gespeichert.`
-    );
+    startTransition(async () => {
+      try {
+        await createVacationRequestAction({
+          employeeId,
+          absenceType,
+          startDate,
+          endDate,
+          comment,
+        });
+      } catch {
+        setErrorMessage("Der Antrag konnte nicht erstellt werden.");
+      }
+    });
   }
 
   return (
@@ -122,8 +107,7 @@ export function VacationRequestForm({
       <div className="mb-6">
         <h2 className="text-xl font-bold">Antragsdaten</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Wähle Zeitraum, Abwesenheitsart und füge optional eine Bemerkung
-          hinzu.
+          Wähle Zeitraum, Abwesenheitsart und Mitarbeiter aus.
         </p>
       </div>
 
@@ -132,11 +116,10 @@ export function VacationRequestForm({
           <span className="text-sm font-semibold text-slate-700">
             Mitarbeiter
           </span>
-
           <select
-            value={formData.employeeId}
-            disabled={isEmployeeSelectionDisabled}
-            onChange={(event) => updateField("employeeId", event.target.value)}
+            value={employeeId}
+            onChange={(event) => handleEmployeeChange(event.target.value)}
+            disabled={selectableEmployees.length <= 1}
             className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600 disabled:bg-slate-100 disabled:text-slate-500"
           >
             {selectableEmployees.map((employee) => (
@@ -145,12 +128,6 @@ export function VacationRequestForm({
               </option>
             ))}
           </select>
-
-          {isEmployeeSelectionDisabled ? (
-            <p className="text-sm text-slate-500">
-              Für normale Mitarbeiter ist nur der eigene Antrag möglich.
-            </p>
-          ) : null}
         </label>
 
         <div className="grid gap-5 md:grid-cols-2">
@@ -160,8 +137,8 @@ export function VacationRequestForm({
             </span>
             <input
               type="date"
-              value={formData.startDate}
-              onChange={(event) => updateField("startDate", event.target.value)}
+              value={startDate}
+              onChange={(event) => handleStartDateChange(event.target.value)}
               className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
             />
           </label>
@@ -172,8 +149,8 @@ export function VacationRequestForm({
             </span>
             <input
               type="date"
-              value={formData.endDate}
-              onChange={(event) => updateField("endDate", event.target.value)}
+              value={endDate}
+              onChange={(event) => handleEndDateChange(event.target.value)}
               className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
             />
           </label>
@@ -196,11 +173,11 @@ export function VacationRequestForm({
 
             <div className="max-w-sm text-sm text-slate-500">
               <p>
-                Wochenenden werden in dieser Mockup-Version nicht mitgezählt.
-                Feiertage werden später ergänzt.
+                Wochenenden werden in dieser Version nicht mitgezählt. Feiertage
+                werden später ergänzt.
               </p>
 
-              {formData.absenceType === "Sonderurlaub" ? (
+              {absenceType === "Sonderurlaub" ? (
                 <p className="mt-2 text-amber-700">
                   Sonderurlaub wird als Abwesenheit berechnet, reduziert aber
                   den regulären Urlaubssaldo nicht automatisch.
@@ -215,9 +192,9 @@ export function VacationRequestForm({
             Abwesenheitsart
           </span>
           <select
-            value={formData.absenceType}
+            value={absenceType}
             onChange={(event) =>
-              updateAbsenceType(event.target.value as AbsenceType)
+              handleAbsenceTypeChange(event.target.value as AbsenceType)
             }
             className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
           >
@@ -232,8 +209,11 @@ export function VacationRequestForm({
           </span>
           <textarea
             rows={5}
-            value={formData.comment}
-            onChange={(event) => updateField("comment", event.target.value)}
+            value={comment}
+            onChange={(event) => {
+              setComment(event.target.value);
+              setErrorMessage("");
+            }}
             placeholder="Optionale Bemerkung zum Antrag..."
             className="resize-none rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
           />
@@ -245,27 +225,15 @@ export function VacationRequestForm({
           </div>
         ) : null}
 
-        {successMessage ? (
-          <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
-            {successMessage}
-          </div>
-        ) : null}
-
         <div className="flex flex-col gap-3 pt-2 sm:flex-row">
           <button
             type="button"
             onClick={handleSubmit}
-            className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
+            disabled={isPending}
+            className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Antrag erstellen
+            {isPending ? "Wird erstellt..." : "Antrag erstellen"}
           </button>
-
-          <Link
-            href="/urlaubsantraege"
-            className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            Abbrechen
-          </Link>
         </div>
       </div>
     </form>
