@@ -16,7 +16,8 @@ import {
   canCancelOwnVacationRequest,
   canEditOwnVacationRequest,
   isApprovalOverride,
-} from "@/lib/mock-queries";
+} from "@/lib/permissions";
+
 import type {
   ApprovalDecisionWithApprover,
   Department,

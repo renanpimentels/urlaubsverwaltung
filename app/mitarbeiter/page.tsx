@@ -4,7 +4,7 @@ import { EmployeeCard } from "@/components/EmployeeCard";
 import { EmployeeDepartmentFilter } from "@/components/EmployeeDepartmentFilter";
 import { PageHeader } from "@/components/PageHeader";
 import { getCurrentUserFromDb } from "@/lib/current-user-server";
-import { canCreateEmployee } from "@/lib/mock-queries";
+import { canCreateEmployee } from "@/lib/permissions";
 import {
   getDepartmentByIdFromDb,
   getEmployeeByIdFromDb,
