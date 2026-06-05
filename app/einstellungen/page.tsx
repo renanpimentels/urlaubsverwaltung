@@ -1,11 +1,14 @@
 import { notFound } from "next/navigation";
 
+import { CompanySettingsForm } from "@/components/CompanySettingsForm";
+import { DepartmentApproverForm } from "@/components/DepartmentApproverForm";
 import { PageHeader } from "@/components/PageHeader";
 import { currentUser } from "@/lib/current-user";
 import { canAccessSettings } from "@/lib/mock-queries";
 import {
   getCompanySettingsFromDb,
   getDepartmentsWithApproversFromDb,
+  getEmployeesForSettingsSelectFromDb,
 } from "@/lib/prisma-queries";
 
 export default async function SettingsPage() {
@@ -15,6 +18,7 @@ export default async function SettingsPage() {
 
   const companySettings = await getCompanySettingsFromDb();
   const departments = await getDepartmentsWithApproversFromDb();
+  const employees = await getEmployeesForSettingsSelectFromDb();
 
   return (
     <>
@@ -33,25 +37,19 @@ export default async function SettingsPage() {
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm font-semibold text-slate-500">
-                Standard-Jahresurlaub
-              </p>
-              <p className="mt-2 text-3xl font-bold text-slate-950">
-                {companySettings?.defaultVacationDaysPerYear ?? 0}
-              </p>
-              <p className="mt-1 text-sm text-slate-500">Tage pro Jahr</p>
-            </div>
+          <CompanySettingsForm
+            defaultVacationDaysPerYear={
+              companySettings?.defaultVacationDaysPerYear ?? 30
+            }
+          />
 
-            <div className="rounded-2xl bg-slate-50 p-4 md:col-span-2">
-              <p className="text-sm font-semibold text-slate-500">Hinweis</p>
-              <p className="mt-2 text-sm text-slate-600">
-                Der Standard-Jahresurlaub wird nur als Ausgangswert verwendet.
-                Der individuelle vertragliche Jahresurlaub wird weiterhin pro
-                Mitarbeiter gespeichert.
-              </p>
-            </div>
+          <div className="mt-5 rounded-2xl bg-slate-50 p-4">
+            <p className="text-sm font-semibold text-slate-500">Hinweis</p>
+            <p className="mt-2 text-sm text-slate-600">
+              Der Standard-Jahresurlaub wird nur als Ausgangswert verwendet. Der
+              individuelle vertragliche Jahresurlaub wird weiterhin pro
+              Mitarbeiter gespeichert.
+            </p>
           </div>
         </article>
 
@@ -63,83 +61,80 @@ export default async function SettingsPage() {
             </p>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200">
-            <table className="w-full border-collapse text-left text-sm">
-              <thead className="bg-slate-50 text-slate-600">
-                <tr>
-                  <th className="px-4 py-3 font-semibold">Abteilung</th>
-                  <th className="px-4 py-3 font-semibold">Manager</th>
-                  <th className="px-4 py-3 font-semibold">Final Approver</th>
-                  <th className="px-4 py-3 font-semibold">Mitarbeiter</th>
-                  <th className="px-4 py-3 font-semibold">Status</th>
-                </tr>
-              </thead>
+          <div className="grid gap-4">
+            {departments.map((department) => (
+              <div
+                key={department.id}
+                className="rounded-2xl border border-slate-200 bg-slate-50 p-5"
+              >
+                <div className="mb-4 flex flex-col justify-between gap-3 md:flex-row md:items-start">
+                  <div>
+                    <h3 className="text-lg font-bold">{department.name}</h3>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {department.employees.length} Mitarbeiter
+                    </p>
+                  </div>
 
-              <tbody className="divide-y divide-slate-200 bg-white">
-                {departments.map((department) => (
-                  <tr key={department.id}>
-                    <td className="px-4 py-4 font-semibold text-slate-950">
-                      {department.name}
-                    </td>
+                  <span
+                    className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${
+                      department.isActive
+                        ? "bg-green-100 text-green-700"
+                        : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {department.isActive ? "Aktiv" : "Inaktiv"}
+                  </span>
+                </div>
 
-                    <td className="px-4 py-4 text-slate-700">
-                      <div>
-                        <p className="font-medium">
-                          {department.manager.name}
+                <div className="mb-4 grid gap-3 md:grid-cols-2">
+                  <div className="rounded-xl bg-white p-4">
+                    <p className="text-xs font-semibold text-slate-500">
+                      Aktueller Manager
+                    </p>
+                    <p className="mt-1 font-medium">
+                      {department.manager.name}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {department.manager.position}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-white p-4">
+                    <p className="text-xs font-semibold text-slate-500">
+                      Aktueller Final Approver
+                    </p>
+
+                    {department.finalApprover ? (
+                      <>
+                        <p className="mt-1 font-medium">
+                          {department.finalApprover.name}
                         </p>
                         <p className="text-xs text-slate-500">
-                          {department.manager.position}
+                          {department.finalApprover.position}
                         </p>
-                      </div>
-                    </td>
+                      </>
+                    ) : (
+                      <p className="mt-1 text-sm text-slate-500">
+                        Nicht definiert
+                      </p>
+                    )}
+                  </div>
+                </div>
 
-                    <td className="px-4 py-4 text-slate-700">
-                      {department.finalApprover ? (
-                        <div>
-                          <p className="font-medium">
-                            {department.finalApprover.name}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {department.finalApprover.position}
-                          </p>
-                        </div>
-                      ) : (
-                        <span className="text-slate-400">
-                          Nicht definiert
-                        </span>
-                      )}
-                    </td>
+                <DepartmentApproverForm
+                  departmentId={department.id}
+                  managerId={department.managerId}
+                  finalApproverId={department.finalApproverId}
+                  employees={employees}
+                />
+              </div>
+            ))}
 
-                    <td className="px-4 py-4 text-slate-700">
-                      {department.employees.length}
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                          department.isActive
-                            ? "bg-green-100 text-green-700"
-                            : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        {department.isActive ? "Aktiv" : "Inaktiv"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-
-                {departments.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="px-4 py-8 text-center text-slate-500"
-                    >
-                      Keine Abteilungen gefunden.
-                    </td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
+            {departments.length === 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">
+                Keine Abteilungen gefunden.
+              </div>
+            ) : null}
           </div>
         </article>
       </section>
