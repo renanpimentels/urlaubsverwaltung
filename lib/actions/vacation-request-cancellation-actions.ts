@@ -6,10 +6,12 @@ import {
   applyVacationBalanceChange,
   getVacationBalanceYearFromDate,
 } from "@/lib/actions/vacation-balance-service";
-import { currentUser } from "@/lib/current-user";
+import { getCurrentUserFromDb } from "@/lib/current-user-server";
 import { prisma } from "@/lib/prisma";
 
 export async function cancelVacationRequestAction(requestId: string) {
+  const currentUser = await getCurrentUserFromDb();
+
   const request = await prisma.vacationRequest.findUnique({
     where: {
       id: requestId,

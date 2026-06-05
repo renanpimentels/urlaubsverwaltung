@@ -2,27 +2,55 @@ import { notFound } from "next/navigation";
 
 import { EmployeeForm } from "@/components/EmployeeForm";
 import { PageHeader } from "@/components/PageHeader";
-import { currentUser } from "@/lib/current-user";
-import { companySettings, departments } from "@/lib/mock-data";
-import { canCreateEmployee } from "@/lib/mock-queries";
+import {
+  canAccessSettingsRole,
+  getCurrentUserFromDb,
+} from "@/lib/current-user-server";
+import {
+  getCompanySettingsFromDb,
+  getVisibleDepartmentsForUserFromDb,
+} from "@/lib/prisma-queries";
 
-export default function NewEmployeePage() {
-  if (!canCreateEmployee(currentUser.role)) {
+export default async function NewEmployeePage() {
+  const currentUser = await getCurrentUserFromDb();
+
+  if (!canAccessSettingsRole(currentUser.role)) {
     notFound();
   }
+
+  const companySettings = await getCompanySettingsFromDb();
+
+  const departments = await getVisibleDepartmentsForUserFromDb(
+    currentUser.employeeId,
+    currentUser.role
+  );
 
   return (
     <>
       <PageHeader
         eyebrow="Neuer Mitarbeiter"
         title="Mitarbeiter hinzufügen"
-        description="Erfasse einen neuen Mitarbeiter. In dieser Mockup-Version werden die Daten noch nicht gespeichert."
+        description="Erfasse einen neuen Mitarbeiter. In dieser Version werden die Stammdaten aus dem System geladen."
       />
 
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <EmployeeForm
-          departments={departments}
-          companySettings={companySettings}
+          departments={departments.map((department) => ({
+            id: department.id,
+            name: department.name,
+            managerId: department.managerId,
+            finalApproverId: department.finalApproverId ?? undefined,
+          }))}
+          companySettings={
+            companySettings
+              ? {
+                  defaultVacationDaysPerYear:
+                    companySettings.defaultVacationDaysPerYear,
+                }
+              : {
+                  defaultVacationDaysPerYear: 30,
+                }
+          }
         />
 
         <aside className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">

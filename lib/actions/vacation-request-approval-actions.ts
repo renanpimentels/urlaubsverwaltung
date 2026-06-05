@@ -6,7 +6,7 @@ import {
   applyVacationBalanceChange,
   getVacationBalanceYearFromDate,
 } from "@/lib/actions/vacation-balance-service";
-import { currentUser } from "@/lib/current-user";
+import { getCurrentUserFromDb } from "@/lib/current-user-server";
 import { prisma } from "@/lib/prisma";
 
 async function getNextApproverIdForRequest(request: {
@@ -56,7 +56,13 @@ async function getNextApproverIdForRequest(request: {
   return undefined;
 }
 
-function canCurrentUserApproveRequest(nextApproverId: string | undefined) {
+function canCurrentUserApproveRequest(
+  currentUser: {
+    employeeId?: string;
+    role: string;
+  },
+  nextApproverId: string | undefined
+) {
   if (currentUser.role === "hr" || currentUser.role === "admin") {
     return true;
   }
@@ -64,7 +70,13 @@ function canCurrentUserApproveRequest(nextApproverId: string | undefined) {
   return Boolean(currentUser.employeeId) && currentUser.employeeId === nextApproverId;
 }
 
-function isCurrentUserOverride(nextApproverId: string | undefined) {
+function isCurrentUserOverride(
+  currentUser: {
+    employeeId?: string;
+    role: string;
+  },
+  nextApproverId: string | undefined
+) {
   if (currentUser.role !== "hr" && currentUser.role !== "admin") {
     return false;
   }
@@ -73,6 +85,8 @@ function isCurrentUserOverride(nextApproverId: string | undefined) {
 }
 
 export async function approveVacationRequestAction(requestId: string) {
+  const currentUser = await getCurrentUserFromDb();
+
   const request = await prisma.vacationRequest.findUnique({
     where: {
       id: requestId,
@@ -89,7 +103,7 @@ export async function approveVacationRequestAction(requestId: string) {
 
   const nextApproverId = await getNextApproverIdForRequest(request);
 
-  if (!canCurrentUserApproveRequest(nextApproverId)) {
+  if (!canCurrentUserApproveRequest(currentUser, nextApproverId)) {
     throw new Error("Current user cannot approve this request.");
   }
 
@@ -101,7 +115,7 @@ export async function approveVacationRequestAction(requestId: string) {
 
   const nextCompletedSteps = request.approvalStepsCompleted + 1;
   const isFullyApproved = nextCompletedSteps >= request.approvalStepsRequired;
-  const override = isCurrentUserOverride(nextApproverId);
+  const override = isCurrentUserOverride(currentUser, nextApproverId);
 
   const updatedRequest = await prisma.$transaction(async (transaction) => {
     await transaction.approvalDecision.create({
@@ -153,6 +167,8 @@ export async function approveVacationRequestAction(requestId: string) {
 }
 
 export async function rejectVacationRequestAction(requestId: string) {
+  const currentUser = await getCurrentUserFromDb();
+
   const request = await prisma.vacationRequest.findUnique({
     where: {
       id: requestId,
@@ -169,7 +185,7 @@ export async function rejectVacationRequestAction(requestId: string) {
 
   const nextApproverId = await getNextApproverIdForRequest(request);
 
-  if (!canCurrentUserApproveRequest(nextApproverId)) {
+  if (!canCurrentUserApproveRequest(currentUser, nextApproverId)) {
     throw new Error("Current user cannot reject this request.");
   }
 
@@ -180,7 +196,7 @@ export async function rejectVacationRequestAction(requestId: string) {
   }
 
   const nextStepOrder = request.approvalStepsCompleted + 1;
-  const override = isCurrentUserOverride(nextApproverId);
+  const override = isCurrentUserOverride(currentUser, nextApproverId);
 
   const updatedRequest = await prisma.$transaction(async (transaction) => {
     await transaction.approvalDecision.create({

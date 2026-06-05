@@ -2,13 +2,15 @@ import Link from "next/link";
 
 import { PageHeader } from "@/components/PageHeader";
 import { VacationRequestCard } from "@/components/VacationRequestCard";
-import { currentUser } from "@/lib/current-user";
+import { getCurrentUserFromDb } from "@/lib/current-user-server";
 import {
   getEmployeeByIdFromDb,
   getVisibleApprovalRequestsForUserFromDb,
 } from "@/lib/prisma-queries";
 
 export default async function ApprovalsPage() {
+  const currentUser = await getCurrentUserFromDb();
+
   const approvalRequests = await getVisibleApprovalRequestsForUserFromDb(
     currentUser.employeeId,
     currentUser.role
