@@ -61,6 +61,23 @@ export function getManagedDepartmentIdsForEmployee(employeeId: string) {
   );
 }
 
+export function getApprovalRelevantDepartmentsForEmployee(employeeId: string) {
+  const employee = getEmployeeById(employeeId);
+
+  return departments.filter(
+    (department) =>
+      department.managerId === employeeId ||
+      department.finalApproverId === employeeId ||
+      department.id === employee?.departmentId
+  );
+}
+
+export function getApprovalRelevantDepartmentIdsForEmployee(employeeId: string) {
+  return getApprovalRelevantDepartmentsForEmployee(employeeId).map(
+    (department) => department.id
+  );
+}
+
 export function getVacationRequestById(id: string) {
   return vacationRequests.find((request) => request.id === id);
 }
@@ -108,7 +125,8 @@ export function getVisibleVacationRequestsForUser(
   }
 
   if (canViewManagedDepartmentData(role)) {
-    const managedDepartmentIds = getManagedDepartmentIdsForEmployee(employeeId);
+    const visibleDepartmentIds =
+      getApprovalRelevantDepartmentIdsForEmployee(employeeId);
 
     return vacationRequests.filter((request) => {
       const requestEmployee = getEmployeeById(request.employeeId);
@@ -116,7 +134,7 @@ export function getVisibleVacationRequestsForUser(
       return (
         request.employeeId === employeeId ||
         (requestEmployee
-          ? managedDepartmentIds.includes(requestEmployee.departmentId)
+          ? visibleDepartmentIds.includes(requestEmployee.departmentId)
           : false)
       );
     });
@@ -146,17 +164,22 @@ export function getVisibleEmployeesForUser(
     return [];
   }
 
+  if (role === "employee") {
+    return employees.filter((employee) => employee.id === employeeId);
+  }
+
   if (canViewManagedDepartmentData(role)) {
-    const managedDepartmentIds = getManagedDepartmentIdsForEmployee(employeeId);
+    const visibleDepartmentIds =
+      getApprovalRelevantDepartmentIdsForEmployee(employeeId);
 
     return employees.filter(
       (employee) =>
         employee.id === employeeId ||
-        managedDepartmentIds.includes(employee.departmentId)
+        visibleDepartmentIds.includes(employee.departmentId)
     );
   }
 
-  return employees.filter((employee) => employee.id === employeeId);
+  return [];
 }
 
 export function getSelectableEmployeesForVacationRequest(
@@ -172,12 +195,13 @@ export function getSelectableEmployeesForVacationRequest(
   }
 
   if (canViewManagedDepartmentData(role)) {
-    const managedDepartmentIds = getManagedDepartmentIdsForEmployee(employeeId);
+    const visibleDepartmentIds =
+      getApprovalRelevantDepartmentIdsForEmployee(employeeId);
 
     return employees.filter(
       (employee) =>
         employee.id === employeeId ||
-        managedDepartmentIds.includes(employee.departmentId)
+        visibleDepartmentIds.includes(employee.departmentId)
     );
   }
 
@@ -208,10 +232,10 @@ export function canUserViewEmployee(
       return false;
     }
 
-    const managedDepartmentIds =
-      getManagedDepartmentIdsForEmployee(currentEmployeeId);
+    const visibleDepartmentIds =
+      getApprovalRelevantDepartmentIdsForEmployee(currentEmployeeId);
 
-    return managedDepartmentIds.includes(targetEmployee.departmentId);
+    return visibleDepartmentIds.includes(targetEmployee.departmentId);
   }
 
   return false;
