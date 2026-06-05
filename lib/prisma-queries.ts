@@ -570,3 +570,59 @@ export async function canEditOwnVacationRequestFromDb(
     request.approvalStepsCompleted === 0
   );
 }
+
+
+export async function getCompanySettingsFromDb() {
+  return prisma.companySettings.findFirst({
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+}
+
+export async function getDepartmentsWithApproversFromDb() {
+  return prisma.department.findMany({
+    where: {
+      isActive: true,
+    },
+    include: {
+      manager: {
+        select: {
+          id: true,
+          name: true,
+          position: true,
+          isActive: true,
+        },
+      },
+      finalApprover: {
+        select: {
+          id: true,
+          name: true,
+          position: true,
+          isActive: true,
+        },
+      },
+      employees: {
+        select: {
+          id: true,
+        },
+      },
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
+}
+
+export async function getEmployeesForSettingsSelectFromDb() {
+  const employees = await prisma.employee.findMany({
+    where: {
+      isActive: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
+
+  return employees.map(mapPrismaEmployeeToAppEmployee);
+}
