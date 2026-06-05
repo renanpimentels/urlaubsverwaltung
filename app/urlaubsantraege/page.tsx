@@ -3,7 +3,6 @@ import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { VacationRequestCard } from "@/components/VacationRequestCard";
 import { currentUser } from "@/lib/current-user";
-import { getEmployeeById } from "@/lib/mock-queries";
 import {
   getEmployeeByIdFromDb,
   getVisibleVacationRequestsForUserFromDb,
@@ -17,9 +16,7 @@ export default async function VacationRequestsPage() {
 
   const requestsWithEmployees = await Promise.all(
     visibleRequests.map(async (request) => {
-      const employee =
-        (await getEmployeeByIdFromDb(request.employeeId)) ??
-        getEmployeeById(request.employeeId);
+      const employee = await getEmployeeByIdFromDb(request.employeeId);
 
       return {
         request,
