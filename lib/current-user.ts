@@ -2,7 +2,10 @@
 
 //export const currentUserId = "user-017";
 
-export const currentUserId = "cmq0zmayl0001tcln6fnmnfs1"
+export const currentUserId = "cmq0zmayl0001tcln6fnmnfs1";
+
+
+
 
 //  getUserById("user-001") // Michael admin 
 
