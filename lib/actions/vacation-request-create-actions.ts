@@ -6,6 +6,7 @@ import {
   applyVacationBalanceChange,
   getVacationBalanceYearFromDate,
 } from "@/lib/actions/vacation-balance-service";
+import { assertVacationRequestCanBeSaved } from "@/lib/actions/vacation-request-validation-service";
 import { getCurrentUserFromDb } from "@/lib/current-user-server";
 import { prisma } from "@/lib/prisma";
 import type { AbsenceType, UserRole } from "@/lib/types";
@@ -127,16 +128,25 @@ export async function createVacationRequestAction(
   }
 
   const startDate = new Date(input.startDate);
+  const endDate = new Date(input.endDate);
   let createdRequestId = "";
 
   await prisma.$transaction(async (transaction) => {
+    await assertVacationRequestCanBeSaved(transaction, {
+      employeeId: input.employeeId,
+      absenceType: input.absenceType,
+      startDate,
+      endDate,
+      days,
+    });
+
     const request = await transaction.vacationRequest.create({
       data: {
         employeeId: input.employeeId,
         createdByUserId: currentUser.id,
         absenceType: input.absenceType,
         startDate,
-        endDate: new Date(input.endDate),
+        endDate,
         days,
         status: "Ausstehend",
         approvalStepsCompleted: 0,
