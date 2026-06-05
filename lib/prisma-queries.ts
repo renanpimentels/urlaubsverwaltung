@@ -515,3 +515,58 @@ export async function getVisibleEmployeesForUserByDepartmentFromDb(
     (employee) => employee.departmentId === departmentId
   );
 }
+
+
+export async function canUserViewEmployeeFromDb(
+  currentEmployeeId: string | undefined,
+  role: UserRole,
+  targetEmployeeId: string
+) {
+  if (role === "hr" || role === "admin") {
+    return true;
+  }
+
+  if (!currentEmployeeId) {
+    return false;
+  }
+
+  if (currentEmployeeId === targetEmployeeId) {
+    return true;
+  }
+
+  if (role !== "manager") {
+    return false;
+  }
+
+  const targetEmployee = await prisma.employee.findUnique({
+    where: {
+      id: targetEmployeeId,
+    },
+    select: {
+      departmentId: true,
+    },
+  });
+
+  if (!targetEmployee?.departmentId) {
+    return false;
+  }
+
+  const visibleDepartmentIds = await getVisibleDepartmentIdsForUserFromDb(
+    currentEmployeeId,
+    role
+  );
+
+  return visibleDepartmentIds.includes(targetEmployee.departmentId);
+}
+
+export async function canEditOwnVacationRequestFromDb(
+  request: VacationRequest,
+  currentEmployeeId: string | undefined
+) {
+  return (
+    Boolean(currentEmployeeId) &&
+    request.employeeId === currentEmployeeId &&
+    request.status === "Ausstehend" &&
+    request.approvalStepsCompleted === 0
+  );
+}

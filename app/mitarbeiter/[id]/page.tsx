@@ -6,7 +6,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { VacationBalanceCard } from "@/components/VacationBalanceCard";
 import { currentUser } from "@/lib/current-user";
 import { formatDate, formatDateRange } from "@/lib/date-formatters";
-import { canUserViewEmployee } from "@/lib/mock-queries";
+import { canUserViewEmployeeFromDb } from "@/lib/prisma-queries";
 import {
   getDepartmentByIdFromDb,
   getEmployeeByIdFromDb,
@@ -32,7 +32,7 @@ export default async function EmployeeDetailPage({
     notFound();
   }
 
-  const canViewEmployee = canUserViewEmployee(
+  const canViewEmployee = await canUserViewEmployeeFromDb(
     currentUser.employeeId,
     currentUser.role,
     employee.id
