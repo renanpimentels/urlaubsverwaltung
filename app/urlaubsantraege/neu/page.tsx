@@ -40,7 +40,7 @@ export default function NewVacationRequestPage() {
       <PageHeader
         eyebrow="Neuer Antrag"
         title="Urlaubsantrag erstellen"
-        description="Erfasse einen neuen Urlaubsantrag. In dieser Mockup-Version werden die Daten noch nicht gespeichert."
+        description="Erfasse einen neuen Urlaubsantrag."
       />
 
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -59,7 +59,7 @@ export default function NewVacationRequestPage() {
             pending={vacationBalance.pending}
             available={vacationBalance.available}
             requestedDays={requestedVacationDays}
-            description="Mockup-Übersicht für den aktuell ausgewählten Mitarbeiter."
+            description="Übersicht für den aktuell ausgewählten Mitarbeiter."
           />
         ) : (
           <aside className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
