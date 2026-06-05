@@ -84,6 +84,65 @@ function mapPrismaVacationRequestToAppVacationRequest(request: {
   };
 }
 
+async function getVisibleDepartmentIdsForUserFromDb(
+  employeeId: string | undefined,
+  role: UserRole
+) {
+  if (role === "hr" || role === "admin") {
+    const departments = await prisma.department.findMany({
+      where: {
+        isActive: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return departments.map((department) => department.id);
+  }
+
+  if (!employeeId) {
+    return [];
+  }
+
+  const currentEmployee = await prisma.employee.findUnique({
+    where: {
+      id: employeeId,
+    },
+    select: {
+      departmentId: true,
+    },
+  });
+
+  const departmentFilters = [];
+
+  if (currentEmployee?.departmentId) {
+    departmentFilters.push({
+      id: currentEmployee.departmentId,
+    });
+  }
+
+  departmentFilters.push({
+    managerId: employeeId,
+  });
+
+  departmentFilters.push({
+    finalApproverId: employeeId,
+  });
+
+  const departments = await prisma.department.findMany({
+    where: {
+      isActive: true,
+      OR: departmentFilters,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  return departments.map((department) => department.id);
+}
+
 export async function getEmployeeByIdFromDb(id: string) {
   const employee = await prisma.employee.findUnique({
     where: {
@@ -168,18 +227,23 @@ export async function getVisibleEmployeesForUserFromDb(
     return [];
   }
 
-  if (role === "manager") {
-    const managedDepartments = await prisma.department.findMany({
+  if (role === "employee") {
+    const employees = await prisma.employee.findMany({
       where: {
-        managerId: employeeId,
+        id: employeeId,
       },
-      select: {
-        id: true,
+      orderBy: {
+        name: "asc",
       },
     });
 
-    const managedDepartmentIds = managedDepartments.map(
-      (department) => department.id
+    return employees.map(mapPrismaEmployeeToAppEmployee);
+  }
+
+  if (role === "manager") {
+    const visibleDepartmentIds = await getVisibleDepartmentIdsForUserFromDb(
+      employeeId,
+      role
     );
 
     const employees = await prisma.employee.findMany({
@@ -190,7 +254,7 @@ export async function getVisibleEmployeesForUserFromDb(
           },
           {
             departmentId: {
-              in: managedDepartmentIds,
+              in: visibleDepartmentIds,
             },
           },
         ],
@@ -203,13 +267,7 @@ export async function getVisibleEmployeesForUserFromDb(
     return employees.map(mapPrismaEmployeeToAppEmployee);
   }
 
-  const employees = await prisma.employee.findMany({
-    where: {
-      id: employeeId,
-    },
-  });
-
-  return employees.map(mapPrismaEmployeeToAppEmployee);
+  return [];
 }
 
 export async function getVisibleVacationRequestsForUserFromDb(
@@ -230,53 +288,18 @@ export async function getVisibleVacationRequestsForUserFromDb(
     return [];
   }
 
-  if (role === "manager") {
-    const managedDepartments = await prisma.department.findMany({
-      where: {
-        managerId: employeeId,
-      },
-      select: {
-        id: true,
-      },
-    });
+  const visibleEmployees = await getVisibleEmployeesForUserFromDb(
+    employeeId,
+    role
+  );
 
-    const managedDepartmentIds = managedDepartments.map(
-      (department) => department.id
-    );
-
-    const managedEmployees = await prisma.employee.findMany({
-      where: {
-        departmentId: {
-          in: managedDepartmentIds,
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    const visibleEmployeeIds = [
-      employeeId,
-      ...managedEmployees.map((employee) => employee.id),
-    ];
-
-    const requests = await prisma.vacationRequest.findMany({
-      where: {
-        employeeId: {
-          in: visibleEmployeeIds,
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    return requests.map(mapPrismaVacationRequestToAppVacationRequest);
-  }
+  const visibleEmployeeIds = visibleEmployees.map((employee) => employee.id);
 
   const requests = await prisma.vacationRequest.findMany({
     where: {
-      employeeId,
+      employeeId: {
+        in: visibleEmployeeIds,
+      },
     },
     orderBy: {
       createdAt: "desc",
@@ -430,10 +453,65 @@ export async function getVisibleApprovalRequestsForUserFromDb(
   return approvableRequests;
 }
 
-
 export async function getSelectableEmployeesForVacationRequestFromDb(
   employeeId: string | undefined,
   role: UserRole
 ) {
   return getVisibleEmployeesForUserFromDb(employeeId, role);
+}
+
+export async function getVisibleDepartmentsForUserFromDb(
+  employeeId: string | undefined,
+  role: UserRole
+) {
+  if (role === "hr" || role === "admin") {
+    return prisma.department.findMany({
+      where: {
+        isActive: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+  }
+
+  if (!employeeId) {
+    return [];
+  }
+
+  const visibleDepartmentIds = await getVisibleDepartmentIdsForUserFromDb(
+    employeeId,
+    role
+  );
+
+  return prisma.department.findMany({
+    where: {
+      id: {
+        in: visibleDepartmentIds,
+      },
+      isActive: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
+}
+
+export async function getVisibleEmployeesForUserByDepartmentFromDb(
+  employeeId: string | undefined,
+  role: UserRole,
+  departmentId: string | undefined
+) {
+  const visibleEmployees = await getVisibleEmployeesForUserFromDb(
+    employeeId,
+    role
+  );
+
+  if (!departmentId) {
+    return visibleEmployees;
+  }
+
+  return visibleEmployees.filter(
+    (employee) => employee.departmentId === departmentId
+  );
 }
