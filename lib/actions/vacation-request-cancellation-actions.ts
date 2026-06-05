@@ -2,6 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 
+import {
+  applyVacationBalanceChange,
+  getVacationBalanceYearFromDate,
+} from "@/lib/actions/vacation-balance-service";
 import { currentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/prisma";
 
@@ -28,13 +32,23 @@ export async function cancelVacationRequestAction(requestId: string) {
     throw new Error("Requests with existing approvals cannot be cancelled.");
   }
 
-  const updatedRequest = await prisma.vacationRequest.update({
-    where: {
-      id: request.id,
-    },
-    data: {
-      status: "Storniert",
-    },
+  const updatedRequest = await prisma.$transaction(async (transaction) => {
+    if (request.absenceType === "Urlaub") {
+      await applyVacationBalanceChange(transaction, {
+        employeeId: request.employeeId,
+        year: getVacationBalanceYearFromDate(request.startDate),
+        pendingDelta: -request.days,
+      });
+    }
+
+    return transaction.vacationRequest.update({
+      where: {
+        id: request.id,
+      },
+      data: {
+        status: "Storniert",
+      },
+    });
   });
 
   revalidatePath("/");
