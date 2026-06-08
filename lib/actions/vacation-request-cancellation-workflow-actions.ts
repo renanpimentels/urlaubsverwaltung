@@ -30,6 +30,7 @@ async function getResponsibleEmployeeIdsForVacationRequest(employeeId: string) {
     select: {
       managerId: true,
       finalApproverId: true,
+      approvalStepsRequired: true,
     },
   });
 
@@ -37,8 +38,13 @@ async function getResponsibleEmployeeIdsForVacationRequest(employeeId: string) {
     return [];
   }
 
+  if (department.approvalStepsRequired <= 1) {
+    return [department.managerId];
+  }
+
   return [department.managerId, department.finalApproverId].filter(
-    (employeeId): employeeId is string => Boolean(employeeId)
+    (responsibleEmployeeId): responsibleEmployeeId is string =>
+      Boolean(responsibleEmployeeId)
   );
 }
 

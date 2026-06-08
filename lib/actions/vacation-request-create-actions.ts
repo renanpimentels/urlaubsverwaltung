@@ -116,11 +116,28 @@ export async function createVacationRequestAction(
     where: {
       id: input.employeeId,
     },
+    select: {
+      id: true,
+      departmentId: true,
+    },
   });
 
   if (!employee) {
     throw new Error("Employee not found.");
   }
+
+  const department = employee.departmentId
+    ? await prisma.department.findUnique({
+        where: {
+          id: employee.departmentId,
+        },
+        select: {
+          approvalStepsRequired: true,
+        },
+      })
+    : undefined;
+
+  const approvalStepsRequired = department?.approvalStepsRequired ?? 2;
 
   const companySettings = await prisma.companySettings.findFirst({
     orderBy: {
@@ -166,7 +183,7 @@ export async function createVacationRequestAction(
         days,
         status: "Ausstehend",
         approvalStepsCompleted: 0,
-        approvalStepsRequired: 2,
+        approvalStepsRequired,
         comment: input.comment.trim() || null,
       },
     });

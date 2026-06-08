@@ -32,9 +32,9 @@ export type Department = {
   name: string;
   managerId: string;
   finalApproverId?: string;
+  approvalStepsRequired?: number;
+  isActive?: boolean;
 };
-
-
 
 export type Employee = {
   id: string;

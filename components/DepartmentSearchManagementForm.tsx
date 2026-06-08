@@ -10,6 +10,7 @@ type DepartmentForManagement = {
   name: string;
   managerId: string;
   finalApproverId: string | null;
+  approvalStepsRequired: number;
   isActive: boolean;
   employees: {
     id: string;
@@ -34,10 +35,14 @@ export function DepartmentSearchManagementForm({
   const [name, setName] = useState("");
   const [selectedManagerId, setSelectedManagerId] = useState("");
   const [selectedFinalApproverId, setSelectedFinalApproverId] = useState("");
+  const [selectedApprovalStepsRequired, setSelectedApprovalStepsRequired] =
+    useState(2);
   const [selectedIsActive, setSelectedIsActive] = useState(true);
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  const isTwoStepApproval = selectedApprovalStepsRequired === 2;
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -93,6 +98,7 @@ export function DepartmentSearchManagementForm({
     setName("");
     setSelectedManagerId("");
     setSelectedFinalApproverId("");
+    setSelectedApprovalStepsRequired(2);
     setSelectedIsActive(true);
   }
 
@@ -105,11 +111,17 @@ export function DepartmentSearchManagementForm({
       return;
     }
 
+    const approvalStepsRequired =
+      department.approvalStepsRequired === 1 ? 1 : 2;
+
     setSelectedDepartmentId(department.id);
     setSearchTerm(department.name);
     setName(department.name);
     setSelectedManagerId(department.managerId);
-    setSelectedFinalApproverId(department.finalApproverId ?? "");
+    setSelectedFinalApproverId(
+      approvalStepsRequired === 2 ? department.finalApproverId ?? "" : ""
+    );
+    setSelectedApprovalStepsRequired(approvalStepsRequired);
     setSelectedIsActive(department.isActive);
     setIsSearchOpen(false);
     resetMessages();
@@ -133,10 +145,14 @@ export function DepartmentSearchManagementForm({
       return;
     }
 
-    if (
-      selectedFinalApproverId &&
-      selectedFinalApproverId === selectedManagerId
-    ) {
+    if (isTwoStepApproval && !selectedFinalApproverId) {
+      setErrorMessage(
+        "Bitte wähle einen finalen Freigeber für die zweistufige Freigabe aus."
+      );
+      return;
+    }
+
+    if (isTwoStepApproval && selectedFinalApproverId === selectedManagerId) {
       setErrorMessage(
         "Manager und finaler Freigeber sollten unterschiedliche Personen sein."
       );
@@ -156,7 +172,8 @@ export function DepartmentSearchManagementForm({
           departmentId: selectedDepartment.id,
           name,
           managerId: selectedManagerId,
-          finalApproverId: selectedFinalApproverId,
+          finalApproverId: isTwoStepApproval ? selectedFinalApproverId : "",
+          approvalStepsRequired: selectedApprovalStepsRequired,
           isActive: selectedIsActive,
         });
 
@@ -244,7 +261,11 @@ export function DepartmentSearchManagementForm({
                       </span>
 
                       <span className="mt-1 block text-xs font-medium text-slate-500">
-                        Status: {department.isActive ? "Aktiv" : "Inaktiv"}
+                        Status: {department.isActive ? "Aktiv" : "Inaktiv"} ·{" "}
+                        Freigabe:{" "}
+                        {department.approvalStepsRequired === 1
+                          ? "1 Stufe"
+                          : "2 Stufen"}
                       </span>
                     </button>
                   );
@@ -271,15 +292,23 @@ export function DepartmentSearchManagementForm({
                 </p>
               </div>
 
-              <span
-                className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${
-                  selectedDepartment.isActive
-                    ? "bg-green-100 text-green-700"
-                    : "bg-slate-100 text-slate-600"
-                }`}
-              >
-                {selectedDepartment.isActive ? "Aktiv" : "Inaktiv"}
-              </span>
+              <div className="flex flex-wrap gap-2">
+                <span
+                  className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${
+                    selectedDepartment.isActive
+                      ? "bg-green-100 text-green-700"
+                      : "bg-slate-100 text-slate-600"
+                  }`}
+                >
+                  {selectedDepartment.isActive ? "Aktiv" : "Inaktiv"}
+                </span>
+
+                <span className="w-fit rounded-full bg-teal-100 px-3 py-1 text-xs font-semibold text-teal-700">
+                  {selectedApprovalStepsRequired === 1
+                    ? "1 Freigabestufe"
+                    : "2 Freigabestufen"}
+                </span>
+              </div>
             </div>
 
             <div className="grid gap-4">
@@ -296,6 +325,36 @@ export function DepartmentSearchManagementForm({
                   }}
                   className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
                 />
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-sm font-semibold text-slate-700">
+                  Freigabestufen
+                </span>
+                <select
+                  value={selectedApprovalStepsRequired}
+                  onChange={(event) => {
+                    const nextApprovalStepsRequired = Number(
+                      event.target.value
+                    );
+
+                    setSelectedApprovalStepsRequired(
+                      nextApprovalStepsRequired
+                    );
+
+                    if (nextApprovalStepsRequired === 1) {
+                      setSelectedFinalApproverId("");
+                    }
+
+                    resetMessages();
+                  }}
+                  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+                >
+                  <option value={1}>1 Stufe: Manager</option>
+                  <option value={2}>
+                    2 Stufen: Manager + Final Approver
+                  </option>
+                </select>
               </label>
 
               <div className="grid gap-4 md:grid-cols-2">
@@ -329,9 +388,14 @@ export function DepartmentSearchManagementForm({
                       setSelectedFinalApproverId(event.target.value);
                       resetMessages();
                     }}
-                    className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+                    disabled={!isTwoStepApproval}
+                    className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600 disabled:bg-slate-100 disabled:text-slate-500"
                   >
-                    <option value="">Nicht definiert</option>
+                    <option value="">
+                      {isTwoStepApproval
+                        ? "Bitte auswählen"
+                        : "Nicht erforderlich"}
+                    </option>
 
                     {employees.map((employee) => (
                       <option key={employee.id} value={employee.id}>
