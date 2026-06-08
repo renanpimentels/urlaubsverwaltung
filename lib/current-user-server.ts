@@ -32,6 +32,16 @@ export async function getCurrentUserFromDb(): Promise<CurrentUser> {
   };
 }
 
+export async function getActiveCurrentUserFromDb(): Promise<CurrentUser> {
+  const currentUser = await getCurrentUserFromDb();
+
+  if (!currentUser.isActive) {
+    throw new Error("Current user is inactive.");
+  }
+
+  return currentUser;
+}
+
 export function canAccessSettingsRole(role: UserRole) {
   return role === "hr" || role === "admin";
 }

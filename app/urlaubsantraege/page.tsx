@@ -3,7 +3,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { VacationRequestCard } from "@/components/VacationRequestCard";
 import { VacationRequestFilter } from "@/components/VacationRequestFilter";
-import { getCurrentUserFromDb } from "@/lib/current-user-server";
+import { getActiveCurrentUserFromDb } from "@/lib/current-user-server";
 import {
   getEmployeeByIdFromDb,
   getVisibleDepartmentsForUserFromDb,
@@ -56,7 +56,7 @@ function getValidAbsenceType(absenceType: string | undefined) {
 export default async function VacationRequestsPage({
   searchParams,
 }: VacationRequestsPageProps) {
-  const currentUser = await getCurrentUserFromDb();
+  const currentUser = await getActiveCurrentUserFromDb();
   const { status, absenceType, departmentId, year } = await searchParams;
 
   const selectedStatus = getValidStatus(status);

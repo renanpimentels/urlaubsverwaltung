@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 import {
   canAccessSettingsRole,
-  getCurrentUserFromDb,
+  getActiveCurrentUserFromDb,
 } from "@/lib/current-user-server";
 import { prisma } from "@/lib/prisma";
 
@@ -31,7 +31,7 @@ function calculateAvailableBalance(balance: {
 }
 
 export async function createEmployeeAction(input: CreateEmployeeInput) {
-  const currentUser = await getCurrentUserFromDb();
+  const currentUser = await getActiveCurrentUserFromDb();
 
   if (!canAccessSettingsRole(currentUser.role)) {
     throw new Error("Current user cannot create employees.");

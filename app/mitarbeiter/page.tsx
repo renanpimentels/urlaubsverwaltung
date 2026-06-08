@@ -3,7 +3,7 @@ import Link from "next/link";
 import { EmployeeCard } from "@/components/EmployeeCard";
 import { EmployeeDepartmentFilter } from "@/components/EmployeeDepartmentFilter";
 import { PageHeader } from "@/components/PageHeader";
-import { getCurrentUserFromDb } from "@/lib/current-user-server";
+import { getActiveCurrentUserFromDb } from "@/lib/current-user-server";
 import { canCreateEmployee } from "@/lib/permissions";
 import {
   getDepartmentByIdFromDb,
@@ -21,7 +21,7 @@ type EmployeesPageProps = {
 export default async function EmployeesPage({
   searchParams,
 }: EmployeesPageProps) {
-  const currentUser = await getCurrentUserFromDb();
+  const currentUser = await getActiveCurrentUserFromDb();
   const { departmentId } = await searchParams;
 
   const visibleDepartments = await getVisibleDepartmentsForUserFromDb(

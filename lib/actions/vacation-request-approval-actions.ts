@@ -2,12 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 
+import { prisma } from "@/lib/prisma";
+
 import {
   applyVacationBalanceChange,
   getVacationBalanceYearFromDate,
 } from "@/lib/actions/vacation-balance-service";
-import { getCurrentUserFromDb } from "@/lib/current-user-server";
-import { prisma } from "@/lib/prisma";
+
+import { getActiveCurrentUserFromDb } from "@/lib/current-user-server";
+
+
 
 async function getNextApproverIdForRequest(request: {
   employeeId: string;
@@ -110,8 +114,8 @@ export async function approveVacationRequestAction(
   requestId: string,
   comment = ""
 ) {
-  const currentUser = await getCurrentUserFromDb();
 
+  const currentUser = await getActiveCurrentUserFromDb();
   const request = await prisma.vacationRequest.findUnique({
     where: {
       id: requestId,
@@ -201,7 +205,9 @@ export async function rejectVacationRequestAction(
   requestId: string,
   comment: string
 ) {
-  const currentUser = await getCurrentUserFromDb();
+
+  const currentUser = await getActiveCurrentUserFromDb();
+
 
   const trimmedComment = comment.trim();
 

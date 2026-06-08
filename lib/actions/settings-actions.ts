@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import {
   canAccessSettingsRole,
-  getCurrentUserFromDb,
+  getActiveCurrentUserFromDb,
 } from "@/lib/current-user-server";
 import { prisma } from "@/lib/prisma";
 
@@ -41,7 +41,7 @@ type UpdateDepartmentApproversInput = {
 };
 
 async function assertCanAccessSettings() {
-  const currentUser = await getCurrentUserFromDb();
+  const currentUser = await getActiveCurrentUserFromDb();
 
   if (!canAccessSettingsRole(currentUser.role)) {
     throw new Error("Current user cannot access settings.");
