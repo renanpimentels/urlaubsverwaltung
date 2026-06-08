@@ -84,7 +84,32 @@ function isCurrentUserOverride(
   return !currentUser.employeeId || currentUser.employeeId !== nextApproverId;
 }
 
-export async function approveVacationRequestAction(requestId: string) {
+function buildDecisionComment({
+  inputComment,
+  fallbackComment,
+  override,
+}: {
+  inputComment: string;
+  fallbackComment: string;
+  override: boolean;
+}) {
+  const trimmedComment = inputComment.trim();
+
+  if (!trimmedComment) {
+    return fallbackComment;
+  }
+
+  if (!override) {
+    return trimmedComment;
+  }
+
+  return `${fallbackComment} ${trimmedComment}`;
+}
+
+export async function approveVacationRequestAction(
+  requestId: string,
+  comment = ""
+) {
   const currentUser = await getCurrentUserFromDb();
 
   const request = await prisma.vacationRequest.findUnique({
@@ -117,6 +142,14 @@ export async function approveVacationRequestAction(requestId: string) {
   const isFullyApproved = nextCompletedSteps >= request.approvalStepsRequired;
   const override = isCurrentUserOverride(currentUser, nextApproverId);
 
+  const decisionComment = buildDecisionComment({
+    inputComment: comment,
+    fallbackComment: override
+      ? "Genehmigt durch HR/Admin-Override."
+      : "Genehmigt.",
+    override,
+  });
+
   const updatedRequest = await prisma.$transaction(async (transaction) => {
     await transaction.approvalDecision.create({
       data: {
@@ -126,9 +159,7 @@ export async function approveVacationRequestAction(requestId: string) {
         stepOrder: nextCompletedSteps,
         decision: "approved",
         decidedAt: new Date(),
-        comment: override
-          ? "Genehmigt durch HR/Admin-Override."
-          : "Genehmigt.",
+        comment: decisionComment,
       },
     });
 
@@ -166,8 +197,17 @@ export async function approveVacationRequestAction(requestId: string) {
   };
 }
 
-export async function rejectVacationRequestAction(requestId: string) {
+export async function rejectVacationRequestAction(
+  requestId: string,
+  comment: string
+) {
   const currentUser = await getCurrentUserFromDb();
+
+  const trimmedComment = comment.trim();
+
+  if (!trimmedComment) {
+    throw new Error("A rejection comment is required.");
+  }
 
   const request = await prisma.vacationRequest.findUnique({
     where: {
@@ -198,6 +238,10 @@ export async function rejectVacationRequestAction(requestId: string) {
   const nextStepOrder = request.approvalStepsCompleted + 1;
   const override = isCurrentUserOverride(currentUser, nextApproverId);
 
+  const decisionComment = override
+    ? `Abgelehnt durch HR/Admin-Override. ${trimmedComment}`
+    : trimmedComment;
+
   const updatedRequest = await prisma.$transaction(async (transaction) => {
     await transaction.approvalDecision.create({
       data: {
@@ -207,9 +251,7 @@ export async function rejectVacationRequestAction(requestId: string) {
         stepOrder: nextStepOrder,
         decision: "rejected",
         decidedAt: new Date(),
-        comment: override
-          ? "Abgelehnt durch HR/Admin-Override."
-          : "Abgelehnt.",
+        comment: decisionComment,
       },
     });
 
