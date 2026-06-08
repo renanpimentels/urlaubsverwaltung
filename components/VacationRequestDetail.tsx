@@ -17,7 +17,6 @@ import {
   canEditOwnVacationRequest,
   isApprovalOverride,
 } from "@/lib/permissions";
-
 import type {
   ApprovalDecisionWithApprover,
   Department,
@@ -54,6 +53,8 @@ export function VacationRequestDetail({
 }: VacationRequestDetailProps) {
   const [request, setRequest] = useState<VacationRequest>(initialRequest);
   const [message, setMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [decisionComment, setDecisionComment] = useState("");
   const [isPending, startTransition] = useTransition();
   const [approvalActionCompleted, setApprovalActionCompleted] = useState(false);
 
@@ -82,14 +83,24 @@ export function VacationRequestDetail({
     currentUser.role
   );
 
+  function resetMessages() {
+    setMessage("");
+    setErrorMessage("");
+  }
+
   function handleApproveRequest() {
     if (!canApproveRequest) {
       return;
     }
 
+    resetMessages();
+
     startTransition(async () => {
       try {
-        const result = await approveVacationRequestAction(request.id);
+        const result = await approveVacationRequestAction(
+          request.id,
+          decisionComment
+        );
 
         setRequest((currentRequest) => ({
           ...currentRequest,
@@ -98,9 +109,10 @@ export function VacationRequestDetail({
         }));
 
         setApprovalActionCompleted(true);
+        setDecisionComment("");
         setMessage(result.message);
       } catch {
-        setMessage("Der Antrag konnte nicht genehmigt werden.");
+        setErrorMessage("Der Antrag konnte nicht genehmigt werden.");
       }
     });
   }
@@ -110,9 +122,19 @@ export function VacationRequestDetail({
       return;
     }
 
+    resetMessages();
+
+    if (!decisionComment.trim()) {
+      setErrorMessage("Bitte gib einen Kommentar für die Ablehnung ein.");
+      return;
+    }
+
     startTransition(async () => {
       try {
-        const result = await rejectVacationRequestAction(request.id);
+        const result = await rejectVacationRequestAction(
+          request.id,
+          decisionComment
+        );
 
         setRequest((currentRequest) => ({
           ...currentRequest,
@@ -121,9 +143,10 @@ export function VacationRequestDetail({
         }));
 
         setApprovalActionCompleted(true);
+        setDecisionComment("");
         setMessage(result.message);
       } catch {
-        setMessage("Der Antrag konnte nicht abgelehnt werden.");
+        setErrorMessage("Der Antrag konnte nicht abgelehnt werden.");
       }
     });
   }
@@ -132,6 +155,8 @@ export function VacationRequestDetail({
     if (!canCancelRequest) {
       return;
     }
+
+    resetMessages();
 
     startTransition(async () => {
       try {
@@ -146,7 +171,7 @@ export function VacationRequestDetail({
         setApprovalActionCompleted(true);
         setMessage(result.message);
       } catch {
-        setMessage("Der Antrag konnte nicht storniert werden.");
+        setErrorMessage("Der Antrag konnte nicht storniert werden.");
       }
     });
   }
@@ -157,6 +182,12 @@ export function VacationRequestDetail({
         {message ? (
           <div className="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-sm font-medium text-green-700">
             {message}
+          </div>
+        ) : null}
+
+        {errorMessage ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-700">
+            {errorMessage}
           </div>
         ) : null}
 
@@ -291,6 +322,22 @@ export function VacationRequestDetail({
                     Du bearbeitest diesen Antrag als HR/Admin-Override.
                   </div>
                 ) : null}
+
+                <label className="grid gap-2">
+                  <span className="text-sm font-semibold text-slate-700">
+                    Kommentar zur Entscheidung
+                  </span>
+                  <textarea
+                    value={decisionComment}
+                    onChange={(event) => {
+                      setDecisionComment(event.target.value);
+                      resetMessages();
+                    }}
+                    rows={4}
+                    placeholder="Optional bei Genehmigung, erforderlich bei Ablehnung."
+                    className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+                  />
+                </label>
 
                 <button
                   type="button"
