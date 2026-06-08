@@ -2,46 +2,20 @@
 
 import { revalidatePath } from "next/cache";
 
-import { isGermanFederalStateCode } from "@/lib/german-federal-states";
-
 import {
   canAccessSettingsRole,
   getActiveCurrentUserFromDb,
 } from "@/lib/current-user-server";
+import { isGermanFederalStateCode } from "@/lib/german-federal-states";
 import { prisma } from "@/lib/prisma";
-
 import type { UserRole } from "@/lib/types";
 
-
-type UpdateUserRoleInput = {
-  userId: string;
-  role: UserRole;
-};
+type PrismaTransactionClient = Parameters<
+  Parameters<typeof prisma.$transaction>[0]
+>[0];
 
 type UpdateCompanySettingsInput = {
   defaultVacationDaysPerYear: number;
-};
-
-type CreateDepartmentInput = {
-  name: string;
-  managerId: string;
-  finalApproverId: string;
-};
-
-type UpdateDepartmentInput = {
-  departmentId: string;
-  name: string;
-  managerId: string;
-  finalApproverId: string;
-  isActive: boolean;
-};
-
-
-
-type UpdateDepartmentApproversInput = {
-  departmentId: string;
-  managerId: string;
-  finalApproverId: string;
 };
 
 type UpdateCompanyPolicySettingsInput = {
@@ -50,6 +24,34 @@ type UpdateCompanyPolicySettingsInput = {
   minimumNoticeDays: number;
   allowHalfVacationDays: boolean;
   federalState: string;
+};
+
+type CreateDepartmentInput = {
+  name: string;
+  managerId: string;
+  finalApproverId: string;
+  approvalStepsRequired: number;
+};
+
+type UpdateDepartmentInput = {
+  departmentId: string;
+  name: string;
+  managerId: string;
+  finalApproverId: string;
+  approvalStepsRequired: number;
+  isActive: boolean;
+};
+
+type UpdateDepartmentApproversInput = {
+  departmentId: string;
+  managerId: string;
+  finalApproverId: string;
+  approvalStepsRequired?: number;
+};
+
+type UpdateUserRoleInput = {
+  userId: string;
+  role: UserRole;
 };
 
 async function assertCanAccessSettings() {
@@ -65,7 +67,7 @@ function uniqueEmployeeIds(employeeIds: string[]) {
 }
 
 async function syncResponsibleUserRoles(
-  transaction: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
+  transaction: PrismaTransactionClient,
   previousResponsibleEmployeeIds: string[],
   newResponsibleEmployeeIds: string[]
 ) {
@@ -138,8 +140,13 @@ async function syncResponsibleUserRoles(
 
 async function validateDepartmentApprovers(
   managerId: string,
-  finalApproverId: string | null
+  finalApproverId: string | null,
+  approvalStepsRequired: number
 ) {
+  if (approvalStepsRequired !== 1 && approvalStepsRequired !== 2) {
+    throw new Error("Approval steps must be 1 or 2.");
+  }
+
   if (!managerId) {
     throw new Error("Manager is required.");
   }
@@ -154,8 +161,12 @@ async function validateDepartmentApprovers(
     throw new Error("Manager not found or inactive.");
   }
 
-  if (!finalApproverId) {
+  if (approvalStepsRequired === 1) {
     return;
+  }
+
+  if (!finalApproverId) {
+    throw new Error("Final approver is required for two-step approval.");
   }
 
   const finalApprover = await prisma.employee.findUnique({
@@ -171,6 +182,10 @@ async function validateDepartmentApprovers(
   if (finalApproverId === managerId) {
     throw new Error("Manager and final approver should be different.");
   }
+}
+
+function normalizeApprovalStepsRequired(value: number | undefined) {
+  return value === 1 ? 1 : 2;
 }
 
 export async function updateCompanySettingsAction(
@@ -220,17 +235,84 @@ export async function updateCompanySettingsAction(
   };
 }
 
+export async function updateCompanyPolicySettingsAction(
+  input: UpdateCompanyPolicySettingsInput
+) {
+  await assertCanAccessSettings();
+
+  if (!Number.isInteger(input.minimumNoticeDays)) {
+    throw new Error("Minimum notice days must be an integer.");
+  }
+
+  if (input.minimumNoticeDays < 0 || input.minimumNoticeDays > 365) {
+    throw new Error("Minimum notice days must be between 0 and 365.");
+  }
+
+  if (!isGermanFederalStateCode(input.federalState)) {
+    throw new Error("Invalid federal state.");
+  }
+
+  const existingSettings = await prisma.companySettings.findFirst({
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  if (existingSettings) {
+    await prisma.companySettings.update({
+      where: {
+        id: existingSettings.id,
+      },
+      data: {
+        allowPastVacationRequests: input.allowPastVacationRequests,
+        requireVacationRequestComment: input.requireVacationRequestComment,
+        minimumNoticeDays: input.minimumNoticeDays,
+        allowHalfVacationDays: input.allowHalfVacationDays,
+        federalState: input.federalState,
+      },
+    });
+  } else {
+    await prisma.companySettings.create({
+      data: {
+        defaultVacationDaysPerYear: 30,
+        allowPastVacationRequests: input.allowPastVacationRequests,
+        requireVacationRequestComment: input.requireVacationRequestComment,
+        minimumNoticeDays: input.minimumNoticeDays,
+        allowHalfVacationDays: input.allowHalfVacationDays,
+        federalState: input.federalState,
+      },
+    });
+  }
+
+  revalidatePath("/einstellungen");
+  revalidatePath("/urlaubsantraege");
+  revalidatePath("/urlaubsantraege/neu");
+
+  return {
+    message: "Die Unternehmensrichtlinien wurden gespeichert.",
+  };
+}
+
 export async function createDepartmentAction(input: CreateDepartmentInput) {
   await assertCanAccessSettings();
 
   const name = input.name.trim();
+  const approvalStepsRequired = normalizeApprovalStepsRequired(
+    input.approvalStepsRequired
+  );
   const finalApproverId = input.finalApproverId || null;
+  const normalizedFinalApproverId =
+    approvalStepsRequired === 1 ? null : finalApproverId;
 
   if (!name) {
     throw new Error("Department name is required.");
   }
 
-  await validateDepartmentApprovers(input.managerId, finalApproverId);
+  await validateDepartmentApprovers(
+    input.managerId,
+    normalizedFinalApproverId,
+    approvalStepsRequired
+  );
 
   const existingDepartment = await prisma.department.findFirst({
     where: {
@@ -247,14 +329,15 @@ export async function createDepartmentAction(input: CreateDepartmentInput) {
       data: {
         name,
         managerId: input.managerId,
-        finalApproverId,
+        finalApproverId: normalizedFinalApproverId,
+        approvalStepsRequired,
         isActive: true,
       },
     });
 
     await syncResponsibleUserRoles(transaction, [], [
       input.managerId,
-      finalApproverId ?? "",
+      normalizedFinalApproverId ?? "",
     ]);
 
     return department;
@@ -276,7 +359,12 @@ export async function updateDepartmentAction(input: UpdateDepartmentInput) {
   await assertCanAccessSettings();
 
   const name = input.name.trim();
+  const approvalStepsRequired = normalizeApprovalStepsRequired(
+    input.approvalStepsRequired
+  );
   const finalApproverId = input.finalApproverId || null;
+  const normalizedFinalApproverId =
+    approvalStepsRequired === 1 ? null : finalApproverId;
 
   if (!input.departmentId) {
     throw new Error("Department is required.");
@@ -286,7 +374,11 @@ export async function updateDepartmentAction(input: UpdateDepartmentInput) {
     throw new Error("Department name is required.");
   }
 
-  await validateDepartmentApprovers(input.managerId, finalApproverId);
+  await validateDepartmentApprovers(
+    input.managerId,
+    normalizedFinalApproverId,
+    approvalStepsRequired
+  );
 
   const department = await prisma.department.findUnique({
     where: {
@@ -334,7 +426,8 @@ export async function updateDepartmentAction(input: UpdateDepartmentInput) {
       data: {
         name,
         managerId: input.managerId,
-        finalApproverId,
+        finalApproverId: normalizedFinalApproverId,
+        approvalStepsRequired,
         isActive: input.isActive,
       },
     });
@@ -342,7 +435,7 @@ export async function updateDepartmentAction(input: UpdateDepartmentInput) {
     await syncResponsibleUserRoles(
       transaction,
       [department.managerId, department.finalApproverId ?? ""],
-      [input.managerId, finalApproverId ?? ""]
+      [input.managerId, normalizedFinalApproverId ?? ""]
     );
   });
 
@@ -377,9 +470,18 @@ export async function updateDepartmentApproversAction(
     throw new Error("Department not found.");
   }
 
+  const approvalStepsRequired = normalizeApprovalStepsRequired(
+    input.approvalStepsRequired ?? department.approvalStepsRequired
+  );
   const finalApproverId = input.finalApproverId || null;
+  const normalizedFinalApproverId =
+    approvalStepsRequired === 1 ? null : finalApproverId;
 
-  await validateDepartmentApprovers(input.managerId, finalApproverId);
+  await validateDepartmentApprovers(
+    input.managerId,
+    normalizedFinalApproverId,
+    approvalStepsRequired
+  );
 
   await prisma.$transaction(async (transaction) => {
     await transaction.department.update({
@@ -388,14 +490,15 @@ export async function updateDepartmentApproversAction(
       },
       data: {
         managerId: input.managerId,
-        finalApproverId,
+        finalApproverId: normalizedFinalApproverId,
+        approvalStepsRequired,
       },
     });
 
     await syncResponsibleUserRoles(
       transaction,
       [department.managerId, department.finalApproverId ?? ""],
-      [input.managerId, finalApproverId ?? ""]
+      [input.managerId, normalizedFinalApproverId ?? ""]
     );
   });
 
@@ -473,62 +576,3 @@ export async function updateUserRoleAction(input: UpdateUserRoleInput) {
     message: "Die Benutzerrolle wurde gespeichert.",
   };
 }
-
-export async function updateCompanyPolicySettingsAction(
-  input: UpdateCompanyPolicySettingsInput
-) {
-  await assertCanAccessSettings();
-
-  if (!Number.isInteger(input.minimumNoticeDays)) {
-    throw new Error("Minimum notice days must be an integer.");
-  }
-
-  if (input.minimumNoticeDays < 0 || input.minimumNoticeDays > 365) {
-    throw new Error("Minimum notice days must be between 0 and 365.");
-  }
-
-  if (!isGermanFederalStateCode(input.federalState)) {
-    throw new Error("Invalid federal state.");
-  }
-
-  const existingSettings = await prisma.companySettings.findFirst({
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
-
-  if (existingSettings) {
-    await prisma.companySettings.update({
-      where: {
-        id: existingSettings.id,
-      },
-      data: {
-        allowPastVacationRequests: input.allowPastVacationRequests,
-        requireVacationRequestComment: input.requireVacationRequestComment,
-        minimumNoticeDays: input.minimumNoticeDays,
-        allowHalfVacationDays: input.allowHalfVacationDays,
-        federalState: input.federalState,
-      },
-    });
-  } else {
-    await prisma.companySettings.create({
-      data: {
-        defaultVacationDaysPerYear: 30,
-        allowPastVacationRequests: input.allowPastVacationRequests,
-        requireVacationRequestComment: input.requireVacationRequestComment,
-        minimumNoticeDays: input.minimumNoticeDays,
-        allowHalfVacationDays: input.allowHalfVacationDays,
-        federalState: input.federalState,
-      },
-    });
-  }
-
-  revalidatePath("/einstellungen");
-  revalidatePath("/urlaubsantraege");
-  revalidatePath("/urlaubsantraege/neu");
-
-  return {
-    message: "Die Unternehmensrichtlinien wurden gespeichert.",
-  };
-}
-

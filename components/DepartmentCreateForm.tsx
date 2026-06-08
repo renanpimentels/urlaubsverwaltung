@@ -13,9 +13,12 @@ export function DepartmentCreateForm({ employees }: DepartmentCreateFormProps) {
   const [name, setName] = useState("");
   const [managerId, setManagerId] = useState(employees[0]?.id ?? "");
   const [finalApproverId, setFinalApproverId] = useState("");
+  const [approvalStepsRequired, setApprovalStepsRequired] = useState(2);
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  const isTwoStepApproval = approvalStepsRequired === 2;
 
   function resetMessages() {
     setMessage("");
@@ -35,7 +38,14 @@ export function DepartmentCreateForm({ employees }: DepartmentCreateFormProps) {
       return;
     }
 
-    if (finalApproverId && finalApproverId === managerId) {
+    if (isTwoStepApproval && !finalApproverId) {
+      setErrorMessage(
+        "Bitte wähle einen finalen Freigeber für die zweistufige Freigabe aus."
+      );
+      return;
+    }
+
+    if (isTwoStepApproval && finalApproverId === managerId) {
       setErrorMessage(
         "Manager und finaler Freigeber sollten unterschiedliche Personen sein."
       );
@@ -47,12 +57,14 @@ export function DepartmentCreateForm({ employees }: DepartmentCreateFormProps) {
         const result = await createDepartmentAction({
           name,
           managerId,
-          finalApproverId,
+          finalApproverId: isTwoStepApproval ? finalApproverId : "",
+          approvalStepsRequired,
         });
 
         setName("");
         setManagerId(employees[0]?.id ?? "");
         setFinalApproverId("");
+        setApprovalStepsRequired(2);
         setMessage(result.message);
       } catch {
         setErrorMessage("Die Abteilung konnte nicht erstellt werden.");
@@ -65,8 +77,8 @@ export function DepartmentCreateForm({ employees }: DepartmentCreateFormProps) {
       <div className="mb-5">
         <h2 className="text-xl font-bold">Neue Abteilung</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Erstelle eine neue Abteilung und lege direkt die Freigabeverantwortung
-          fest.
+          Erstelle eine neue Abteilung und lege direkt die
+          Freigabeverantwortung fest.
         </p>
       </div>
 
@@ -85,6 +97,34 @@ export function DepartmentCreateForm({ employees }: DepartmentCreateFormProps) {
             placeholder="z. B. Einkauf"
             className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
           />
+        </label>
+
+        <label className="grid gap-2">
+          <span className="text-sm font-semibold text-slate-700">
+            Freigabestufen
+          </span>
+          <select
+            value={approvalStepsRequired}
+            onChange={(event) => {
+              const nextApprovalStepsRequired = Number(event.target.value);
+
+              setApprovalStepsRequired(nextApprovalStepsRequired);
+
+              if (nextApprovalStepsRequired === 1) {
+                setFinalApproverId("");
+              }
+
+              resetMessages();
+            }}
+            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+          >
+            <option value={1}>1 Stufe: Manager</option>
+            <option value={2}>2 Stufen: Manager + Final Approver</option>
+          </select>
+          <span className="text-sm text-slate-500">
+            Bei einer Stufe genehmigt der Manager final. Bei zwei Stufen wird
+            zusätzlich ein finaler Freigeber benötigt.
+          </span>
         </label>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -118,9 +158,12 @@ export function DepartmentCreateForm({ employees }: DepartmentCreateFormProps) {
                 setFinalApproverId(event.target.value);
                 resetMessages();
               }}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+              disabled={!isTwoStepApproval}
+              className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600 disabled:bg-slate-100 disabled:text-slate-500"
             >
-              <option value="">Nicht definiert</option>
+              <option value="">
+                {isTwoStepApproval ? "Bitte auswählen" : "Nicht erforderlich"}
+              </option>
 
               {employees.map((employee) => (
                 <option key={employee.id} value={employee.id}>
