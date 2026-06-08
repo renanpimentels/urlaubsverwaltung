@@ -4,6 +4,7 @@ import { CompanySettingsForm } from "@/components/CompanySettingsForm";
 import { DepartmentCreateForm } from "@/components/DepartmentCreateForm";
 import { DepartmentSearchManagementForm } from "@/components/DepartmentSearchManagementForm";
 import { PageHeader } from "@/components/PageHeader";
+import { VacationBalanceRecalculationForm } from "@/components/VacationBalanceRecalculationForm";
 import { UserRoleSearchForm } from "@/components/UserRoleSearchForm";
 import {
   canAccessSettingsRole,
@@ -60,7 +61,9 @@ export default async function SettingsPage() {
             </p>
           </div>
         </article>
-
+        
+        <VacationBalanceRecalculationForm currentYear={new Date().getFullYear()} />
+        
         <DepartmentCreateForm employees={employees} />
 
         <DepartmentSearchManagementForm
