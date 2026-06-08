@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { VacationBalanceCard } from "@/components/VacationBalanceCard";
-import { getCurrentUserFromDb } from "@/lib/current-user-server";
+import {
+  canAccessSettingsRole,
+  getCurrentUserFromDb,
+} from "@/lib/current-user-server";
 import { formatDate, formatDateRange } from "@/lib/date-formatters";
 import {
   canUserViewEmployeeFromDb,
@@ -66,12 +69,23 @@ export default async function EmployeeDetailPage({
         title={employee.name}
         description="Detailansicht eines Mitarbeiters mit Urlaubssaldo und Anträgen."
         action={
-          <Link
-            href="/mitarbeiter"
-            className="rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            Zurück zur Übersicht
-          </Link>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            {canAccessSettingsRole(currentUser.role) ? (
+              <Link
+                href={`/mitarbeiter/${employee.id}/bearbeiten`}
+                className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
+              >
+                Mitarbeiter bearbeiten
+              </Link>
+            ) : null}
+
+            <Link
+              href="/mitarbeiter"
+              className="rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Zurück zur Übersicht
+            </Link>
+          </div>
         }
       />
 
