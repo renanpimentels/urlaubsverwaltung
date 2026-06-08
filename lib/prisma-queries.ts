@@ -105,6 +105,19 @@ async function getVisibleDepartmentIdsForUserFromDb(
     return [];
   }
 
+  if (role === "employee") {
+    const currentEmployee = await prisma.employee.findUnique({
+      where: {
+        id: employeeId,
+      },
+      select: {
+        departmentId: true,
+      },
+    });
+
+    return currentEmployee?.departmentId ? [currentEmployee.departmentId] : [];
+  }
+
   const currentEmployee = await prisma.employee.findUnique({
     where: {
       id: employeeId,
@@ -324,32 +337,138 @@ export async function getVacationRequestByIdFromDb(id: string) {
 export async function getApprovalDecisionsByRequestIdFromDb(
   vacationRequestId: string
 ): Promise<ApprovalDecisionWithApprover[]> {
+  const request = await prisma.vacationRequest.findUnique({
+    where: {
+      id: vacationRequestId,
+    },
+    select: {
+      employee: {
+        select: {
+          departmentId: true,
+        },
+      },
+    },
+  });
+
+  const department = request?.employee.departmentId
+    ? await prisma.department.findUnique({
+        where: {
+          id: request.employee.departmentId,
+        },
+        select: {
+          managerId: true,
+          finalApproverId: true,
+        },
+      })
+    : undefined;
+
   const decisions = await prisma.approvalDecision.findMany({
     where: {
       vacationRequestId,
-    },
-    include: {
-      approver: {
-        select: {
-          name: true,
-        },
-      },
     },
     orderBy: {
       stepOrder: "asc",
     },
   });
 
-  return decisions.map((decision) => ({
-    id: decision.id,
-    vacationRequestId: decision.vacationRequestId,
-    approverEmployeeId: decision.approverEmployeeId,
-    stepOrder: decision.stepOrder,
-    decision: decision.decision,
-    decidedAt: decision.decidedAt.toISOString().slice(0, 10),
-    comment: decision.comment ?? undefined,
-    approverName: decision.approver.name,
-  }));
+  const expectedApproverIdsByStep = new Map<number, string | undefined>([
+    [1, department?.managerId],
+    [2, department?.finalApproverId ?? undefined],
+  ]);
+
+  const decidedByUserIds = decisions
+    .map((decision) => decision.decidedByUserId)
+    .filter((userId): userId is string => Boolean(userId));
+
+  const users = await prisma.user.findMany({
+    where: {
+      id: {
+        in: decidedByUserIds,
+      },
+    },
+    select: {
+      id: true,
+      email: true,
+      employeeId: true,
+    },
+  });
+
+  const usersById = new Map(users.map((user) => [user.id, user]));
+
+  const employeeIds = Array.from(
+    new Set(
+      [
+        ...decisions.map((decision) => decision.approverEmployeeId),
+        ...Array.from(expectedApproverIdsByStep.values()).filter(
+          (employeeId): employeeId is string => Boolean(employeeId)
+        ),
+        ...users
+          .map((user) => user.employeeId)
+          .filter((employeeId): employeeId is string => Boolean(employeeId)),
+      ].filter(Boolean)
+    )
+  );
+
+  const employees = await prisma.employee.findMany({
+    where: {
+      id: {
+        in: employeeIds,
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+
+  const employeesById = new Map(
+    employees.map((employee) => [employee.id, employee])
+  );
+
+  return decisions.map((decision) => {
+    const expectedApproverEmployeeId = expectedApproverIdsByStep.get(
+      decision.stepOrder
+    );
+
+    const decidedByUser = decision.decidedByUserId
+      ? usersById.get(decision.decidedByUserId)
+      : undefined;
+
+    const decidedByEmployee = decidedByUser?.employeeId
+      ? employeesById.get(decidedByUser.employeeId)
+      : undefined;
+
+    const approver = employeesById.get(decision.approverEmployeeId);
+
+    const expectedApprover = expectedApproverEmployeeId
+      ? employeesById.get(expectedApproverEmployeeId)
+      : undefined;
+
+    const isOverride = Boolean(
+      expectedApproverEmployeeId &&
+        decidedByUser?.employeeId &&
+        expectedApproverEmployeeId !== decidedByUser.employeeId
+    );
+
+    return {
+      id: decision.id,
+      vacationRequestId: decision.vacationRequestId,
+      approverEmployeeId: decision.approverEmployeeId,
+      stepOrder: decision.stepOrder,
+      decision: decision.decision,
+      decidedAt: decision.decidedAt.toISOString().slice(0, 10),
+      decidedAtDateTime: decision.decidedAt.toISOString(),
+      comment: decision.comment ?? undefined,
+      approverName: approver?.name ?? "Unbekannter Genehmiger",
+      expectedApproverEmployeeId,
+      expectedApproverName: expectedApprover?.name,
+      decidedByUserId: decidedByUser?.id,
+      decidedByUserEmail: decidedByUser?.email,
+      decidedByEmployeeId: decidedByUser?.employeeId ?? undefined,
+      decidedByEmployeeName: decidedByEmployee?.name,
+      isOverride,
+    };
+  });
 }
 
 export async function getVisibleUpcomingAbsencesForUserFromDb(
@@ -516,7 +635,6 @@ export async function getVisibleEmployeesForUserByDepartmentFromDb(
   );
 }
 
-
 export async function canUserViewEmployeeFromDb(
   currentEmployeeId: string | undefined,
   role: UserRole,
@@ -571,7 +689,6 @@ export async function canEditOwnVacationRequestFromDb(
   );
 }
 
-
 export async function getCompanySettingsFromDb() {
   return prisma.companySettings.findFirst({
     orderBy: {
@@ -624,7 +741,6 @@ export async function getEmployeesForSettingsSelectFromDb() {
 
   return employees.map(mapPrismaEmployeeToAppEmployee);
 }
-
 
 export async function getUsersWithEmployeesForSettingsFromDb() {
   const users = await prisma.user.findMany({
@@ -680,4 +796,3 @@ export async function getUserByEmployeeIdFromDb(employeeId: string) {
     },
   });
 }
-

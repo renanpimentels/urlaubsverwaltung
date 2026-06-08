@@ -42,6 +42,17 @@ type VacationRequestDetailProps = {
   nextApproverId?: string;
 };
 
+function formatDateTime(value: string | undefined) {
+  if (!value) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("de-DE", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
 export function VacationRequestDetail({
   currentUser,
   initialRequest,
@@ -262,49 +273,91 @@ export function VacationRequestDetail({
         </article>
 
         <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-5">
-            <h2 className="text-xl font-bold">Freigabehistorie</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Dokumentierte Entscheidungen zu diesem Antrag.
-            </p>
-          </div>
+        <div className="mb-5">
+          <h2 className="text-xl font-bold">Freigabehistorie</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Dokumentierte Entscheidungen mit erwartetem Genehmiger, tatsächlichem
+            Entscheider und Kommentar.
+          </p>
+        </div>
 
-          <div className="grid gap-3">
-            {approvalDecisions.map((decision) => (
-              <div
-                key={decision.id}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-              >
-                <p className="font-semibold">
-                  Schritt {decision.stepOrder}:{" "}
-                  {decision.decision === "approved"
-                    ? "Genehmigt"
-                    : "Abgelehnt"}
-                </p>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  {decision.approverName
-                    ? `${decision.approverName} · ${formatDate(
-                        decision.decidedAt
-                      )}`
-                    : formatDate(decision.decidedAt)}
-                </p>
-
-                {decision.comment ? (
-                  <p className="mt-3 text-sm text-slate-600">
-                    {decision.comment}
+        <div className="grid gap-3">
+          {approvalDecisions.map((decision) => (
+            <div
+              key={decision.id}
+              className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+            >
+              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                <div>
+                  <p className="font-semibold">
+                    Schritt {decision.stepOrder}:{" "}
+                    {decision.decision === "approved" ? "Genehmigt" : "Abgelehnt"}
                   </p>
-                ) : null}
-              </div>
-            ))}
 
-            {approvalDecisions.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-                Für diesen Antrag wurde noch keine Entscheidung dokumentiert.
+                  <p className="mt-1 text-sm text-slate-500">
+                    {decision.decidedAtDateTime
+                      ? formatDateTime(decision.decidedAtDateTime)
+                      : formatDate(decision.decidedAt)}
+                  </p>
+                </div>
+
+                {decision.isOverride ? (
+                  <span className="w-fit rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                    HR/Admin Override
+                  </span>
+                ) : (
+                  <span className="w-fit rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                    Reguläre Entscheidung
+                  </span>
+                )}
               </div>
-            ) : null}
-          </div>
-        </article>
+
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <div className="rounded-xl bg-white p-3">
+                  <p className="text-xs font-semibold text-slate-500">
+                    Erwarteter Genehmiger
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-slate-800">
+                    {decision.expectedApproverName ??
+                      decision.approverName ??
+                      "Nicht definiert"}
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-white p-3">
+                  <p className="text-xs font-semibold text-slate-500">
+                    Tatsächlich entschieden von
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-slate-800">
+                    {decision.decidedByEmployeeName ??
+                      decision.decidedByUserEmail ??
+                      decision.approverName}
+                  </p>
+
+                  {decision.decidedByUserEmail ? (
+                    <p className="mt-1 text-xs text-slate-500">
+                      {decision.decidedByUserEmail}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+
+              {decision.comment ? (
+                <div className="mt-3 rounded-xl bg-white p-3">
+                  <p className="text-xs font-semibold text-slate-500">Kommentar</p>
+                  <p className="mt-1 text-sm text-slate-700">{decision.comment}</p>
+                </div>
+              ) : null}
+            </div>
+          ))}
+
+          {approvalDecisions.length === 0 ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+              Für diesen Antrag wurde noch keine Entscheidung dokumentiert.
+            </div>
+          ) : null}
+        </div>
+      </article>
       </div>
 
       <aside className="grid gap-6">
