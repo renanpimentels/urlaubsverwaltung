@@ -1,17 +1,17 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { assertCompanyPolicyAllowsVacationRequest } from "@/lib/actions/company-policy-validation-service";
+
 import {
   applyVacationBalanceChange,
   getVacationBalanceYearFromDate,
 } from "@/lib/actions/vacation-balance-service";
+import { assertCompanyPolicyAllowsVacationRequest } from "@/lib/actions/company-policy-validation-service";
 import { assertVacationRequestCanBeSaved } from "@/lib/actions/vacation-request-validation-service";
-
 import { getActiveCurrentUserFromDb } from "@/lib/current-user-server";
+import { calculateBusinessDaysWithHolidays } from "@/lib/holiday-calendar";
 import { prisma } from "@/lib/prisma";
 import type { AbsenceType, UserRole } from "@/lib/types";
-import { calculateBusinessDays } from "@/lib/vacation-calculations";
 
 type CreateVacationRequestInput = {
   employeeId: string;
@@ -122,7 +122,17 @@ export async function createVacationRequestAction(
     throw new Error("Employee not found.");
   }
 
-  const days = calculateBusinessDays(input.startDate, input.endDate);
+  const companySettings = await prisma.companySettings.findFirst({
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  const days = calculateBusinessDaysWithHolidays(
+    input.startDate,
+    input.endDate,
+    companySettings?.federalState
+  );
 
   if (days <= 0) {
     throw new Error("The selected period has no calculated absence days.");
@@ -137,7 +147,7 @@ export async function createVacationRequestAction(
       startDate,
       comment: input.comment,
     });
-    
+
     await assertVacationRequestCanBeSaved(transaction, {
       employeeId: input.employeeId,
       absenceType: input.absenceType,

@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 
+import { isGermanFederalStateCode } from "@/lib/german-federal-states";
+
 import {
   canAccessSettingsRole,
   getActiveCurrentUserFromDb,
@@ -34,6 +36,8 @@ type UpdateDepartmentInput = {
   isActive: boolean;
 };
 
+
+
 type UpdateDepartmentApproversInput = {
   departmentId: string;
   managerId: string;
@@ -45,6 +49,7 @@ type UpdateCompanyPolicySettingsInput = {
   requireVacationRequestComment: boolean;
   minimumNoticeDays: number;
   allowHalfVacationDays: boolean;
+  federalState: string;
 };
 
 async function assertCanAccessSettings() {
@@ -482,6 +487,10 @@ export async function updateCompanyPolicySettingsAction(
     throw new Error("Minimum notice days must be between 0 and 365.");
   }
 
+  if (!isGermanFederalStateCode(input.federalState)) {
+    throw new Error("Invalid federal state.");
+  }
+
   const existingSettings = await prisma.companySettings.findFirst({
     orderBy: {
       createdAt: "asc",
@@ -498,6 +507,7 @@ export async function updateCompanyPolicySettingsAction(
         requireVacationRequestComment: input.requireVacationRequestComment,
         minimumNoticeDays: input.minimumNoticeDays,
         allowHalfVacationDays: input.allowHalfVacationDays,
+        federalState: input.federalState,
       },
     });
   } else {
@@ -508,6 +518,7 @@ export async function updateCompanyPolicySettingsAction(
         requireVacationRequestComment: input.requireVacationRequestComment,
         minimumNoticeDays: input.minimumNoticeDays,
         allowHalfVacationDays: input.allowHalfVacationDays,
+        federalState: input.federalState,
       },
     });
   }
@@ -520,3 +531,4 @@ export async function updateCompanyPolicySettingsAction(
     message: "Die Unternehmensrichtlinien wurden gespeichert.",
   };
 }
+

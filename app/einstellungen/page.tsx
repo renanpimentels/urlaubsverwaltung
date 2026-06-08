@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
+
 import { CompanyPolicySettingsForm } from "@/components/CompanyPolicySettingsForm";
 import { CompanySettingsForm } from "@/components/CompanySettingsForm";
 import { DepartmentCreateForm } from "@/components/DepartmentCreateForm";
 import { DepartmentSearchManagementForm } from "@/components/DepartmentSearchManagementForm";
 import { PageHeader } from "@/components/PageHeader";
-import { VacationBalanceRecalculationForm } from "@/components/VacationBalanceRecalculationForm";
 import { UserRoleSearchForm } from "@/components/UserRoleSearchForm";
+import { VacationBalanceRecalculationForm } from "@/components/VacationBalanceRecalculationForm";
 import {
   canAccessSettingsRole,
   getActiveCurrentUserFromDb,
@@ -34,7 +35,7 @@ export default async function SettingsPage() {
       <PageHeader
         eyebrow="Administration"
         title="Einstellungen"
-        description="Verwalte globale Urlaubseinstellungen, Abteilungen, Freigaberegeln und Benutzerrollen."
+        description="Verwalte globale Urlaubseinstellungen, Richtlinien, Abteilungen, Freigaberegeln und Benutzerrollen."
       />
 
       <section className="grid gap-6">
@@ -63,18 +64,21 @@ export default async function SettingsPage() {
         </article>
 
         <CompanyPolicySettingsForm
-            allowPastVacationRequests={
-              companySettings?.allowPastVacationRequests ?? false
-            }
-            requireVacationRequestComment={
-              companySettings?.requireVacationRequestComment ?? false
-            }
-            minimumNoticeDays={companySettings?.minimumNoticeDays ?? 0}
-            allowHalfVacationDays={companySettings?.allowHalfVacationDays ?? false}
-          />
-        
-        <VacationBalanceRecalculationForm currentYear={new Date().getFullYear()} />
-        
+          allowPastVacationRequests={
+            companySettings?.allowPastVacationRequests ?? false
+          }
+          requireVacationRequestComment={
+            companySettings?.requireVacationRequestComment ?? false
+          }
+          minimumNoticeDays={companySettings?.minimumNoticeDays ?? 0}
+          allowHalfVacationDays={companySettings?.allowHalfVacationDays ?? false}
+          federalState={companySettings?.federalState ?? "NW"}
+        />
+
+        <VacationBalanceRecalculationForm
+          currentYear={new Date().getFullYear()}
+        />
+
         <DepartmentCreateForm employees={employees} />
 
         <DepartmentSearchManagementForm

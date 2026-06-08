@@ -14,6 +14,7 @@ export type CompanySettings = {
   requireVacationRequestComment?: boolean;
   minimumNoticeDays?: number;
   allowHalfVacationDays?: boolean;
+  federalState?: string;
 };
 
 export type RequestStatus =

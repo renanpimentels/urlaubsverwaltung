@@ -3,12 +3,14 @@
 import { useState, useTransition } from "react";
 
 import { updateCompanyPolicySettingsAction } from "@/lib/actions/settings-actions";
+import { germanFederalStates } from "@/lib/german-federal-states";
 
 type CompanyPolicySettingsFormProps = {
   allowPastVacationRequests: boolean;
   requireVacationRequestComment: boolean;
   minimumNoticeDays: number;
   allowHalfVacationDays: boolean;
+  federalState: string;
 };
 
 export function CompanyPolicySettingsForm({
@@ -16,6 +18,7 @@ export function CompanyPolicySettingsForm({
   requireVacationRequestComment,
   minimumNoticeDays,
   allowHalfVacationDays,
+  federalState,
 }: CompanyPolicySettingsFormProps) {
   const [allowPast, setAllowPast] = useState(allowPastVacationRequests);
   const [requireComment, setRequireComment] = useState(
@@ -23,6 +26,9 @@ export function CompanyPolicySettingsForm({
   );
   const [noticeDays, setNoticeDays] = useState(String(minimumNoticeDays));
   const [allowHalfDays, setAllowHalfDays] = useState(allowHalfVacationDays);
+  const [selectedFederalState, setSelectedFederalState] = useState(
+    federalState || "NW"
+  );
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -54,6 +60,7 @@ export function CompanyPolicySettingsForm({
           requireVacationRequestComment: requireComment,
           minimumNoticeDays: parsedNoticeDays,
           allowHalfVacationDays: allowHalfDays,
+          federalState: selectedFederalState,
         });
 
         setMessage(result.message);
@@ -76,6 +83,30 @@ export function CompanyPolicySettingsForm({
       </div>
 
       <div className="grid gap-4">
+        <label className="grid gap-2 rounded-2xl bg-slate-50 p-4">
+          <span className="text-sm font-semibold text-slate-700">
+            Bundesland
+          </span>
+          <select
+            value={selectedFederalState}
+            onChange={(event) => {
+              setSelectedFederalState(event.target.value);
+              resetMessages();
+            }}
+            className="max-w-md rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+          >
+            {germanFederalStates.map((state) => (
+              <option key={state.code} value={state.code}>
+                {state.name}
+              </option>
+            ))}
+          </select>
+          <span className="text-sm text-slate-500">
+            Dieses Bundesland wird für die Berechnung gesetzlicher Feiertage
+            verwendet.
+          </span>
+        </label>
+
         <label className="flex items-start gap-3 rounded-2xl bg-slate-50 p-4">
           <input
             type="checkbox"

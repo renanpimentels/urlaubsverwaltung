@@ -694,6 +694,17 @@ export async function getCompanySettingsFromDb() {
     orderBy: {
       createdAt: "asc",
     },
+    select: {
+      id: true,
+      defaultVacationDaysPerYear: true,
+      allowPastVacationRequests: true,
+      requireVacationRequestComment: true,
+      minimumNoticeDays: true,
+      allowHalfVacationDays: true,
+      federalState: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
 }
 

@@ -1,18 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { assertCompanyPolicyAllowsVacationRequest } from "@/lib/actions/company-policy-validation-service";
+
 import {
   applyVacationBalanceChange,
   getVacationBalanceYearFromDate,
 } from "@/lib/actions/vacation-balance-service";
+import { assertCompanyPolicyAllowsVacationRequest } from "@/lib/actions/company-policy-validation-service";
 import { assertVacationRequestCanBeSaved } from "@/lib/actions/vacation-request-validation-service";
-
 import { getActiveCurrentUserFromDb } from "@/lib/current-user-server";
-
+import { calculateBusinessDaysWithHolidays } from "@/lib/holiday-calendar";
 import { prisma } from "@/lib/prisma";
 import type { AbsenceType } from "@/lib/types";
-import { calculateBusinessDays } from "@/lib/vacation-calculations";
 
 type UpdateVacationRequestInput = {
   requestId: string;
@@ -25,7 +24,6 @@ type UpdateVacationRequestInput = {
 export async function updateVacationRequestAction(
   input: UpdateVacationRequestInput
 ) {
-
   const currentUser = await getActiveCurrentUserFromDb();
 
   const request = await prisma.vacationRequest.findUnique({
@@ -62,7 +60,17 @@ export async function updateVacationRequestAction(
     throw new Error("End date cannot be before start date.");
   }
 
-  const newDays = calculateBusinessDays(input.startDate, input.endDate);
+  const companySettings = await prisma.companySettings.findFirst({
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  const newDays = calculateBusinessDaysWithHolidays(
+    input.startDate,
+    input.endDate,
+    companySettings?.federalState
+  );
 
   if (newDays <= 0) {
     throw new Error("The selected period has no calculated absence days.");
@@ -78,7 +86,7 @@ export async function updateVacationRequestAction(
       startDate: newStartDate,
       comment: input.comment,
     });
-    
+
     await assertVacationRequestCanBeSaved(transaction, {
       employeeId: request.employeeId,
       absenceType: input.absenceType,

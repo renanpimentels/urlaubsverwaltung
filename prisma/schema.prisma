@@ -62,6 +62,7 @@ model CompanySettings {
   requireVacationRequestComment   Boolean  @default(false)
   minimumNoticeDays               Int      @default(0)
   allowHalfVacationDays           Boolean  @default(false)
+  federalState                    String   @default("NW")
   createdAt                       DateTime @default(now())
   updatedAt                       DateTime @updatedAt
 }
