@@ -673,3 +673,11 @@ export async function getUsersWithEmployeesForSettingsFromDb() {
   });
 }
 
+export async function getUserByEmployeeIdFromDb(employeeId: string) {
+  return prisma.user.findUnique({
+    where: {
+      employeeId,
+    },
+  });
+}
+
