@@ -2,8 +2,9 @@ import { notFound } from "next/navigation";
 
 import { CompanySettingsForm } from "@/components/CompanySettingsForm";
 import { DepartmentCreateForm } from "@/components/DepartmentCreateForm";
-import { DepartmentManagementForm } from "@/components/DepartmentManagementForm";
+import { DepartmentSearchManagementForm } from "@/components/DepartmentSearchManagementForm";
 import { PageHeader } from "@/components/PageHeader";
+import { UserRoleSearchForm } from "@/components/UserRoleSearchForm";
 import {
   canAccessSettingsRole,
   getCurrentUserFromDb,
@@ -12,6 +13,7 @@ import {
   getCompanySettingsFromDb,
   getDepartmentsWithApproversFromDb,
   getEmployeesForSettingsSelectFromDb,
+  getUsersWithEmployeesForSettingsFromDb,
 } from "@/lib/prisma-queries";
 
 export default async function SettingsPage() {
@@ -24,13 +26,14 @@ export default async function SettingsPage() {
   const companySettings = await getCompanySettingsFromDb();
   const departments = await getDepartmentsWithApproversFromDb();
   const employees = await getEmployeesForSettingsSelectFromDb();
+  const users = await getUsersWithEmployeesForSettingsFromDb();
 
   return (
     <>
       <PageHeader
         eyebrow="Administration"
         title="Einstellungen"
-        description="Verwalte globale Urlaubseinstellungen, Abteilungen und Freigaberegeln."
+        description="Verwalte globale Urlaubseinstellungen, Abteilungen, Freigaberegeln und Benutzerrollen."
       />
 
       <section className="grid gap-6">
@@ -60,65 +63,12 @@ export default async function SettingsPage() {
 
         <DepartmentCreateForm employees={employees} />
 
-        <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-5">
-            <h2 className="text-xl font-bold">Abteilungen verwalten</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Erstelle und bearbeite Abteilungen, Zuständigkeiten und Status.
-            </p>
-          </div>
+        <DepartmentSearchManagementForm
+          departments={departments}
+          employees={employees}
+        />
 
-          <div className="grid gap-4">
-            {departments.map((department) => {
-              const activeEmployeeCount = department.employees.filter(
-                (employee) => employee.isActive
-              ).length;
-
-              return (
-                <div
-                  key={department.id}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 p-5"
-                >
-                  <div className="mb-5 flex flex-col justify-between gap-3 md:flex-row md:items-start">
-                    <div>
-                      <h3 className="text-lg font-bold">{department.name}</h3>
-                      <p className="mt-1 text-sm text-slate-500">
-                        {activeEmployeeCount} aktive Mitarbeiter ·{" "}
-                        {department.employees.length} insgesamt
-                      </p>
-                    </div>
-
-                    <span
-                      className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${
-                        department.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-slate-100 text-slate-600"
-                      }`}
-                    >
-                      {department.isActive ? "Aktiv" : "Inaktiv"}
-                    </span>
-                  </div>
-
-                  <DepartmentManagementForm
-                    departmentId={department.id}
-                    departmentName={department.name}
-                    managerId={department.managerId}
-                    finalApproverId={department.finalApproverId}
-                    isActive={department.isActive}
-                    activeEmployeeCount={activeEmployeeCount}
-                    employees={employees}
-                  />
-                </div>
-              );
-            })}
-
-            {departments.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">
-                Keine Abteilungen gefunden.
-              </div>
-            ) : null}
-          </div>
-        </article>
+        <UserRoleSearchForm users={users} />
       </section>
     </>
   );
