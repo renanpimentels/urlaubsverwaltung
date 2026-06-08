@@ -15,9 +15,11 @@ model User {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  employee                 Employee?          @relation(fields: [employeeId], references: [id])
-  createdVacationRequests  VacationRequest[]  @relation("CreatedVacationRequests")
-  decidedApprovalDecisions ApprovalDecision[] @relation("DecidedApprovalDecisions")
+  employee                      Employee?             @relation(fields: [employeeId], references: [id])
+  createdVacationRequests       VacationRequest[]     @relation("CreatedVacationRequests")
+  decidedApprovalDecisions      ApprovalDecision[]    @relation("DecidedApprovalDecisions")
+  requestedCancellationRequests CancellationRequest[] @relation("CancellationRequestRequestedBy")
+  decidedCancellationRequests   CancellationRequest[] @relation("CancellationRequestDecidedBy")
 }
 
 model Employee {
@@ -31,14 +33,14 @@ model Employee {
   createdAt                   DateTime @default(now())
   updatedAt                   DateTime @updatedAt
 
-  department                  Department? @relation(fields: [departmentId], references: [id])
-  user                        User?
-  vacationRequests            VacationRequest[]
-  vacationBalances            VacationBalance[]
-  approvalDecisions           ApprovalDecision[]
+  department        Department?        @relation(fields: [departmentId], references: [id])
+  user              User?
+  vacationRequests  VacationRequest[]
+  vacationBalances  VacationBalance[]
+  approvalDecisions ApprovalDecision[]
 
-  managedDepartments          Department[] @relation("DepartmentManager")
-  finalApprovalDepartments    Department[] @relation("DepartmentFinalApprover")
+  managedDepartments       Department[] @relation("DepartmentManager")
+  finalApprovalDepartments Department[] @relation("DepartmentFinalApprover")
 }
 
 model Department {
@@ -56,15 +58,15 @@ model Department {
 }
 
 model CompanySettings {
-  id                              String   @id @default(cuid())
-  defaultVacationDaysPerYear      Int
-  allowPastVacationRequests       Boolean  @default(false)
-  requireVacationRequestComment   Boolean  @default(false)
-  minimumNoticeDays               Int      @default(0)
-  allowHalfVacationDays           Boolean  @default(false)
-  federalState                    String   @default("NW")
-  createdAt                       DateTime @default(now())
-  updatedAt                       DateTime @updatedAt
+  id                            String   @id @default(cuid())
+  defaultVacationDaysPerYear    Int
+  allowPastVacationRequests     Boolean  @default(false)
+  requireVacationRequestComment Boolean  @default(false)
+  minimumNoticeDays             Int      @default(0)
+  allowHalfVacationDays         Boolean  @default(false)
+  federalState                  String   @default("NW")
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime @updatedAt
 }
 
 model VacationRequest {
@@ -82,9 +84,10 @@ model VacationRequest {
   approvalStepsRequired  Int
   comment                String?
 
-  employee          Employee           @relation(fields: [employeeId], references: [id])
-  createdByUser     User?              @relation("CreatedVacationRequests", fields: [createdByUserId], references: [id])
-  approvalDecisions ApprovalDecision[]
+  employee             Employee              @relation(fields: [employeeId], references: [id])
+  createdByUser        User?                 @relation("CreatedVacationRequests", fields: [createdByUserId], references: [id])
+  approvalDecisions    ApprovalDecision[]
+  cancellationRequests CancellationRequest[]
 }
 
 model VacationBalance {
@@ -142,4 +145,21 @@ enum RequestStatus {
 enum ApprovalDecisionType {
   approved
   rejected
+}
+
+model CancellationRequest {
+  id                String    @id @default(cuid())
+  vacationRequestId String
+  requestedByUserId String
+  decidedByUserId   String?
+  status            String    @default("Ausstehend")
+  reason            String
+  decisionComment   String?
+  decidedAt         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  vacationRequest VacationRequest @relation(fields: [vacationRequestId], references: [id], onDelete: Cascade)
+  requestedBy     User            @relation("CancellationRequestRequestedBy", fields: [requestedByUserId], references: [id])
+  decidedBy       User?           @relation("CancellationRequestDecidedBy", fields: [decidedByUserId], references: [id])
 }

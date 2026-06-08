@@ -115,3 +115,23 @@ export type DashboardStat = {
   description: string;
   variant?: "default" | "warning";
 };
+
+export type CancellationRequestStatus =
+  | "Ausstehend"
+  | "Genehmigt"
+  | "Abgelehnt";
+
+export type CancellationRequestWithDetails = {
+  id: string;
+  vacationRequestId: string;
+  requestedByUserId: string;
+  requestedByUserEmail?: string;
+  requestedByEmployeeName?: string;
+  decidedByUserId?: string;
+  decidedByUserEmail?: string;
+  status: CancellationRequestStatus;
+  reason: string;
+  decisionComment?: string;
+  decidedAt?: string;
+  createdAt: string;
+};

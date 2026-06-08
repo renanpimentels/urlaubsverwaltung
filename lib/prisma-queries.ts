@@ -6,6 +6,7 @@ import type {
   UserRole,
   VacationBalance,
   VacationRequest,
+  CancellationRequestStatus,
 } from "@/lib/types";
 
 function mapPrismaEmployeeToAppEmployee(employee: {
@@ -805,5 +806,90 @@ export async function getUserByEmployeeIdFromDb(employeeId: string) {
     where: {
       employeeId,
     },
+  });
+}
+
+export async function getCancellationRequestsByVacationRequestIdFromDb(
+  vacationRequestId: string
+) {
+  const cancellationRequests = await prisma.cancellationRequest.findMany({
+    where: {
+      vacationRequestId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  const requestedByUserIds = cancellationRequests.map(
+    (request) => request.requestedByUserId
+  );
+
+  const decidedByUserIds = cancellationRequests
+    .map((request) => request.decidedByUserId)
+    .filter((userId): userId is string => Boolean(userId));
+
+  const users = await prisma.user.findMany({
+    where: {
+      id: {
+        in: [...requestedByUserIds, ...decidedByUserIds],
+      },
+    },
+    select: {
+      id: true,
+      email: true,
+      employeeId: true,
+    },
+  });
+
+  const usersById = new Map(users.map((user) => [user.id, user]));
+
+  const employeeIds = users
+    .map((user) => user.employeeId)
+    .filter((employeeId): employeeId is string => Boolean(employeeId));
+
+  const employees = await prisma.employee.findMany({
+    where: {
+      id: {
+        in: employeeIds,
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+
+  const employeesById = new Map(
+    employees.map((employee) => [employee.id, employee])
+  );
+
+  return cancellationRequests.map((cancellationRequest) => {
+    const requestedByUser = usersById.get(
+      cancellationRequest.requestedByUserId
+    );
+
+    const decidedByUser = cancellationRequest.decidedByUserId
+      ? usersById.get(cancellationRequest.decidedByUserId)
+      : undefined;
+
+    const requestedByEmployee = requestedByUser?.employeeId
+      ? employeesById.get(requestedByUser.employeeId)
+      : undefined;
+
+    return {
+      id: cancellationRequest.id,
+      vacationRequestId: cancellationRequest.vacationRequestId,
+      requestedByUserId: cancellationRequest.requestedByUserId,
+      requestedByUserEmail: requestedByUser?.email,
+      requestedByEmployeeName: requestedByEmployee?.name,
+      decidedByUserId: cancellationRequest.decidedByUserId ?? undefined,
+      decidedByUserEmail: decidedByUser?.email,
+      status: cancellationRequest.status as CancellationRequestStatus,
+      reason: cancellationRequest.reason,
+      decisionComment: cancellationRequest.decisionComment ?? undefined,
+      decidedAt: cancellationRequest.decidedAt?.toISOString(),
+      createdAt: cancellationRequest.createdAt.toISOString(),
+    };
   });
 }
