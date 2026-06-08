@@ -101,7 +101,7 @@ export function VacationRequestEditForm({
           `${result.message} Neuer Zeitraum: ${result.days} Abwesenheitstage.`
         );
       } catch {
-        setErrorMessage("Der Antrag konnte nicht gespeichert werden. Prüfe bitte, ob genug Urlaubstage verfügbar sind oder ob sich der Zeitraum mit einem bestehenden Antrag überschneidet");
+        setErrorMessage("Der Antrag konnte nicht gespeichert werden. Prüfe bitte die Unternehmensrichtlinien, den verfügbaren Urlaubssaldo oder mögliche Überschneidungen.");
       }
     });
   }

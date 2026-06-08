@@ -97,7 +97,7 @@ export function VacationRequestForm({
           comment,
         });
       } catch {
-        setErrorMessage("Der Antrag konnte nicht erstellt werden. Prüfe bitte, ob genug Urlaubstage verfügbar sind oder ob sich der Zeitraum mit einem bestehenden Antrag überschneidet.");
+        setErrorMessage("Der Antrag konnte nicht erstellt werden. Prüfe bitte die Unternehmensrichtlinien, den verfügbaren Urlaubssaldo oder mögliche Überschneidungen.");
       }
     });
   }

@@ -40,6 +40,13 @@ type UpdateDepartmentApproversInput = {
   finalApproverId: string;
 };
 
+type UpdateCompanyPolicySettingsInput = {
+  allowPastVacationRequests: boolean;
+  requireVacationRequestComment: boolean;
+  minimumNoticeDays: number;
+  allowHalfVacationDays: boolean;
+};
+
 async function assertCanAccessSettings() {
   const currentUser = await getActiveCurrentUserFromDb();
 
@@ -459,5 +466,57 @@ export async function updateUserRoleAction(input: UpdateUserRoleInput) {
 
   return {
     message: "Die Benutzerrolle wurde gespeichert.",
+  };
+}
+
+export async function updateCompanyPolicySettingsAction(
+  input: UpdateCompanyPolicySettingsInput
+) {
+  await assertCanAccessSettings();
+
+  if (!Number.isInteger(input.minimumNoticeDays)) {
+    throw new Error("Minimum notice days must be an integer.");
+  }
+
+  if (input.minimumNoticeDays < 0 || input.minimumNoticeDays > 365) {
+    throw new Error("Minimum notice days must be between 0 and 365.");
+  }
+
+  const existingSettings = await prisma.companySettings.findFirst({
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  if (existingSettings) {
+    await prisma.companySettings.update({
+      where: {
+        id: existingSettings.id,
+      },
+      data: {
+        allowPastVacationRequests: input.allowPastVacationRequests,
+        requireVacationRequestComment: input.requireVacationRequestComment,
+        minimumNoticeDays: input.minimumNoticeDays,
+        allowHalfVacationDays: input.allowHalfVacationDays,
+      },
+    });
+  } else {
+    await prisma.companySettings.create({
+      data: {
+        defaultVacationDaysPerYear: 30,
+        allowPastVacationRequests: input.allowPastVacationRequests,
+        requireVacationRequestComment: input.requireVacationRequestComment,
+        minimumNoticeDays: input.minimumNoticeDays,
+        allowHalfVacationDays: input.allowHalfVacationDays,
+      },
+    });
+  }
+
+  revalidatePath("/einstellungen");
+  revalidatePath("/urlaubsantraege");
+  revalidatePath("/urlaubsantraege/neu");
+
+  return {
+    message: "Die Unternehmensrichtlinien wurden gespeichert.",
   };
 }

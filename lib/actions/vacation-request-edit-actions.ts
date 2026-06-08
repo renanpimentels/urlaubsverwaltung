@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-
+import { assertCompanyPolicyAllowsVacationRequest } from "@/lib/actions/company-policy-validation-service";
 import {
   applyVacationBalanceChange,
   getVacationBalanceYearFromDate,
@@ -74,6 +74,11 @@ export async function updateVacationRequestAction(
   const newBalanceYear = getVacationBalanceYearFromDate(newStartDate);
 
   const updatedRequest = await prisma.$transaction(async (transaction) => {
+    await assertCompanyPolicyAllowsVacationRequest(transaction, {
+      startDate: newStartDate,
+      comment: input.comment,
+    });
+    
     await assertVacationRequestCanBeSaved(transaction, {
       employeeId: request.employeeId,
       absenceType: input.absenceType,

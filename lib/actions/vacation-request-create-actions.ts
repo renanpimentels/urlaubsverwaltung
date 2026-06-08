@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-
+import { assertCompanyPolicyAllowsVacationRequest } from "@/lib/actions/company-policy-validation-service";
 import {
   applyVacationBalanceChange,
   getVacationBalanceYearFromDate,
@@ -133,6 +133,11 @@ export async function createVacationRequestAction(
   let createdRequestId = "";
 
   await prisma.$transaction(async (transaction) => {
+    await assertCompanyPolicyAllowsVacationRequest(transaction, {
+      startDate,
+      comment: input.comment,
+    });
+    
     await assertVacationRequestCanBeSaved(transaction, {
       employeeId: input.employeeId,
       absenceType: input.absenceType,

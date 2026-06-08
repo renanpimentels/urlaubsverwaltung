@@ -10,6 +10,10 @@ export type User = {
 
 export type CompanySettings = {
   defaultVacationDaysPerYear: number;
+  allowPastVacationRequests?: boolean;
+  requireVacationRequestComment?: boolean;
+  minimumNoticeDays?: number;
+  allowHalfVacationDays?: boolean;
 };
 
 export type RequestStatus =
