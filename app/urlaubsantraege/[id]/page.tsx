@@ -11,6 +11,7 @@ import {
   getNextApproverIdForVacationRequestFromDb,
   getVacationBalanceByEmployeeIdFromDb,
   getVacationRequestByIdFromDb,
+  getCancellationRequestsByVacationRequestIdFromDb,
 } from "@/lib/prisma-queries";
 
 type VacationRequestDetailPageProps = {
@@ -54,6 +55,9 @@ export default async function VacationRequestDetailPage({
     request.id
   );
 
+  const cancellationRequests =
+  await getCancellationRequestsByVacationRequestIdFromDb(request.id);
+
   const nextApproverId = await getNextApproverIdForVacationRequestFromDb(
     request
   );
@@ -81,6 +85,7 @@ export default async function VacationRequestDetailPage({
         department={department}
         vacationBalance={vacationBalance}
         approvalDecisions={approvalDecisions}
+        cancellationRequests={cancellationRequests}
         nextApproverId={nextApproverId}
       />
     </>
