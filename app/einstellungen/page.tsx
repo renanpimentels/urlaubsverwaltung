@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-
+import { CompanyPolicySettingsForm } from "@/components/CompanyPolicySettingsForm";
 import { CompanySettingsForm } from "@/components/CompanySettingsForm";
 import { DepartmentCreateForm } from "@/components/DepartmentCreateForm";
 import { DepartmentSearchManagementForm } from "@/components/DepartmentSearchManagementForm";
@@ -61,6 +61,17 @@ export default async function SettingsPage() {
             </p>
           </div>
         </article>
+
+        <CompanyPolicySettingsForm
+            allowPastVacationRequests={
+              companySettings?.allowPastVacationRequests ?? false
+            }
+            requireVacationRequestComment={
+              companySettings?.requireVacationRequestComment ?? false
+            }
+            minimumNoticeDays={companySettings?.minimumNoticeDays ?? 0}
+            allowHalfVacationDays={companySettings?.allowHalfVacationDays ?? false}
+          />
         
         <VacationBalanceRecalculationForm currentYear={new Date().getFullYear()} />
         
