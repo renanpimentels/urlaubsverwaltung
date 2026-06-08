@@ -624,3 +624,52 @@ export async function getEmployeesForSettingsSelectFromDb() {
 
   return employees.map(mapPrismaEmployeeToAppEmployee);
 }
+
+
+export async function getUsersWithEmployeesForSettingsFromDb() {
+  const users = await prisma.user.findMany({
+    orderBy: {
+      email: "asc",
+    },
+  });
+
+  const employeeIds = users
+    .map((user) => user.employeeId)
+    .filter((employeeId): employeeId is string => Boolean(employeeId));
+
+  const employees = await prisma.employee.findMany({
+    where: {
+      id: {
+        in: employeeIds,
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      position: true,
+      isActive: true,
+    },
+  });
+
+  const employeesById = new Map(
+    employees.map((employee) => [employee.id, employee])
+  );
+
+  return users.map((user) => {
+    const employee = user.employeeId
+      ? employeesById.get(user.employeeId)
+      : undefined;
+
+    return {
+      id: user.id,
+      email: user.email,
+      employeeId: user.employeeId ?? undefined,
+      role: user.role,
+      isActive: user.isActive,
+      employeeName: employee?.name,
+      employeePosition: employee?.position,
+      employeeIsActive: employee?.isActive,
+    };
+  });
+}
+

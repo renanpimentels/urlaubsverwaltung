@@ -8,6 +8,14 @@ import {
 } from "@/lib/current-user-server";
 import { prisma } from "@/lib/prisma";
 
+import type { UserRole } from "@/lib/types";
+
+
+type UpdateUserRoleInput = {
+  userId: string;
+  role: UserRole;
+};
+
 type UpdateCompanySettingsInput = {
   defaultVacationDaysPerYear: number;
 };
@@ -387,5 +395,69 @@ export async function updateDepartmentApproversAction(
 
   return {
     message: "Die Freigaberegeln der Abteilung wurden gespeichert.",
+  };
+}
+
+export async function updateUserRoleAction(input: UpdateUserRoleInput) {
+  await assertCanAccessSettings();
+
+  if (!input.userId) {
+    throw new Error("User is required.");
+  }
+
+  const allowedRoles: UserRole[] = ["employee", "manager", "hr", "admin"];
+
+  if (!allowedRoles.includes(input.role)) {
+    throw new Error("Invalid user role.");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: input.userId,
+    },
+  });
+
+  if (!user) {
+    throw new Error("User not found.");
+  }
+
+  if (input.role === "employee" && user.employeeId) {
+    const responsibleDepartmentCount = await prisma.department.count({
+      where: {
+        OR: [
+          {
+            managerId: user.employeeId,
+          },
+          {
+            finalApproverId: user.employeeId,
+          },
+        ],
+      },
+    });
+
+    if (responsibleDepartmentCount > 0) {
+      throw new Error(
+        "A user responsible for departments cannot be changed to employee."
+      );
+    }
+  }
+
+  await prisma.user.update({
+    where: {
+      id: input.userId,
+    },
+    data: {
+      role: input.role,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/einstellungen");
+  revalidatePath("/mitarbeiter");
+  revalidatePath("/genehmigungen");
+  revalidatePath("/urlaubsantraege");
+
+  return {
+    message: "Die Benutzerrolle wurde gespeichert.",
   };
 }
