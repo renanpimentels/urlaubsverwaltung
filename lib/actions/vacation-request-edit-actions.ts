@@ -7,7 +7,9 @@ import {
   getVacationBalanceYearFromDate,
 } from "@/lib/actions/vacation-balance-service";
 import { assertVacationRequestCanBeSaved } from "@/lib/actions/vacation-request-validation-service";
-import { getCurrentUserFromDb } from "@/lib/current-user-server";
+
+import { getActiveCurrentUserFromDb } from "@/lib/current-user-server";
+
 import { prisma } from "@/lib/prisma";
 import type { AbsenceType } from "@/lib/types";
 import { calculateBusinessDays } from "@/lib/vacation-calculations";
@@ -23,7 +25,8 @@ type UpdateVacationRequestInput = {
 export async function updateVacationRequestAction(
   input: UpdateVacationRequestInput
 ) {
-  const currentUser = await getCurrentUserFromDb();
+
+  const currentUser = await getActiveCurrentUserFromDb();
 
   const request = await prisma.vacationRequest.findUnique({
     where: {

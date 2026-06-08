@@ -4,8 +4,9 @@ import { revalidatePath } from "next/cache";
 
 import {
   canAccessSettingsRole,
-  getCurrentUserFromDb,
+  getActiveCurrentUserFromDb,
 } from "@/lib/current-user-server";
+
 import { prisma } from "@/lib/prisma";
 
 type UpdateEmployeeInput = {
@@ -74,7 +75,7 @@ async function assertEmployeeCanBeDeactivated(employeeId: string) {
 }
 
 export async function updateEmployeeAction(input: UpdateEmployeeInput) {
-  const currentUser = await getCurrentUserFromDb();
+  const currentUser = await getActiveCurrentUserFromDb();
 
   if (!canAccessSettingsRole(currentUser.role)) {
     throw new Error("Current user cannot edit employees.");

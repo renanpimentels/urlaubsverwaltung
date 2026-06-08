@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { UserRoleSearchForm } from "@/components/UserRoleSearchForm";
 import {
   canAccessSettingsRole,
-  getCurrentUserFromDb,
+  getActiveCurrentUserFromDb,
 } from "@/lib/current-user-server";
 import {
   getCompanySettingsFromDb,
@@ -17,7 +17,7 @@ import {
 } from "@/lib/prisma-queries";
 
 export default async function SettingsPage() {
-  const currentUser = await getCurrentUserFromDb();
+  const currentUser = await getActiveCurrentUserFromDb();
 
   if (!canAccessSettingsRole(currentUser.role)) {
     notFound();

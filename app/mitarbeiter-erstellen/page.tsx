@@ -4,7 +4,7 @@ import { EmployeeForm } from "@/components/EmployeeForm";
 import { PageHeader } from "@/components/PageHeader";
 import {
   canAccessSettingsRole,
-  getCurrentUserFromDb,
+  getActiveCurrentUserFromDb,
 } from "@/lib/current-user-server";
 import {
   getCompanySettingsFromDb,
@@ -12,7 +12,7 @@ import {
 } from "@/lib/prisma-queries";
 
 export default async function NewEmployeePage() {
-  const currentUser = await getCurrentUserFromDb();
+  const currentUser = await getActiveCurrentUserFromDb();
 
   if (!canAccessSettingsRole(currentUser.role)) {
     notFound();
