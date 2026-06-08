@@ -77,8 +77,23 @@ export type ApprovalDecision = {
   comment?: string;
 };
 
-export type ApprovalDecisionWithApprover = ApprovalDecision & {
-  approverName?: string;
+export type ApprovalDecisionWithApprover = {
+  id: string;
+  vacationRequestId: string;
+  approverEmployeeId: string;
+  stepOrder: number;
+  decision: "approved" | "rejected";
+  decidedAt: string;
+  decidedAtDateTime?: string;
+  comment?: string;
+  approverName: string;
+  expectedApproverEmployeeId?: string;
+  expectedApproverName?: string;
+  decidedByUserId?: string;
+  decidedByUserEmail?: string;
+  decidedByEmployeeId?: string;
+  decidedByEmployeeName?: string;
+  isOverride?: boolean;
 };
 
 
