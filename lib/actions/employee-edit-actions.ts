@@ -32,6 +32,47 @@ function calculateAvailableBalance(balance: {
   return balance.total + balance.carriedOver - balance.used - balance.pending;
 }
 
+async function assertEmployeeCanBeDeactivated(employeeId: string) {
+  const pendingVacationRequestCount = await prisma.vacationRequest.count({
+    where: {
+      employeeId,
+      status: "Ausstehend",
+    },
+  });
+
+  if (pendingVacationRequestCount > 0) {
+    throw new Error(
+      "Employee cannot be deactivated while pending vacation requests exist."
+    );
+  }
+
+  const activeManagedDepartmentCount = await prisma.department.count({
+    where: {
+      isActive: true,
+      managerId: employeeId,
+    },
+  });
+
+  if (activeManagedDepartmentCount > 0) {
+    throw new Error(
+      "Employee cannot be deactivated while assigned as manager of an active department."
+    );
+  }
+
+  const activeFinalApproverDepartmentCount = await prisma.department.count({
+    where: {
+      isActive: true,
+      finalApproverId: employeeId,
+    },
+  });
+
+  if (activeFinalApproverDepartmentCount > 0) {
+    throw new Error(
+      "Employee cannot be deactivated while assigned as final approver of an active department."
+    );
+  }
+}
+
 export async function updateEmployeeAction(input: UpdateEmployeeInput) {
   const currentUser = await getCurrentUserFromDb();
 
@@ -113,6 +154,10 @@ export async function updateEmployeeAction(input: UpdateEmployeeInput) {
 
   if (existingUserWithEmail && existingUserWithEmail.id !== linkedUser.id) {
     throw new Error("A user with this email already exists.");
+  }
+
+  if (employee.isActive && !input.isActive) {
+    await assertEmployeeCanBeDeactivated(input.employeeId);
   }
 
   const year = getCurrentYear();
@@ -200,8 +245,11 @@ export async function updateEmployeeAction(input: UpdateEmployeeInput) {
   revalidatePath(`/mitarbeiter/${input.employeeId}/bearbeiten`);
   revalidatePath("/urlaubsantraege");
   revalidatePath("/genehmigungen");
+  revalidatePath("/einstellungen");
 
   return {
-    message: "Der Mitarbeiter wurde gespeichert.",
+    message: input.isActive
+      ? "Der Mitarbeiter wurde gespeichert."
+      : "Der Mitarbeiter und der verknüpfte Benutzer wurden deaktiviert.",
   };
 }

@@ -111,11 +111,11 @@ export function EmployeeEditForm({
         });
 
         setMessage(result.message);
-      } catch {
-        setErrorMessage(
-          "Der Mitarbeiter konnte nicht gespeichert werden. Prüfe bitte die Eingaben und ob die E-Mail bereits verwendet wird."
-        );
-      }
+        } catch {
+          setErrorMessage(
+            "Der Mitarbeiter konnte nicht gespeichert werden. Prüfe bitte die Eingaben, ob die E-Mail bereits verwendet wird, ob offene Anträge bestehen oder ob der Mitarbeiter noch als Manager/Final Approver einer aktiven Abteilung eingetragen ist."
+          );
+        }
     });
   }
 
