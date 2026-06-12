@@ -6,7 +6,12 @@ import {
   applyVacationBalanceChange,
   getVacationBalanceYearFromDate,
 } from "@/lib/actions/vacation-balance-service";
+import {
+  createNotificationWithTransaction,
+  getNextApproverUserIdWithTransaction,
+} from "@/lib/actions/notification-service";
 import { getActiveCurrentUserFromDb } from "@/lib/current-user-server";
+import { formatDateRange } from "@/lib/date-formatters";
 import { prisma } from "@/lib/prisma";
 
 export async function cancelVacationRequestAction(requestId: string) {
@@ -15,6 +20,13 @@ export async function cancelVacationRequestAction(requestId: string) {
   const request = await prisma.vacationRequest.findUnique({
     where: {
       id: requestId,
+    },
+    include: {
+      employee: {
+        select: {
+          name: true,
+        },
+      },
     },
   });
 
@@ -43,7 +55,7 @@ export async function cancelVacationRequestAction(requestId: string) {
       });
     }
 
-    return transaction.vacationRequest.update({
+    const updatedVacationRequest = await transaction.vacationRequest.update({
       where: {
         id: request.id,
       },
@@ -51,9 +63,33 @@ export async function cancelVacationRequestAction(requestId: string) {
         status: "Storniert",
       },
     });
+
+    const nextApproverUserId = await getNextApproverUserIdWithTransaction(
+      transaction,
+      {
+        employeeId: request.employeeId,
+        approvalStepsCompleted: request.approvalStepsCompleted,
+        approvalStepsRequired: request.approvalStepsRequired,
+      }
+    );
+
+    if (nextApproverUserId) {
+      await createNotificationWithTransaction(transaction, {
+        userId: nextApproverUserId,
+        title: "Urlaubsantrag storniert",
+        message: `${request.employee.name} hat den Antrag für ${formatDateRange(
+          request.startDate.toISOString(),
+          request.endDate.toISOString()
+        )} storniert.`,
+        href: `/urlaubsantraege/${request.id}`,
+      });
+    }
+
+    return updatedVacationRequest;
   });
 
   revalidatePath("/");
+  revalidatePath("/genehmigungen");
   revalidatePath("/urlaubsantraege");
   revalidatePath(`/urlaubsantraege/${request.id}`);
 

@@ -3,10 +3,17 @@
 import { revalidatePath } from "next/cache";
 
 import {
+  createNotificationWithTransaction,
+  createNotificationsForUsersWithTransaction,
+  getRequestOwnerNotificationTargetWithTransaction,
+  getUserIdByEmployeeIdWithTransaction,
+} from "@/lib/actions/notification-service";
+import {
   applyVacationBalanceChange,
   getVacationBalanceYearFromDate,
 } from "@/lib/actions/vacation-balance-service";
 import { getActiveCurrentUserFromDb } from "@/lib/current-user-server";
+import { formatDateRange } from "@/lib/date-formatters";
 import { prisma } from "@/lib/prisma";
 
 async function getResponsibleEmployeeIdsForVacationRequest(employeeId: string) {
@@ -49,7 +56,7 @@ async function getResponsibleEmployeeIdsForVacationRequest(employeeId: string) {
 }
 
 async function canCurrentUserDecideCancellationRequest(input: {
-  currentEmployeeId?: string;
+  currentEmployeeId?: string | null;
   role: string;
   requestEmployeeId: string;
 }) {
@@ -82,6 +89,13 @@ export async function requestVacationRequestCancellationAction(
     where: {
       id: vacationRequestId,
     },
+    include: {
+      employee: {
+        select: {
+          name: true,
+        },
+      },
+    },
   });
 
   if (!request) {
@@ -112,13 +126,43 @@ export async function requestVacationRequestCancellationAction(
     throw new Error("There is already a pending cancellation request.");
   }
 
-  await prisma.cancellationRequest.create({
-    data: {
-      vacationRequestId: request.id,
-      requestedByUserId: currentUser.id,
-      status: "Ausstehend",
-      reason: trimmedReason,
-    },
+  await prisma.$transaction(async (transaction) => {
+    await transaction.cancellationRequest.create({
+      data: {
+        vacationRequestId: request.id,
+        requestedByUserId: currentUser.id,
+        status: "Ausstehend",
+        reason: trimmedReason,
+      },
+    });
+
+    const responsibleEmployeeIds = await getResponsibleEmployeeIdsForVacationRequest(
+      request.employeeId
+    );
+
+    const responsibleUserIds = (
+      await Promise.all(
+        responsibleEmployeeIds.map((responsibleEmployeeId) =>
+          getUserIdByEmployeeIdWithTransaction(
+            transaction,
+            responsibleEmployeeId
+          )
+        )
+      )
+    ).filter((userId): userId is string => Boolean(userId));
+
+    await createNotificationsForUsersWithTransaction(
+      transaction,
+      responsibleUserIds.map((userId) => ({
+        userId,
+        title: "Stornierung beantragt",
+        message: `${request.employee.name} hat die Stornierung des Antrags für ${formatDateRange(
+          request.startDate.toISOString(),
+          request.endDate.toISOString()
+        )} beantragt.`,
+        href: `/urlaubsantraege/${request.id}`,
+      }))
+    );
   });
 
   revalidatePath("/");
@@ -142,7 +186,15 @@ export async function approveVacationRequestCancellationAction(
       id: cancellationRequestId,
     },
     include: {
-      vacationRequest: true,
+      vacationRequest: {
+        include: {
+          employee: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -205,6 +257,23 @@ export async function approveVacationRequestCancellationAction(
         decisionComment: decisionComment.trim() || null,
       },
     });
+
+    const ownerUserId = await getRequestOwnerNotificationTargetWithTransaction(
+      transaction,
+      request.employeeId
+    );
+
+    if (ownerUserId) {
+      await createNotificationWithTransaction(transaction, {
+        userId: ownerUserId,
+        title: "Stornierung genehmigt",
+        message: `Deine Stornierung für ${formatDateRange(
+          request.startDate.toISOString(),
+          request.endDate.toISOString()
+        )} wurde genehmigt.`,
+        href: `/urlaubsantraege/${request.id}`,
+      });
+    }
   });
 
   revalidatePath("/");
@@ -233,7 +302,15 @@ export async function rejectVacationRequestCancellationAction(
       id: cancellationRequestId,
     },
     include: {
-      vacationRequest: true,
+      vacationRequest: {
+        include: {
+          employee: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -257,16 +334,35 @@ export async function rejectVacationRequestCancellationAction(
     throw new Error("Current user cannot reject this cancellation request.");
   }
 
-  await prisma.cancellationRequest.update({
-    where: {
-      id: cancellationRequest.id,
-    },
-    data: {
-      status: "Abgelehnt",
-      decidedByUserId: currentUser.id,
-      decidedAt: new Date(),
-      decisionComment: trimmedDecisionComment,
-    },
+  await prisma.$transaction(async (transaction) => {
+    await transaction.cancellationRequest.update({
+      where: {
+        id: cancellationRequest.id,
+      },
+      data: {
+        status: "Abgelehnt",
+        decidedByUserId: currentUser.id,
+        decidedAt: new Date(),
+        decisionComment: trimmedDecisionComment,
+      },
+    });
+
+    const ownerUserId = await getRequestOwnerNotificationTargetWithTransaction(
+      transaction,
+      request.employeeId
+    );
+
+    if (ownerUserId) {
+      await createNotificationWithTransaction(transaction, {
+        userId: ownerUserId,
+        title: "Stornierung abgelehnt",
+        message: `Deine Stornierung für ${formatDateRange(
+          request.startDate.toISOString(),
+          request.endDate.toISOString()
+        )} wurde abgelehnt.`,
+        href: `/urlaubsantraege/${request.id}`,
+      });
+    }
   });
 
   revalidatePath("/");

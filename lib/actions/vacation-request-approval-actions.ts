@@ -2,21 +2,24 @@
 
 import { revalidatePath } from "next/cache";
 
-import { prisma } from "@/lib/prisma";
-
 import {
   applyVacationBalanceChange,
   getVacationBalanceYearFromDate,
 } from "@/lib/actions/vacation-balance-service";
-
+import {
+  createNotificationWithTransaction,
+  getNextApproverUserIdWithTransaction,
+  getRequestOwnerNotificationTargetWithTransaction,
+} from "@/lib/actions/notification-service";
 import { getActiveCurrentUserFromDb } from "@/lib/current-user-server";
-
-
+import { formatDateRange } from "@/lib/date-formatters";
+import { prisma } from "@/lib/prisma";
 
 async function getNextApproverIdForRequest(request: {
   employeeId: string;
   status: string;
   approvalStepsCompleted: number;
+  approvalStepsRequired: number;
 }) {
   if (request.status !== "Ausstehend") {
     return undefined;
@@ -42,6 +45,7 @@ async function getNextApproverIdForRequest(request: {
     select: {
       managerId: true,
       finalApproverId: true,
+      approvalStepsRequired: true,
     },
   });
 
@@ -49,11 +53,14 @@ async function getNextApproverIdForRequest(request: {
     return undefined;
   }
 
+  const approvalStepsRequired =
+    request.approvalStepsRequired ?? department.approvalStepsRequired;
+
   if (request.approvalStepsCompleted === 0) {
     return department.managerId;
   }
 
-  if (request.approvalStepsCompleted === 1) {
+  if (approvalStepsRequired >= 2 && request.approvalStepsCompleted === 1) {
     return department.finalApproverId ?? undefined;
   }
 
@@ -62,7 +69,7 @@ async function getNextApproverIdForRequest(request: {
 
 function canCurrentUserApproveRequest(
   currentUser: {
-    employeeId?: string;
+    employeeId?: string | null;
     role: string;
   },
   nextApproverId: string | undefined
@@ -71,12 +78,14 @@ function canCurrentUserApproveRequest(
     return true;
   }
 
-  return Boolean(currentUser.employeeId) && currentUser.employeeId === nextApproverId;
+  return (
+    Boolean(currentUser.employeeId) && currentUser.employeeId === nextApproverId
+  );
 }
 
 function isCurrentUserOverride(
   currentUser: {
-    employeeId?: string;
+    employeeId?: string | null;
     role: string;
   },
   nextApproverId: string | undefined
@@ -114,11 +123,18 @@ export async function approveVacationRequestAction(
   requestId: string,
   comment = ""
 ) {
-
   const currentUser = await getActiveCurrentUserFromDb();
+
   const request = await prisma.vacationRequest.findUnique({
     where: {
       id: requestId,
+    },
+    include: {
+      employee: {
+        select: {
+          name: true,
+        },
+      },
     },
   });
 
@@ -130,7 +146,12 @@ export async function approveVacationRequestAction(
     throw new Error("Only pending requests can be approved.");
   }
 
-  const nextApproverId = await getNextApproverIdForRequest(request);
+  const nextApproverId = await getNextApproverIdForRequest({
+    employeeId: request.employeeId,
+    status: request.status,
+    approvalStepsCompleted: request.approvalStepsCompleted,
+    approvalStepsRequired: request.approvalStepsRequired,
+  });
 
   if (!canCurrentUserApproveRequest(currentUser, nextApproverId)) {
     throw new Error("Current user cannot approve this request.");
@@ -176,7 +197,7 @@ export async function approveVacationRequestAction(
       });
     }
 
-    return transaction.vacationRequest.update({
+    const updatedVacationRequest = await transaction.vacationRequest.update({
       where: {
         id: request.id,
       },
@@ -185,6 +206,49 @@ export async function approveVacationRequestAction(
         status: isFullyApproved ? "Genehmigt" : "Ausstehend",
       },
     });
+
+    const href = `/urlaubsantraege/${request.id}`;
+    const dateRange = formatDateRange(
+      request.startDate.toISOString(),
+      request.endDate.toISOString()
+    );
+
+    if (isFullyApproved) {
+      const ownerUserId =
+        await getRequestOwnerNotificationTargetWithTransaction(
+          transaction,
+          request.employeeId
+        );
+
+      if (ownerUserId) {
+        await createNotificationWithTransaction(transaction, {
+          userId: ownerUserId,
+          title: "Urlaubsantrag genehmigt",
+          message: `Dein Antrag für ${dateRange} wurde genehmigt.`,
+          href,
+        });
+      }
+    } else {
+      const nextApproverUserId = await getNextApproverUserIdWithTransaction(
+        transaction,
+        {
+          employeeId: request.employeeId,
+          approvalStepsCompleted: nextCompletedSteps,
+          approvalStepsRequired: request.approvalStepsRequired,
+        }
+      );
+
+      if (nextApproverUserId) {
+        await createNotificationWithTransaction(transaction, {
+          userId: nextApproverUserId,
+          title: "Urlaubsantrag wartet auf Freigabe",
+          message: `${request.employee.name} hat einen Antrag für ${dateRange}, der auf deine Freigabe wartet.`,
+          href,
+        });
+      }
+    }
+
+    return updatedVacationRequest;
   });
 
   revalidatePath("/");
@@ -205,9 +269,7 @@ export async function rejectVacationRequestAction(
   requestId: string,
   comment: string
 ) {
-
   const currentUser = await getActiveCurrentUserFromDb();
-
 
   const trimmedComment = comment.trim();
 
@@ -219,6 +281,13 @@ export async function rejectVacationRequestAction(
     where: {
       id: requestId,
     },
+    include: {
+      employee: {
+        select: {
+          name: true,
+        },
+      },
+    },
   });
 
   if (!request) {
@@ -229,7 +298,12 @@ export async function rejectVacationRequestAction(
     throw new Error("Only pending requests can be rejected.");
   }
 
-  const nextApproverId = await getNextApproverIdForRequest(request);
+  const nextApproverId = await getNextApproverIdForRequest({
+    employeeId: request.employeeId,
+    status: request.status,
+    approvalStepsCompleted: request.approvalStepsCompleted,
+    approvalStepsRequired: request.approvalStepsRequired,
+  });
 
   if (!canCurrentUserApproveRequest(currentUser, nextApproverId)) {
     throw new Error("Current user cannot reject this request.");
@@ -269,7 +343,7 @@ export async function rejectVacationRequestAction(
       });
     }
 
-    return transaction.vacationRequest.update({
+    const updatedVacationRequest = await transaction.vacationRequest.update({
       where: {
         id: request.id,
       },
@@ -277,6 +351,25 @@ export async function rejectVacationRequestAction(
         status: "Abgelehnt",
       },
     });
+
+    const ownerUserId = await getRequestOwnerNotificationTargetWithTransaction(
+      transaction,
+      request.employeeId
+    );
+
+    if (ownerUserId) {
+      await createNotificationWithTransaction(transaction, {
+        userId: ownerUserId,
+        title: "Urlaubsantrag abgelehnt",
+        message: `Dein Antrag für ${formatDateRange(
+          request.startDate.toISOString(),
+          request.endDate.toISOString()
+        )} wurde abgelehnt.`,
+        href: `/urlaubsantraege/${request.id}`,
+      });
+    }
+
+    return updatedVacationRequest;
   });
 
   revalidatePath("/");
