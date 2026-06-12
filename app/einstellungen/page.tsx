@@ -31,19 +31,21 @@ export default async function SettingsPage() {
   const users = await getUsersWithEmployeesForSettingsFromDb();
 
   return (
-    <>
+    <div className="grid gap-5">
       <PageHeader
         eyebrow="Administration"
         title="Einstellungen"
-        description="Verwalte globale Urlaubseinstellungen, Richtlinien, Abteilungen, Freigaberegeln und Benutzerrollen."
+        description="Globale Urlaubseinstellungen, Richtlinien, Abteilungen, Freigaberegeln und Benutzerrollen verwalten."
       />
 
-      <section className="grid gap-6">
-        <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-5">
-            <h2 className="text-xl font-bold">Globale Urlaubseinstellungen</h2>
+      <section className="grid gap-4">
+        <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-4">
+            <h2 className="text-base font-semibold text-slate-950">
+              Globale Urlaubseinstellungen
+            </h2>
             <p className="mt-1 text-sm text-slate-500">
-              Diese Werte dienen als Standard beim Erstellen neuer Mitarbeiter.
+              Standardwerte für neu angelegte Mitarbeiter.
             </p>
           </div>
 
@@ -53,9 +55,9 @@ export default async function SettingsPage() {
             }
           />
 
-          <div className="mt-5 rounded-2xl bg-slate-50 p-4">
-            <p className="text-sm font-semibold text-slate-500">Hinweis</p>
-            <p className="mt-2 text-sm text-slate-600">
+          <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+            <p className="text-sm font-medium text-slate-700">Hinweis</p>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
               Der Standard-Jahresurlaub wird nur als Ausgangswert verwendet. Der
               individuelle vertragliche Jahresurlaub wird weiterhin pro
               Mitarbeiter gespeichert.
@@ -88,6 +90,6 @@ export default async function SettingsPage() {
 
         <UserRoleSearchForm users={users} />
       </section>
-    </>
+    </div>
   );
 }

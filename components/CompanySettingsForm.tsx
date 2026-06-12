@@ -16,11 +16,15 @@ export function CompanySettingsForm({
   const [errorMessage, setErrorMessage] = useState("");
   const [isPending, startTransition] = useTransition();
 
+  function resetMessages() {
+    setMessage("");
+    setErrorMessage("");
+  }
+
   function handleSubmit() {
     const parsedValue = Number(value);
 
-    setMessage("");
-    setErrorMessage("");
+    resetMessages();
 
     if (!Number.isInteger(parsedValue)) {
       setErrorMessage("Bitte gib eine ganze Zahl ein.");
@@ -48,11 +52,12 @@ export function CompanySettingsForm({
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-[220px_1fr] md:items-end">
-      <label className="grid gap-2">
-        <span className="text-sm font-semibold text-slate-700">
+    <div className="grid gap-3 md:grid-cols-[180px_minmax(0,1fr)] md:items-start">
+      <label className="grid gap-1.5">
+        <span className="text-sm font-medium text-slate-700">
           Standard-Jahresurlaub
         </span>
+
         <input
           type="number"
           min={1}
@@ -60,29 +65,32 @@ export function CompanySettingsForm({
           value={value}
           onChange={(event) => {
             setValue(event.target.value);
-            setMessage("");
-            setErrorMessage("");
+            resetMessages();
           }}
-          className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-slate-500 md:max-w-32"
         />
       </label>
 
-      <div className="grid gap-3">
+      <div className="grid gap-2">
         <button
           type="button"
           onClick={handleSubmit}
           disabled={isPending}
-          className="w-fit rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-fit rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isPending ? "Wird gespeichert..." : "Einstellungen speichern"}
+          {isPending ? "Wird gespeichert..." : "Speichern"}
         </button>
 
         {message ? (
-          <p className="text-sm font-medium text-green-700">{message}</p>
+          <p className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm font-medium text-green-700">
+            {message}
+          </p>
         ) : null}
 
         {errorMessage ? (
-          <p className="text-sm font-medium text-red-700">{errorMessage}</p>
+          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+            {errorMessage}
+          </p>
         ) : null}
       </div>
     </div>

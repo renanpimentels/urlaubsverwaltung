@@ -186,20 +186,21 @@ export function DepartmentSearchManagementForm({
   }
 
   return (
-    <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-5">
-        <h2 className="text-xl font-bold">Abteilung verwalten</h2>
+    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-4">
+        <h2 className="text-base font-semibold text-slate-950">
+          Abteilung verwalten
+        </h2>
         <p className="mt-1 text-sm text-slate-500">
-          Wähle eine Abteilung aus oder suche nach Name, um Status und
-          Freigabeverantwortung zu bearbeiten.
+          Abteilung suchen und Status, Manager oder Freigabestufen bearbeiten.
         </p>
       </div>
 
-      <div className="grid gap-5">
-        <div ref={searchContainerRef} className="relative grid gap-2">
+      <div className="grid gap-4">
+        <div ref={searchContainerRef} className="relative grid gap-1.5">
           <label
             htmlFor="department-search"
-            className="text-sm font-semibold text-slate-700"
+            className="text-sm font-medium text-slate-700"
           >
             Abteilung auswählen
           </label>
@@ -216,8 +217,8 @@ export function DepartmentSearchManagementForm({
                 clearSelectedDepartment();
                 resetMessages();
               }}
-              placeholder="Klicken zum Auswählen oder Namen eingeben..."
-              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+              placeholder="Name eingeben oder auswählen..."
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-slate-500"
             />
 
             <button
@@ -226,15 +227,15 @@ export function DepartmentSearchManagementForm({
                 setIsSearchOpen((currentValue) => !currentValue);
                 resetMessages();
               }}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
               Öffnen
             </button>
           </div>
 
           {isSearchOpen && filteredDepartments.length > 0 ? (
-            <div className="absolute top-full z-20 mt-2 max-h-80 w-full overflow-auto rounded-2xl border border-slate-200 bg-white shadow-lg">
-              <div className="divide-y divide-slate-200">
+            <div className="absolute top-full z-20 mt-1.5 max-h-72 w-full overflow-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+              <div className="divide-y divide-slate-100">
                 {filteredDepartments.map((department) => {
                   const activeCount = department.employees.filter(
                     (employee) => employee.isActive
@@ -247,22 +248,17 @@ export function DepartmentSearchManagementForm({
                       key={department.id}
                       type="button"
                       onClick={() => handleSelectDepartment(department.id)}
-                      className={`block w-full px-4 py-3 text-left hover:bg-slate-50 ${
-                        isSelected ? "bg-teal-50" : "bg-white"
+                      className={`block w-full px-3 py-2 text-left hover:bg-slate-50 ${
+                        isSelected ? "bg-slate-100" : "bg-white"
                       }`}
                     >
-                      <span className="block font-semibold text-slate-900">
+                      <span className="block text-sm font-semibold text-slate-950">
                         {department.name}
                       </span>
 
-                      <span className="mt-1 block text-sm text-slate-500">
-                        {activeCount} aktive Mitarbeiter ·{" "}
-                        {department.employees.length} insgesamt
-                      </span>
-
-                      <span className="mt-1 block text-xs font-medium text-slate-500">
-                        Status: {department.isActive ? "Aktiv" : "Inaktiv"} ·{" "}
-                        Freigabe:{" "}
+                      <span className="mt-0.5 block text-xs text-slate-500">
+                        {activeCount} aktiv · {department.employees.length}{" "}
+                        gesamt · {department.isActive ? "Aktiv" : "Inaktiv"} ·{" "}
                         {department.approvalStepsRequired === 1
                           ? "1 Stufe"
                           : "2 Stufen"}
@@ -275,45 +271,45 @@ export function DepartmentSearchManagementForm({
           ) : null}
 
           {isSearchOpen && filteredDepartments.length === 0 ? (
-            <div className="absolute top-full z-20 mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500 shadow-lg">
+            <div className="absolute top-full z-20 mt-1.5 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-500 shadow-lg">
               Keine Abteilung gefunden.
             </div>
           ) : null}
         </div>
 
         {selectedDepartment ? (
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-            <div className="mb-5 flex flex-col justify-between gap-3 md:flex-row md:items-start">
-              <div>
-                <h3 className="text-lg font-bold">{selectedDepartment.name}</h3>
-                <p className="mt-1 text-sm text-slate-500">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <div className="mb-4 flex flex-col justify-between gap-2 md:flex-row md:items-start">
+              <div className="min-w-0">
+                <h3 className="truncate text-base font-semibold text-slate-950">
+                  {selectedDepartment.name}
+                </h3>
+                <p className="mt-0.5 text-sm text-slate-500">
                   {activeEmployeeCount} aktive Mitarbeiter ·{" "}
                   {selectedDepartment.employees.length} insgesamt
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 <span
-                  className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${
+                  className={`w-fit rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${
                     selectedDepartment.isActive
-                      ? "bg-green-100 text-green-700"
-                      : "bg-slate-100 text-slate-600"
+                      ? "bg-green-50 text-green-700 ring-green-200"
+                      : "bg-slate-100 text-slate-600 ring-slate-200"
                   }`}
                 >
                   {selectedDepartment.isActive ? "Aktiv" : "Inaktiv"}
                 </span>
 
-                <span className="w-fit rounded-full bg-teal-100 px-3 py-1 text-xs font-semibold text-teal-700">
-                  {selectedApprovalStepsRequired === 1
-                    ? "1 Freigabestufe"
-                    : "2 Freigabestufen"}
+                <span className="w-fit rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
+                  {selectedApprovalStepsRequired === 1 ? "1 Stufe" : "2 Stufen"}
                 </span>
               </div>
             </div>
 
-            <div className="grid gap-4">
-              <label className="grid gap-2">
-                <span className="text-sm font-semibold text-slate-700">
+            <div className="grid gap-3">
+              <label className="grid gap-1.5">
+                <span className="text-sm font-medium text-slate-700">
                   Abteilungsname
                 </span>
                 <input
@@ -323,43 +319,41 @@ export function DepartmentSearchManagementForm({
                     setName(event.target.value);
                     resetMessages();
                   }}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-slate-500"
                 />
               </label>
 
-              <label className="grid gap-2">
-                <span className="text-sm font-semibold text-slate-700">
-                  Freigabestufen
-                </span>
-                <select
-                  value={selectedApprovalStepsRequired}
-                  onChange={(event) => {
-                    const nextApprovalStepsRequired = Number(
-                      event.target.value
-                    );
+              <div className="grid gap-3 md:grid-cols-3">
+                <label className="grid gap-1.5">
+                  <span className="text-sm font-medium text-slate-700">
+                    Freigabestufen
+                  </span>
+                  <select
+                    value={selectedApprovalStepsRequired}
+                    onChange={(event) => {
+                      const nextApprovalStepsRequired = Number(
+                        event.target.value
+                      );
 
-                    setSelectedApprovalStepsRequired(
-                      nextApprovalStepsRequired
-                    );
+                      setSelectedApprovalStepsRequired(
+                        nextApprovalStepsRequired
+                      );
 
-                    if (nextApprovalStepsRequired === 1) {
-                      setSelectedFinalApproverId("");
-                    }
+                      if (nextApprovalStepsRequired === 1) {
+                        setSelectedFinalApproverId("");
+                      }
 
-                    resetMessages();
-                  }}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
-                >
-                  <option value={1}>1 Stufe: Manager</option>
-                  <option value={2}>
-                    2 Stufen: Manager + Final Approver
-                  </option>
-                </select>
-              </label>
+                      resetMessages();
+                    }}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-slate-500"
+                  >
+                    <option value={1}>1 Stufe</option>
+                    <option value={2}>2 Stufen</option>
+                  </select>
+                </label>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="grid gap-2">
-                  <span className="text-sm font-semibold text-slate-700">
+                <label className="grid gap-1.5">
+                  <span className="text-sm font-medium text-slate-700">
                     Manager
                   </span>
                   <select
@@ -368,7 +362,7 @@ export function DepartmentSearchManagementForm({
                       setSelectedManagerId(event.target.value);
                       resetMessages();
                     }}
-                    className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-slate-500"
                   >
                     {employees.map((employee) => (
                       <option key={employee.id} value={employee.id}>
@@ -378,8 +372,8 @@ export function DepartmentSearchManagementForm({
                   </select>
                 </label>
 
-                <label className="grid gap-2">
-                  <span className="text-sm font-semibold text-slate-700">
+                <label className="grid gap-1.5">
+                  <span className="text-sm font-medium text-slate-700">
                     Final Approver
                   </span>
                   <select
@@ -389,7 +383,7 @@ export function DepartmentSearchManagementForm({
                       resetMessages();
                     }}
                     disabled={!isTwoStepApproval}
-                    className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600 disabled:bg-slate-100 disabled:text-slate-500"
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-slate-500 disabled:bg-slate-100 disabled:text-slate-500"
                   >
                     <option value="">
                       {isTwoStepApproval
@@ -406,7 +400,7 @@ export function DepartmentSearchManagementForm({
                 </label>
               </div>
 
-              <label className="flex items-start gap-3 rounded-2xl bg-white p-4">
+              <label className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5">
                 <input
                   type="checkbox"
                   checked={selectedIsActive}
@@ -414,14 +408,14 @@ export function DepartmentSearchManagementForm({
                     setSelectedIsActive(event.target.checked);
                     resetMessages();
                   }}
-                  className="mt-1 h-5 w-5"
+                  className="mt-1 h-4 w-4"
                 />
 
                 <span>
-                  <span className="block font-semibold text-slate-700">
+                  <span className="block text-sm font-medium text-slate-700">
                     Abteilung ist aktiv
                   </span>
-                  <span className="text-sm text-slate-500">
+                  <span className="text-xs leading-5 text-slate-500">
                     Inaktive Abteilungen können nicht für neue Mitarbeiter
                     ausgewählt werden.
                   </span>
@@ -429,20 +423,20 @@ export function DepartmentSearchManagementForm({
               </label>
 
               {!selectedIsActive && activeEmployeeCount > 0 ? (
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
                   Diese Abteilung hat noch {activeEmployeeCount} aktive
                   Mitarbeiter und kann deshalb nicht inaktiv gesetzt werden.
                 </div>
               ) : null}
 
               {message ? (
-                <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+                <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm font-medium text-green-700">
                   {message}
                 </div>
               ) : null}
 
               {errorMessage ? (
-                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
                   {errorMessage}
                 </div>
               ) : null}
@@ -451,14 +445,14 @@ export function DepartmentSearchManagementForm({
                 type="button"
                 onClick={handleSubmit}
                 disabled={isPending}
-                className="w-fit rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-fit rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isPending ? "Wird gespeichert..." : "Abteilung speichern"}
               </button>
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">
             Wähle eine Abteilung aus der Liste aus, um sie zu bearbeiten.
           </div>
         )}

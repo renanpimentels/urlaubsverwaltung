@@ -103,18 +103,19 @@ export function UserRoleSearchForm({ users }: UserRoleSearchFormProps) {
   }
 
   return (
-    <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-5">
-        <h2 className="text-xl font-bold">Benutzerrolle ändern</h2>
+    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-4">
+        <h2 className="text-base font-semibold text-slate-950">
+          Benutzerrolle ändern
+        </h2>
         <p className="mt-1 text-sm text-slate-500">
-          Suche einen Benutzer nach Name, Position oder E-Mail und ändere die
-          Berechtigungsstufe.
+          Benutzer nach Name, Position oder E-Mail suchen und Rolle ändern.
         </p>
       </div>
 
-      <div className="grid gap-5">
-        <label className="grid gap-2">
-          <span className="text-sm font-semibold text-slate-700">
+      <div className="grid gap-4">
+        <label className="grid gap-1.5">
+          <span className="text-sm font-medium text-slate-700">
             Benutzer suchen
           </span>
           <input
@@ -126,34 +127,34 @@ export function UserRoleSearchForm({ users }: UserRoleSearchFormProps) {
               resetMessages();
             }}
             placeholder="Mindestens 2 Zeichen eingeben..."
-            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-slate-500"
           />
         </label>
 
         {normalizedSearchTerm.length > 0 && normalizedSearchTerm.length < 2 ? (
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">
             Gib mindestens 2 Zeichen ein, um Benutzer zu suchen.
           </div>
         ) : null}
 
         {filteredUsers.length > 0 && !selectedUser ? (
-          <div className="overflow-hidden rounded-2xl border border-slate-200">
-            <div className="divide-y divide-slate-200 bg-white">
+          <div className="overflow-hidden rounded-lg border border-slate-200">
+            <div className="divide-y divide-slate-100 bg-white">
               {filteredUsers.map((user) => (
                 <button
                   key={user.id}
                   type="button"
                   onClick={() => handleSelectUser(user.id)}
-                  className="block w-full px-4 py-3 text-left hover:bg-slate-50"
+                  className="block w-full px-3 py-2 text-left hover:bg-slate-50"
                 >
-                  <span className="block font-semibold text-slate-900">
+                  <span className="block text-sm font-semibold text-slate-950">
                     {user.employeeName ?? user.email}
                   </span>
-                  <span className="mt-1 block text-sm text-slate-500">
+                  <span className="mt-0.5 block text-xs text-slate-500">
                     {user.email}
                     {user.employeePosition ? ` · ${user.employeePosition}` : ""}
                   </span>
-                  <span className="mt-1 block text-xs font-medium text-slate-500">
+                  <span className="mt-0.5 block text-xs font-medium text-slate-500">
                     Aktuelle Rolle: {roleLabels[user.role]}
                   </span>
                 </button>
@@ -165,34 +166,34 @@ export function UserRoleSearchForm({ users }: UserRoleSearchFormProps) {
         {normalizedSearchTerm.length >= 2 &&
         filteredUsers.length === 0 &&
         !selectedUser ? (
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">
             Kein Benutzer gefunden.
           </div>
         ) : null}
 
         {selectedUser ? (
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-            <div className="mb-4 flex flex-col justify-between gap-3 md:flex-row md:items-start">
-              <div>
-                <h3 className="font-bold text-slate-950">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <div className="mb-4 flex flex-col justify-between gap-2 md:flex-row md:items-start">
+              <div className="min-w-0">
+                <h3 className="truncate text-base font-semibold text-slate-950">
                   {selectedUser.employeeName ?? selectedUser.email}
                 </h3>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-0.5 truncate text-sm text-slate-500">
                   {selectedUser.email}
                 </p>
                 {selectedUser.employeePosition ? (
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-0.5 text-xs text-slate-500">
                     {selectedUser.employeePosition}
                   </p>
                 ) : null}
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 <span
-                  className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${
+                  className={`w-fit rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${
                     selectedUser.isActive
-                      ? "bg-green-100 text-green-700"
-                      : "bg-slate-100 text-slate-600"
+                      ? "bg-green-50 text-green-700 ring-green-200"
+                      : "bg-slate-100 text-slate-600 ring-slate-200"
                   }`}
                 >
                   {selectedUser.isActive ? "User aktiv" : "User inaktiv"}
@@ -200,10 +201,10 @@ export function UserRoleSearchForm({ users }: UserRoleSearchFormProps) {
 
                 {selectedUser.employeeId ? (
                   <span
-                    className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${
+                    className={`w-fit rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${
                       selectedUser.employeeIsActive
-                        ? "bg-green-100 text-green-700"
-                        : "bg-slate-100 text-slate-600"
+                        ? "bg-green-50 text-green-700 ring-green-200"
+                        : "bg-slate-100 text-slate-600 ring-slate-200"
                     }`}
                   >
                     {selectedUser.employeeIsActive
@@ -211,16 +212,16 @@ export function UserRoleSearchForm({ users }: UserRoleSearchFormProps) {
                       : "Mitarbeiter inaktiv"}
                   </span>
                 ) : (
-                  <span className="w-fit rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                  <span className="w-fit rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
                     Kein Mitarbeiter verknüpft
                   </span>
                 )}
               </div>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-[260px_1fr] md:items-end">
-              <label className="grid gap-2">
-                <span className="text-sm font-semibold text-slate-700">
+            <div className="grid gap-3 md:grid-cols-[220px_minmax(0,1fr)] md:items-start">
+              <label className="grid gap-1.5">
+                <span className="text-sm font-medium text-slate-700">
                   Benutzerrolle
                 </span>
                 <select
@@ -229,7 +230,7 @@ export function UserRoleSearchForm({ users }: UserRoleSearchFormProps) {
                     setSelectedRole(event.target.value as UserRole);
                     resetMessages();
                   }}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-slate-500"
                 >
                   {Object.entries(roleLabels).map(([role, label]) => (
                     <option key={role} value={role}>
@@ -244,7 +245,7 @@ export function UserRoleSearchForm({ users }: UserRoleSearchFormProps) {
                   type="button"
                   onClick={handleSubmit}
                   disabled={isPending || selectedRole === selectedUser.role}
-                  className="w-fit rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="w-fit rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isPending ? "Wird gespeichert..." : "Rolle speichern"}
                 </button>
@@ -256,13 +257,13 @@ export function UserRoleSearchForm({ users }: UserRoleSearchFormProps) {
                 ) : null}
 
                 {message ? (
-                  <p className="text-sm font-medium text-green-700">
+                  <p className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm font-medium text-green-700">
                     {message}
                   </p>
                 ) : null}
 
                 {errorMessage ? (
-                  <p className="text-sm font-medium text-red-700">
+                  <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
                     {errorMessage}
                   </p>
                 ) : null}

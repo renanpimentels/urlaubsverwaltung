@@ -52,18 +52,19 @@ export function VacationBalanceRecalculationForm({
   }
 
   return (
-    <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-5">
-        <h2 className="text-xl font-bold">Urlaubssalden neu berechnen</h2>
+    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-4">
+        <h2 className="text-base font-semibold text-slate-950">
+          Urlaubssalden neu berechnen
+        </h2>
         <p className="mt-1 text-sm text-slate-500">
-          Berechnet die Urlaubssalden aktiver Mitarbeiter für ein Jahr neu,
-          basierend auf genehmigten und ausstehenden Urlaubsanträgen.
+          Salden aktiver Mitarbeiter für ein Jahr neu berechnen.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-[220px_1fr] md:items-end">
-        <label className="grid gap-2">
-          <span className="text-sm font-semibold text-slate-700">Jahr</span>
+      <div className="grid gap-3 md:grid-cols-[180px_minmax(0,1fr)] md:items-start">
+        <label className="grid gap-1.5">
+          <span className="text-sm font-medium text-slate-700">Jahr</span>
           <input
             type="number"
             min={2000}
@@ -73,35 +74,39 @@ export function VacationBalanceRecalculationForm({
               setYear(event.target.value);
               resetMessages();
             }}
-            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-slate-500 md:max-w-32"
           />
         </label>
 
-        <div className="grid gap-3">
+        <div className="grid gap-2">
           <button
             type="button"
             onClick={handleSubmit}
             disabled={isPending}
-            className="w-fit rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-fit rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isPending ? "Wird berechnet..." : "Salden neu berechnen"}
+            {isPending ? "Wird berechnet..." : "Neu berechnen"}
           </button>
 
           {message ? (
-            <p className="text-sm font-medium text-green-700">{message}</p>
+            <p className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm font-medium text-green-700">
+              {message}
+            </p>
           ) : null}
 
           {errorMessage ? (
-            <p className="text-sm font-medium text-red-700">{errorMessage}</p>
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+              {errorMessage}
+            </p>
           ) : null}
         </div>
       </div>
 
-      <div className="mt-5 rounded-2xl bg-amber-50 p-4">
-        <p className="text-sm font-semibold text-amber-800">Hinweis</p>
-        <p className="mt-2 text-sm text-amber-700">
+      <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+        <p className="text-sm font-medium text-amber-800">Hinweis</p>
+        <p className="mt-1 text-xs leading-5 text-amber-700">
           Diese Aktion überschreibt used, pending, total und available für das
-          gewählte Jahr. Der Wert carriedOver bleibt erhalten.
+          gewählte Jahr. CarriedOver bleibt erhalten.
         </p>
       </div>
     </article>
