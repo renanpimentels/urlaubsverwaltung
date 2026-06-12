@@ -12,13 +12,21 @@ export function StatCard({
   variant = "default",
 }: StatCardProps) {
   const valueClassName =
-    variant === "warning" ? "mt-3 block text-4xl text-amber-600" : "mt-3 block text-4xl";
+    variant === "warning"
+      ? "text-amber-700"
+      : "text-slate-950";
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <p className="text-sm text-slate-500">{title}</p>
-      <strong className={valueClassName}>{value}</strong>
-      <span className="text-sm text-slate-500">{description}</span>
+    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p className="text-sm font-medium text-slate-500">{title}</p>
+
+      <strong
+        className={`mt-2 block text-3xl font-bold tracking-tight ${valueClassName}`}
+      >
+        {value}
+      </strong>
+
+      <span className="mt-1 block text-sm text-slate-500">{description}</span>
     </article>
   );
 }

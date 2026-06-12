@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
-import { getCurrentUserFromDb } from "@/lib/current-user-server";
+import { getActiveCurrentUserFromDb } from "@/lib/current-user-server";
 import { formatDateRange } from "@/lib/date-formatters";
 import {
   getDepartmentByIdFromDb,
@@ -59,8 +59,64 @@ function getRequestStatusCount(
   return requests.filter((request) => request.status === status).length;
 }
 
+function EmptyState({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/80 px-4 py-5 text-sm text-slate-500">
+      {children}
+    </div>
+  );
+}
+
+function SectionCard({
+  title,
+  description,
+  action,
+  children,
+}: {
+  title: string;
+  description: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <article className="rounded-3xl border border-white/70 bg-white/90 p-4 shadow-sm shadow-slate-200/70 backdrop-blur sm:p-5 lg:p-6">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h3 className="text-lg font-bold tracking-tight text-slate-950 sm:text-xl">
+            {title}
+          </h3>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+            {description}
+          </p>
+        </div>
+
+        {action ? <div className="shrink-0">{action}</div> : null}
+      </div>
+
+      {children}
+    </article>
+  );
+}
+
+function DashboardLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex w-fit items-center justify-center rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-sm font-semibold text-teal-800 transition hover:border-teal-300 hover:bg-teal-100"
+    >
+      {children}
+    </Link>
+  );
+}
+
 export default async function DashboardPage() {
-  const currentUser = await getCurrentUserFromDb();
+  const currentUser = await getActiveCurrentUserFromDb();
   const currentEmployeeId = currentUser.employeeId;
 
   if (!currentEmployeeId) {
@@ -233,7 +289,7 @@ export default async function DashboardPage() {
   );
 
   return (
-    <>
+    <div className="grid gap-6 lg:gap-8">
       <PageHeader
         eyebrow={dashboardCopy.eyebrow}
         title={`${dashboardCopy.titlePrefix}, ${
@@ -243,14 +299,14 @@ export default async function DashboardPage() {
         action={
           <Link
             href="/urlaubsantraege/neu"
-            className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
+            className="inline-flex w-full items-center justify-center rounded-2xl bg-teal-700 px-5 py-3 text-sm font-bold text-white shadow-sm shadow-teal-900/20 transition hover:bg-teal-800 sm:w-auto"
           >
             Neuen Antrag erstellen
           </Link>
         }
       />
 
-      <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 lg:gap-4 xl:grid-cols-4">
         {dashboardStats.map((stat) => (
           <StatCard
             key={stat.title}
@@ -263,173 +319,181 @@ export default async function DashboardPage() {
       </section>
 
       {currentUser.role !== "employee" ? (
-        <section className="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-            <div>
-              <h3 className="text-xl font-bold">Offene Freigaben</h3>
-              <p className="mt-1 text-sm text-slate-500">
-                Anträge, die du aktuell prüfen kannst.
-              </p>
-            </div>
-
-            <Link
-              className="text-sm font-semibold text-teal-700"
-              href="/genehmigungen"
-            >
+        <SectionCard
+          title="Offene Freigaben"
+          description="Anträge, die du aktuell prüfen kannst."
+          action={
+            <DashboardLink href="/genehmigungen">
               Alle Freigaben anzeigen
-            </Link>
-          </div>
-
+            </DashboardLink>
+          }
+        >
           <div className="grid gap-3">
             {approvalRequestsWithEmployees.map(
               ({ request, employee, department }) => (
                 <Link
                   key={request.id}
                   href={`/urlaubsantraege/${request.id}`}
-                  className="block rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-slate-100"
+                  className="group block rounded-2xl border border-slate-200 bg-slate-50/80 p-4 transition hover:border-teal-200 hover:bg-teal-50/60"
                 >
-                  <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-                    <div>
-                      <h4 className="font-semibold">{request.absenceType}</h4>
+                  <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h4 className="font-bold text-slate-950">
+                          {request.absenceType}
+                        </h4>
+                        <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-500 ring-1 ring-slate-200">
+                          {request.days} Tage
+                        </span>
+                      </div>
 
-                      <p className="mt-1 text-sm font-medium text-slate-700">
+                      <p className="mt-1 text-sm font-semibold text-slate-700">
                         {employee ? employee.name : "Unbekannter Mitarbeiter"}
                       </p>
 
-                      <p className="mt-1 text-sm text-slate-500">
+                      <p className="mt-1 truncate text-sm text-slate-500">
                         {department ? department.name : "Keine Abteilung"} ·{" "}
-                        {formatDateRange(request.startDate, request.endDate)} ·{" "}
-                        {request.days} Tage
+                        {formatDateRange(request.startDate, request.endDate)}
                       </p>
                     </div>
 
-                    <StatusBadge
-                      status={request.status}
-                      approvalStepsCompleted={request.approvalStepsCompleted}
-                      approvalStepsRequired={request.approvalStepsRequired}
-                    />
+                    <div className="sm:justify-self-end">
+                      <StatusBadge
+                        status={request.status}
+                        approvalStepsCompleted={
+                          request.approvalStepsCompleted
+                        }
+                        approvalStepsRequired={request.approvalStepsRequired}
+                      />
+                    </div>
                   </div>
                 </Link>
               )
             )}
 
             {approvalRequestsWithEmployees.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+              <EmptyState>
                 Aktuell gibt es keine offenen Freigaben für dich.
-              </div>
+              </EmptyState>
             ) : null}
           </div>
-        </section>
+        </SectionCard>
       ) : null}
 
-      <section className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex items-start justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-bold">
-                {currentUser.role === "employee"
-                  ? "Meine Urlaubsanträge"
-                  : "Aktuelle Urlaubsanträge"}
-              </h3>
-              <p className="mt-1 text-sm text-slate-500">
-                {currentUser.role === "employee"
-                  ? "Deine zuletzt erstellten Anträge."
-                  : "Aktuelle Anträge, die du gemäß deiner Rolle sehen darfst."}
-              </p>
-            </div>
-
-            <Link
-              className="text-sm font-semibold text-teal-700"
-              href="/urlaubsantraege"
-            >
-              Alle anzeigen
-            </Link>
-          </div>
-
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.9fr)]">
+        <SectionCard
+          title={
+            currentUser.role === "employee"
+              ? "Meine Urlaubsanträge"
+              : "Aktuelle Urlaubsanträge"
+          }
+          description={
+            currentUser.role === "employee"
+              ? "Deine zuletzt erstellten Anträge."
+              : "Aktuelle Anträge, die du gemäß deiner Rolle sehen darfst."
+          }
+          action={<DashboardLink href="/urlaubsantraege">Alle anzeigen</DashboardLink>}
+        >
           <div className="grid gap-3">
             {vacationRequestsWithEmployees.map(
               ({ request, employee, department }) => (
-                <div
+                <Link
                   key={request.id}
-                  className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center"
+                  href={`/urlaubsantraege/${request.id}`}
+                  className="block rounded-2xl border border-slate-200 bg-slate-50/80 p-4 transition hover:border-teal-200 hover:bg-teal-50/60"
                 >
-                  <div>
-                    <h4 className="font-semibold">{request.absenceType}</h4>
+                  <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h4 className="font-bold text-slate-950">
+                          {request.absenceType}
+                        </h4>
+                        <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-500 ring-1 ring-slate-200">
+                          {request.days} Tage
+                        </span>
+                      </div>
 
-                    <p className="mt-1 text-sm font-medium text-slate-700">
-                      {employee ? employee.name : "Unbekannter Mitarbeiter"}
-                    </p>
-
-                    {request.comment ? (
-                      <p className="mt-1 text-sm text-slate-500">
-                        {request.comment}
+                      <p className="mt-1 text-sm font-semibold text-slate-700">
+                        {employee ? employee.name : "Unbekannter Mitarbeiter"}
                       </p>
-                    ) : null}
 
-                    <p className="mt-1 text-sm text-slate-500">
-                      {department ? department.name : "Keine Abteilung"} ·{" "}
-                      {formatDateRange(request.startDate, request.endDate)} ·{" "}
-                      {request.days} Tage
-                    </p>
+                      {request.comment ? (
+                        <p className="mt-1 line-clamp-2 text-sm text-slate-500">
+                          {request.comment}
+                        </p>
+                      ) : null}
+
+                      <p className="mt-1 truncate text-sm text-slate-500">
+                        {department ? department.name : "Keine Abteilung"} ·{" "}
+                        {formatDateRange(request.startDate, request.endDate)}
+                      </p>
+                    </div>
+
+                    <div className="sm:justify-self-end">
+                      <StatusBadge
+                        status={request.status}
+                        approvalStepsCompleted={
+                          request.approvalStepsCompleted
+                        }
+                        approvalStepsRequired={request.approvalStepsRequired}
+                      />
+                    </div>
                   </div>
-
-                  <StatusBadge
-                    status={request.status}
-                    approvalStepsCompleted={request.approvalStepsCompleted}
-                    approvalStepsRequired={request.approvalStepsRequired}
-                  />
-                </div>
+                </Link>
               )
             )}
 
             {vacationRequestsWithEmployees.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-                Keine Urlaubsanträge gefunden.
-              </div>
+              <EmptyState>Keine Urlaubsanträge gefunden.</EmptyState>
             ) : null}
           </div>
-        </article>
+        </SectionCard>
 
-        <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-5">
-            <h3 className="text-xl font-bold">
-              {currentUser.role === "employee"
-                ? "Meine nächsten Abwesenheiten"
-                : "Nächste Abwesenheiten"}
-            </h3>
-            <p className="mt-1 text-sm text-slate-500">
-              Genehmigte Abwesenheiten, die du sehen darfst.
-            </p>
-          </div>
-
+        <SectionCard
+          title={
+            currentUser.role === "employee"
+              ? "Meine nächsten Abwesenheiten"
+              : "Nächste Abwesenheiten"
+          }
+          description="Genehmigte Abwesenheiten, die du sehen darfst."
+        >
           <div className="grid gap-3">
             {upcomingAbsencesWithEmployees.map(
               ({ request, employee, department }) => (
                 <Link
                   key={request.id}
                   href={`/urlaubsantraege/${request.id}`}
-                  className="block rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-slate-100"
+                  className="block rounded-2xl border border-slate-200 bg-slate-50/80 p-4 transition hover:border-teal-200 hover:bg-teal-50/60"
                 >
-                  <h4 className="font-semibold">
-                    {employee ? employee.name : "Unbekannter Mitarbeiter"}
-                  </h4>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h4 className="truncate font-bold text-slate-950">
+                        {employee ? employee.name : "Unbekannter Mitarbeiter"}
+                      </h4>
 
-                  <p className="mt-1 text-sm text-slate-500">
-                    {department ? department.name : "Keine Abteilung"} ·{" "}
-                    {formatDateRange(request.startDate, request.endDate)}
-                  </p>
+                      <p className="mt-1 truncate text-sm text-slate-500">
+                        {department ? department.name : "Keine Abteilung"}
+                      </p>
+
+                      <p className="mt-2 text-sm font-semibold text-teal-800">
+                        {formatDateRange(request.startDate, request.endDate)}
+                      </p>
+                    </div>
+
+                    <span className="shrink-0 rounded-full bg-green-100 px-2.5 py-1 text-xs font-bold text-green-700">
+                      {request.days} Tage
+                    </span>
+                  </div>
                 </Link>
               )
             )}
 
             {upcomingAbsencesWithEmployees.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-                Keine kommenden Abwesenheiten gefunden.
-              </div>
+              <EmptyState>Keine kommenden Abwesenheiten gefunden.</EmptyState>
             ) : null}
           </div>
-        </article>
+        </SectionCard>
       </section>
-    </>
+    </div>
   );
 }
