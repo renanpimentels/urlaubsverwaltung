@@ -230,7 +230,7 @@ export function VacationRequestForm({
             type="button"
             onClick={handleSubmit}
             disabled={isPending}
-            className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isPending ? "Wird erstellt..." : "Antrag erstellen"}
           </button>
