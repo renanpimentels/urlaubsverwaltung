@@ -299,7 +299,7 @@ export default async function DashboardPage() {
         action={
           <Link
             href="/urlaubsantraege/neu"
-            className="inline-flex w-full items-center justify-center rounded-2xl bg-teal-700 px-5 py-3 text-sm font-bold text-white shadow-sm shadow-teal-900/20 transition hover:bg-teal-800 sm:w-auto"
+            className="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 sm:w-auto"
           >
             Neuen Antrag erstellen
           </Link>
