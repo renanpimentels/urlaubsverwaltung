@@ -1,6 +1,6 @@
 
 
-export const currentUserId = "user-006";
+export const currentUserId = "user-001";
 
 
 //  getUserById("user-001") // Michael admin 
