@@ -132,7 +132,7 @@ export default async function VacationRequestsPage({
         action={
           <Link
             href="/urlaubsantraege/neu"
-            className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
+            className="rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
           >
             Neuen Antrag erstellen
           </Link>

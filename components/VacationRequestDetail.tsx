@@ -60,6 +60,134 @@ function formatDateTime(value: string | undefined) {
   }).format(new Date(value));
 }
 
+function DetailCard({
+  label,
+  value,
+  className = "",
+}: {
+  label: string;
+  value: string;
+  className?: string;
+}) {
+  return (
+    <div className={`rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 ${className}`}>
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {label}
+      </p>
+      <p className="mt-1 break-words text-sm font-medium text-slate-900">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function SectionCard({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-4">
+        <h2 className="text-base font-semibold text-slate-950">{title}</h2>
+        {description ? (
+          <p className="mt-1 text-sm leading-6 text-slate-500">
+            {description}
+          </p>
+        ) : null}
+      </div>
+
+      {children}
+    </article>
+  );
+}
+
+function InfoBox({
+  variant,
+  children,
+}: {
+  variant: "success" | "error" | "warning" | "neutral";
+  children: React.ReactNode;
+}) {
+  const classNameByVariant = {
+    success: "border-green-200 bg-green-50 text-green-700",
+    error: "border-red-200 bg-red-50 text-red-700",
+    warning: "border-amber-200 bg-amber-50 text-amber-800",
+    neutral: "border-slate-200 bg-slate-50 text-slate-600",
+  };
+
+  return (
+    <div
+      className={`rounded-lg border px-3 py-2.5 text-sm font-medium ${classNameByVariant[variant]}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+function PrimaryButton({
+  children,
+  disabled,
+  onClick,
+}: {
+  children: React.ReactNode;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {children}
+    </button>
+  );
+}
+
+function SecondaryLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-200"
+    >
+      {children}
+    </Link>
+  );
+}
+
+function DangerButton({
+  children,
+  disabled,
+  onClick,
+}: {
+  children: React.ReactNode;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="inline-flex items-center justify-center rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {children}
+    </button>
+  );
+}
+
 export function VacationRequestDetail({
   currentUser,
   initialRequest,
@@ -323,115 +451,77 @@ export function VacationRequestDetail({
   }
 
   return (
-    <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-      <div className="grid gap-6">
-        {message ? (
-          <div className="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-sm font-medium text-green-700">
-            {message}
-          </div>
-        ) : null}
+    <section className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
+      <div className="grid gap-5">
+        {message ? <InfoBox variant="success">{message}</InfoBox> : null}
+        {errorMessage ? <InfoBox variant="error">{errorMessage}</InfoBox> : null}
 
-        {errorMessage ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-700">
-            {errorMessage}
-          </div>
-        ) : null}
-
-        <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-            <div>
-              <h2 className="text-xl font-bold">Antrag</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Übersicht über Zeitraum, Mitarbeiter und Status.
+        <SectionCard
+          title="Antrag"
+          description="Übersicht über Zeitraum, Mitarbeiter und Status."
+        >
+          <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-slate-500">
+                Aktueller Status
               </p>
+              <div className="mt-1">
+                <StatusBadge
+                  status={request.status}
+                  approvalStepsCompleted={request.approvalStepsCompleted}
+                  approvalStepsRequired={request.approvalStepsRequired}
+                />
+              </div>
             </div>
+          </div>
 
-            <StatusBadge
-              status={request.status}
-              approvalStepsCompleted={request.approvalStepsCompleted}
-              approvalStepsRequired={request.approvalStepsRequired}
+          <div className="grid gap-3 md:grid-cols-2">
+            <DetailCard
+              label="Mitarbeiter"
+              value={employee ? employee.name : "Unbekannter Mitarbeiter"}
             />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm font-semibold text-slate-500">
-                Mitarbeiter
-              </p>
-              <p className="mt-1 font-medium">
-                {employee ? employee.name : "Unbekannter Mitarbeiter"}
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm font-semibold text-slate-500">Abteilung</p>
-              <p className="mt-1 font-medium">
-                {department ? department.name : "Keine Abteilung"}
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm font-semibold text-slate-500">
-                Abwesenheitsart
-              </p>
-              <p className="mt-1 font-medium">{request.absenceType}</p>
-            </div>
-
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm font-semibold text-slate-500">Zeitraum</p>
-              <p className="mt-1 font-medium">
-                {formatDateRange(request.startDate, request.endDate)}
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm font-semibold text-slate-500">Tage</p>
-              <p className="mt-1 font-medium">{request.days} Tage</p>
-            </div>
-
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm font-semibold text-slate-500">
-                Erstellt am
-              </p>
-              <p className="mt-1 font-medium">{formatDate(request.createdAt)}</p>
-            </div>
+            <DetailCard
+              label="Abteilung"
+              value={department ? department.name : "Keine Abteilung"}
+            />
+            <DetailCard label="Abwesenheitsart" value={request.absenceType} />
+            <DetailCard
+              label="Zeitraum"
+              value={formatDateRange(request.startDate, request.endDate)}
+            />
+            <DetailCard label="Tage" value={`${request.days} Tage`} />
+            <DetailCard label="Erstellt am" value={formatDate(request.createdAt)} />
 
             {request.comment ? (
-              <div className="rounded-2xl bg-slate-50 p-4 md:col-span-2">
-                <p className="text-sm font-semibold text-slate-500">
-                  Bemerkung
-                </p>
-                <p className="mt-1 font-medium">{request.comment}</p>
-              </div>
+              <DetailCard
+                label="Bemerkung"
+                value={request.comment}
+                className="md:col-span-2"
+              />
             ) : null}
           </div>
-        </article>
+        </SectionCard>
 
-        <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-5">
-            <h2 className="text-xl font-bold">Freigabehistorie</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Dokumentierte Entscheidungen mit erwartetem Genehmiger,
-              tatsächlichem Entscheider und Kommentar.
-            </p>
-          </div>
-
+        <SectionCard
+          title="Freigabehistorie"
+          description="Dokumentierte Entscheidungen mit erwartetem Genehmiger, tatsächlichem Entscheider und Kommentar."
+        >
           <div className="grid gap-3">
             {approvalDecisions.map((decision) => (
               <div
                 key={decision.id}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                className="rounded-lg border border-slate-200 bg-slate-50 p-3"
               >
                 <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
                   <div>
-                    <p className="font-semibold">
+                    <p className="text-sm font-semibold text-slate-950">
                       Schritt {decision.stepOrder}:{" "}
                       {decision.decision === "approved"
                         ? "Genehmigt"
                         : "Abgelehnt"}
                     </p>
 
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-xs text-slate-500">
                       {decision.decidedAtDateTime
                         ? formatDateTime(decision.decidedAtDateTime)
                         : formatDate(decision.decidedAt)}
@@ -439,18 +529,18 @@ export function VacationRequestDetail({
                   </div>
 
                   {decision.isOverride ? (
-                    <span className="w-fit rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                    <span className="w-fit rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
                       HR/Admin Override
                     </span>
                   ) : (
-                    <span className="w-fit rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                    <span className="w-fit rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
                       Reguläre Entscheidung
                     </span>
                   )}
                 </div>
 
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  <div className="rounded-xl bg-white p-3">
+                <div className="mt-3 grid gap-2 md:grid-cols-2">
+                  <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
                     <p className="text-xs font-semibold text-slate-500">
                       Erwarteter Genehmiger
                     </p>
@@ -461,7 +551,7 @@ export function VacationRequestDetail({
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-white p-3">
+                  <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
                     <p className="text-xs font-semibold text-slate-500">
                       Tatsächlich entschieden von
                     </p>
@@ -480,11 +570,11 @@ export function VacationRequestDetail({
                 </div>
 
                 {decision.comment ? (
-                  <div className="mt-3 rounded-xl bg-white p-3">
+                  <div className="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2">
                     <p className="text-xs font-semibold text-slate-500">
                       Kommentar
                     </p>
-                    <p className="mt-1 text-sm text-slate-700">
+                    <p className="mt-1 text-sm leading-6 text-slate-700">
                       {decision.comment}
                     </p>
                   </div>
@@ -493,30 +583,26 @@ export function VacationRequestDetail({
             ))}
 
             {approvalDecisions.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+              <InfoBox variant="neutral">
                 Für diesen Antrag wurde noch keine Entscheidung dokumentiert.
-              </div>
+              </InfoBox>
             ) : null}
           </div>
-        </article>
+        </SectionCard>
 
-        <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-5">
-            <h2 className="text-xl font-bold">Stornierungshistorie</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Beantragte und entschiedene Stornierungen zu diesem Antrag.
-            </p>
-          </div>
-
+        <SectionCard
+          title="Stornierungshistorie"
+          description="Beantragte und entschiedene Stornierungen zu diesem Antrag."
+        >
           <div className="grid gap-3">
             {localCancellationRequests.map((cancellationRequest) => (
               <div
                 key={cancellationRequest.id}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                className="rounded-lg border border-slate-200 bg-slate-50 p-3"
               >
                 <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
                   <div>
-                    <p className="font-semibold">
+                    <p className="text-sm font-semibold text-slate-950">
                       Stornierung: {cancellationRequest.status}
                     </p>
                     <p className="mt-1 text-sm text-slate-500">
@@ -528,31 +614,31 @@ export function VacationRequestDetail({
                   </div>
 
                   <span
-                    className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${
+                    className={`w-fit rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${
                       cancellationRequest.status === "Ausstehend"
-                        ? "bg-amber-100 text-amber-700"
+                        ? "bg-amber-50 text-amber-700 ring-amber-200"
                         : cancellationRequest.status === "Genehmigt"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
+                          ? "bg-green-50 text-green-700 ring-green-200"
+                          : "bg-red-50 text-red-700 ring-red-200"
                     }`}
                   >
                     {cancellationRequest.status}
                   </span>
                 </div>
 
-                <div className="mt-3 rounded-xl bg-white p-3">
+                <div className="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2">
                   <p className="text-xs font-semibold text-slate-500">Grund</p>
-                  <p className="mt-1 text-sm text-slate-700">
+                  <p className="mt-1 text-sm leading-6 text-slate-700">
                     {cancellationRequest.reason}
                   </p>
                 </div>
 
                 {cancellationRequest.decisionComment ? (
-                  <div className="mt-3 rounded-xl bg-white p-3">
+                  <div className="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2">
                     <p className="text-xs font-semibold text-slate-500">
                       Entscheidungskommentar
                     </p>
-                    <p className="mt-1 text-sm text-slate-700">
+                    <p className="mt-1 text-sm leading-6 text-slate-700">
                       {cancellationRequest.decisionComment}
                     </p>
                   </div>
@@ -561,32 +647,30 @@ export function VacationRequestDetail({
             ))}
 
             {localCancellationRequests.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+              <InfoBox variant="neutral">
                 Für diesen Antrag wurde noch keine Stornierung beantragt.
-              </div>
+              </InfoBox>
             ) : null}
           </div>
-        </article>
+        </SectionCard>
       </div>
 
-      <aside className="grid gap-6">
-        <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold">Aktionen</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Aktionen hängen vom Status und der aktuellen Rolle ab.
-          </p>
-
-          <div className="mt-5 grid gap-3">
+      <aside className="grid gap-5 self-start">
+        <SectionCard
+          title="Aktionen"
+          description="Aktionen hängen vom Status und der aktuellen Rolle ab."
+        >
+          <div className="grid gap-3">
             {canApproveRequest ? (
               <>
                 {approvalIsOverride ? (
-                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                  <InfoBox variant="warning">
                     Du bearbeitest diesen Antrag als HR/Admin-Override.
-                  </div>
+                  </InfoBox>
                 ) : null}
 
-                <label className="grid gap-2">
-                  <span className="text-sm font-semibold text-slate-700">
+                <label className="grid gap-1.5">
+                  <span className="text-sm font-medium text-slate-700">
                     Kommentar zur Entscheidung
                   </span>
                   <textarea
@@ -597,64 +681,49 @@ export function VacationRequestDetail({
                     }}
                     rows={4}
                     placeholder="Optional bei Genehmigung, erforderlich bei Ablehnung."
-                    className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-slate-500"
                   />
                 </label>
 
-                <button
-                  type="button"
+                <PrimaryButton
                   onClick={handleApproveRequest}
                   disabled={isPending}
-                  className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isPending ? "Wird gespeichert..." : "Genehmigen"}
-                </button>
+                </PrimaryButton>
 
-                <button
-                  type="button"
-                  onClick={handleRejectRequest}
-                  disabled={isPending}
-                  className="rounded-xl border border-red-200 bg-red-50 px-5 py-3 font-semibold text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
-                >
+                <DangerButton onClick={handleRejectRequest} disabled={isPending}>
                   {isPending ? "Wird gespeichert..." : "Ablehnen"}
-                </button>
+                </DangerButton>
               </>
             ) : null}
 
             {canEditRequest ? (
-              <Link
-                href={`/urlaubsantraege/${request.id}/bearbeiten`}
-                className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 hover:bg-slate-50"
-              >
+              <SecondaryLink href={`/urlaubsantraege/${request.id}/bearbeiten`}>
                 Antrag bearbeiten
-              </Link>
+              </SecondaryLink>
             ) : null}
 
             {canCancelRequest ? (
-              <button
-                type="button"
-                onClick={handleCancelRequest}
-                disabled={isPending}
-                className="rounded-xl border border-red-200 bg-red-50 px-5 py-3 font-semibold text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
-              >
+              <DangerButton onClick={handleCancelRequest} disabled={isPending}>
                 {isPending ? "Wird gespeichert..." : "Antrag stornieren"}
-              </button>
+              </DangerButton>
             ) : null}
 
             {canRequestCancellationWorkflow ? (
-              <div className="grid gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <div className="grid gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
                 <div>
-                  <p className="font-semibold text-amber-800">
+                  <p className="text-sm font-semibold text-amber-800">
                     Stornierung anfragen
                   </p>
-                  <p className="mt-1 text-sm text-amber-700">
+                  <p className="mt-1 text-sm leading-6 text-amber-700">
                     Dieser Antrag ist bereits teilweise oder vollständig
                     genehmigt. Die Stornierung muss deshalb freigegeben werden.
                   </p>
                 </div>
 
-                <label className="grid gap-2">
-                  <span className="text-sm font-semibold text-amber-800">
+                <label className="grid gap-1.5">
+                  <span className="text-sm font-medium text-amber-800">
                     Grund der Stornierung
                   </span>
                   <textarea
@@ -664,7 +733,7 @@ export function VacationRequestDetail({
                       resetMessages();
                     }}
                     rows={4}
-                    className="rounded-xl border border-amber-200 bg-white px-4 py-3 text-slate-950 outline-none focus:border-amber-500"
+                    className="rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-amber-500"
                   />
                 </label>
 
@@ -672,7 +741,7 @@ export function VacationRequestDetail({
                   type="button"
                   onClick={handleRequestCancellationWorkflow}
                   disabled={isPending}
-                  className="w-fit rounded-xl bg-amber-600 px-5 py-3 font-semibold text-white shadow-sm hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="w-fit rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isPending ? "Wird gespeichert..." : "Stornierung anfragen"}
                 </button>
@@ -680,18 +749,18 @@ export function VacationRequestDetail({
             ) : null}
 
             {pendingCancellationRequest && canDecideCancellationWorkflow ? (
-              <div className="grid gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <div className="grid gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
                 <div>
-                  <p className="font-semibold text-amber-800">
+                  <p className="text-sm font-semibold text-amber-800">
                     Offene Stornierungsanfrage
                   </p>
-                  <p className="mt-1 text-sm text-amber-700">
+                  <p className="mt-1 text-sm leading-6 text-amber-700">
                     {pendingCancellationRequest.reason}
                   </p>
                 </div>
 
-                <label className="grid gap-2">
-                  <span className="text-sm font-semibold text-amber-800">
+                <label className="grid gap-1.5">
+                  <span className="text-sm font-medium text-amber-800">
                     Kommentar zur Entscheidung
                   </span>
                   <textarea
@@ -702,28 +771,26 @@ export function VacationRequestDetail({
                     }}
                     rows={4}
                     placeholder="Optional bei Genehmigung, erforderlich bei Ablehnung."
-                    className="rounded-xl border border-amber-200 bg-white px-4 py-3 text-slate-950 outline-none focus:border-amber-500"
+                    className="rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-amber-500"
                   />
                 </label>
 
-                <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <button
                     type="button"
                     onClick={handleApproveCancellationWorkflow}
                     disabled={isPending}
-                    className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Stornierung genehmigen
                   </button>
 
-                  <button
-                    type="button"
+                  <DangerButton
                     onClick={handleRejectCancellationWorkflow}
                     disabled={isPending}
-                    className="rounded-xl border border-red-200 bg-red-50 px-5 py-3 font-semibold text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Stornierung ablehnen
-                  </button>
+                  </DangerButton>
                 </div>
               </div>
             ) : null}
@@ -733,12 +800,12 @@ export function VacationRequestDetail({
             !canCancelRequest &&
             !canRequestCancellationWorkflow &&
             !canDecideCancellationWorkflow ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+              <InfoBox variant="neutral">
                 Für diesen Antrag sind aktuell keine Aktionen verfügbar.
-              </div>
+              </InfoBox>
             ) : null}
           </div>
-        </article>
+        </SectionCard>
 
         {vacationBalance ? (
           <VacationBalanceCard
@@ -756,23 +823,23 @@ export function VacationRequestDetail({
           />
         ) : null}
 
-        <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold">Administrative Informationen</h2>
-
-          <div className="mt-5 grid gap-3 text-sm">
-            <div className="flex justify-between gap-4 border-b border-slate-100 pb-3">
+        <SectionCard title="Administrative Informationen">
+          <div className="grid gap-2 text-sm">
+            <div className="flex justify-between gap-4 border-b border-slate-100 pb-2">
               <span className="text-slate-500">Antrags-ID</span>
-              <span className="font-medium text-slate-800">{request.id}</span>
+              <span className="break-all font-medium text-slate-800">
+                {request.id}
+              </span>
             </div>
 
-            <div className="flex justify-between gap-4 border-b border-slate-100 pb-3">
+            <div className="flex justify-between gap-4 border-b border-slate-100 pb-2">
               <span className="text-slate-500">Mitarbeiter-ID</span>
-              <span className="font-medium text-slate-800">
+              <span className="break-all font-medium text-slate-800">
                 {request.employeeId}
               </span>
             </div>
 
-            <div className="flex justify-between gap-4 border-b border-slate-100 pb-3">
+            <div className="flex justify-between gap-4 border-b border-slate-100 pb-2">
               <span className="text-slate-500">Freigabe</span>
               <span className="font-medium text-slate-800">
                 {request.approvalStepsCompleted}/
@@ -787,7 +854,7 @@ export function VacationRequestDetail({
               </span>
             </div>
           </div>
-        </article>
+        </SectionCard>
       </aside>
     </section>
   );

@@ -79,7 +79,7 @@ export default async function EmployeesPage({
           canCreateNewEmployee ? (
             <Link
               href="/mitarbeiter-erstellen"
-              className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
+              className="rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800"
             >
               Mitarbeiter hinzufügen
             </Link>
