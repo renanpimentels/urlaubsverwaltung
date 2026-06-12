@@ -7,8 +7,13 @@ import {
   getVacationBalanceYearFromDate,
 } from "@/lib/actions/vacation-balance-service";
 import { assertCompanyPolicyAllowsVacationRequest } from "@/lib/actions/company-policy-validation-service";
+import {
+  createNotificationWithTransaction,
+  getNextApproverUserIdWithTransaction,
+} from "@/lib/actions/notification-service";
 import { assertVacationRequestCanBeSaved } from "@/lib/actions/vacation-request-validation-service";
 import { getActiveCurrentUserFromDb } from "@/lib/current-user-server";
+import { formatDateRange } from "@/lib/date-formatters";
 import { calculateBusinessDaysWithHolidays } from "@/lib/holiday-calendar";
 import { prisma } from "@/lib/prisma";
 import type { AbsenceType, UserRole } from "@/lib/types";
@@ -43,7 +48,7 @@ async function getResponsibleDepartmentIdsForEmployee(employeeId: string) {
 
 async function canCreateVacationRequestForEmployee(
   selectedEmployeeId: string,
-  currentEmployeeId: string | undefined,
+  currentEmployeeId: string | undefined | null,
   role: UserRole
 ) {
   if (role === "hr" || role === "admin") {
@@ -118,6 +123,7 @@ export async function createVacationRequestAction(
     },
     select: {
       id: true,
+      name: true,
       departmentId: true,
     },
   });
@@ -195,6 +201,27 @@ export async function createVacationRequestAction(
         employeeId: input.employeeId,
         year: getVacationBalanceYearFromDate(startDate),
         pendingDelta: days,
+      });
+    }
+
+    const nextApproverUserId = await getNextApproverUserIdWithTransaction(
+      transaction,
+      {
+        employeeId: input.employeeId,
+        approvalStepsCompleted: 0,
+        approvalStepsRequired,
+      }
+    );
+
+    if (nextApproverUserId) {
+      await createNotificationWithTransaction(transaction, {
+        userId: nextApproverUserId,
+        title: "Neuer Urlaubsantrag",
+        message: `${employee.name} hat ${input.absenceType} für ${formatDateRange(
+          input.startDate,
+          input.endDate
+        )} beantragt.`,
+        href: `/urlaubsantraege/${request.id}`,
       });
     }
   });

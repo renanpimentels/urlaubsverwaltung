@@ -20,6 +20,7 @@ model User {
   decidedApprovalDecisions      ApprovalDecision[]    @relation("DecidedApprovalDecisions")
   requestedCancellationRequests CancellationRequest[] @relation("CancellationRequestRequestedBy")
   decidedCancellationRequests   CancellationRequest[] @relation("CancellationRequestDecidedBy")
+  notifications                 Notification[]
 }
 
 model Employee {
@@ -163,4 +164,17 @@ model CancellationRequest {
   vacationRequest VacationRequest @relation(fields: [vacationRequestId], references: [id], onDelete: Cascade)
   requestedBy     User            @relation("CancellationRequestRequestedBy", fields: [requestedByUserId], references: [id])
   decidedBy       User?           @relation("CancellationRequestDecidedBy", fields: [decidedByUserId], references: [id])
+}
+
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  href      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

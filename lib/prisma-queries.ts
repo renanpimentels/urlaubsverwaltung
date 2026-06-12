@@ -19,7 +19,7 @@ function toIsoString(date: Date) {
 function mapEmployee(employee: {
   id: string;
   name: string;
-  departmentId: string;
+  departmentId: string | null;
   position: string;
   employmentStartDate: Date;
   contractVacationDaysPerYear: number;
@@ -30,7 +30,7 @@ function mapEmployee(employee: {
   return {
     id: employee.id,
     name: employee.name,
-    departmentId: employee.departmentId,
+    departmentId: employee.departmentId ?? undefined,
     role: employee.position,
     position: employee.position,
     employmentStartDate: toDateOnly(employee.employmentStartDate),
@@ -44,7 +44,7 @@ function mapEmployee(employee: {
 function mapVacationRequest(request: {
   id: string;
   employeeId: string;
-  createdByUserId: string;
+  createdByUserId: string | null;
   absenceType: string;
   startDate: Date;
   endDate: Date;
@@ -59,7 +59,7 @@ function mapVacationRequest(request: {
   return {
     id: request.id,
     employeeId: request.employeeId,
-    createdByUserId: request.createdByUserId,
+    createdByUserId: request.createdByUserId ?? undefined,
     absenceType: request.absenceType as AbsenceType,
     startDate: toDateOnly(request.startDate),
     endDate: toDateOnly(request.endDate),
@@ -96,6 +96,26 @@ function mapVacationBalance(balance: {
     carriedOver: balance.carriedOver,
     createdAt: balance.createdAt ? toIsoString(balance.createdAt) : undefined,
     updatedAt: balance.updatedAt ? toIsoString(balance.updatedAt) : undefined,
+  };
+}
+
+function mapNotification(notification: {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  href: string | null;
+  isRead: boolean;
+  createdAt: Date;
+}) {
+  return {
+    id: notification.id,
+    userId: notification.userId,
+    title: notification.title,
+    message: notification.message,
+    href: notification.href ?? undefined,
+    isRead: notification.isRead,
+    createdAt: toIsoString(notification.createdAt),
   };
 }
 
@@ -530,10 +550,7 @@ export async function getNextApproverIdForVacationRequestFromDb(
     return department.managerId;
   }
 
-  if (
-    approvalStepsRequired >= 2 &&
-    request.approvalStepsCompleted === 1
-  ) {
+  if (approvalStepsRequired >= 2 && request.approvalStepsCompleted === 1) {
     return department.finalApproverId ?? undefined;
   }
 
@@ -633,7 +650,9 @@ export async function getApprovalDecisionsByRequestIdFromDb(
     ],
   ]);
 
-  const decidedByUserIds = decisions.map((decision) => decision.decidedByUserId);
+  const decidedByUserIds = decisions
+    .map((decision) => decision.decidedByUserId)
+    .filter((userId): userId is string => Boolean(userId));
 
   const users = await prisma.user.findMany({
     where: {
@@ -685,7 +704,9 @@ export async function getApprovalDecisionsByRequestIdFromDb(
       decision.stepOrder
     );
 
-    const decidedByUser = usersById.get(decision.decidedByUserId);
+    const decidedByUser = decision.decidedByUserId
+      ? usersById.get(decision.decidedByUserId)
+      : undefined;
 
     const decidedByEmployee = decidedByUser?.employeeId
       ? employeesById.get(decidedByUser.employeeId)
@@ -899,4 +920,88 @@ export async function getCancellationRequestsByVacationRequestIdFromDb(
       createdAt: cancellationRequest.createdAt.toISOString(),
     };
   });
+}
+
+export async function getNotificationsForUserFromDb(userId: string) {
+  const notifications = await prisma.notification.findMany({
+    where: {
+      userId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 10,
+  });
+
+  return notifications.map(mapNotification);
+}
+
+export async function getUnreadNotificationCountForUserFromDb(userId: string) {
+  return prisma.notification.count({
+    where: {
+      userId,
+      isRead: false,
+    },
+  });
+}
+
+
+export async function getSelectableEmployeesForVacationRequestFromDb(
+  employeeId: string | undefined | null,
+  role: UserRole
+) {
+  if (role === "hr" || role === "admin") {
+    const employees = await prisma.employee.findMany({
+      where: {
+        isActive: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+    return employees.map(mapEmployee);
+  }
+
+  if (!employeeId) {
+    return [];
+  }
+
+  if (role === "manager") {
+    const responsibleDepartmentIds =
+      await getResponsibleDepartmentIdsForEmployeeFromDb(employeeId);
+
+    const employees = await prisma.employee.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          {
+            id: employeeId,
+          },
+          {
+            departmentId: {
+              in: responsibleDepartmentIds,
+            },
+          },
+        ],
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+    return employees.map(mapEmployee);
+  }
+
+  const employees = await prisma.employee.findMany({
+    where: {
+      id: employeeId,
+      isActive: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
+
+  return employees.map(mapEmployee);
 }
