@@ -9,7 +9,7 @@ const navItems = [
   { label: "Mitarbeiter", href: "/mitarbeiter" },
   { label: "Genehmigungen", href: "/genehmigungen" },
   { label: "Einstellungen", href: "/einstellungen" },
-  { label: "Kalender", href: "#" },
+  { label: "AbwesenheitsKalender", href: "/kalender" },
 ];
 
 function isActiveLink(pathname: string, href: string) {
