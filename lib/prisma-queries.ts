@@ -1005,3 +1005,26 @@ export async function getSelectableEmployeesForVacationRequestFromDb(
 
   return employees.map(mapEmployee);
 }
+
+
+export async function getVisibleVacationRequestsForUserByDateRangeFromDb(
+  employeeId: string | undefined,
+  role: UserRole,
+  startDate: string,
+  endDate: string
+) {
+  const visibleRequests = await getVisibleVacationRequestsForUserFromDb(
+    employeeId,
+    role
+  );
+
+  return visibleRequests.filter((request) => {
+    const isRelevantStatus =
+      request.status === "Genehmigt" || request.status === "Ausstehend";
+
+    const overlapsDateRange =
+      request.startDate <= endDate && request.endDate >= startDate;
+
+    return isRelevantStatus && overlapsDateRange;
+  });
+}
