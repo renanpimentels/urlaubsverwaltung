@@ -3,15 +3,11 @@ import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 
-
 import {
-  approvalDecisions,
   companySettings,
   departments,
   employees,
   users,
-  vacationBalances,
-  vacationRequests,
 } from "../lib/mock-data";
 
 const connectionString = process.env.DATABASE_URL;
@@ -25,19 +21,39 @@ const pool = new Pool({
 });
 
 const adapter = new PrismaPg(pool);
+
 const prisma = new PrismaClient({
   adapter,
 });
 
+function getCurrentYear() {
+  return new Date().getFullYear();
+}
+
 async function main() {
+  const currentYear = getCurrentYear();
+
+  // Limpa dados dependentes primeiro.
   await prisma.approvalDecision.deleteMany();
+  await prisma.cancellationRequest.deleteMany();
   await prisma.vacationRequest.deleteMany();
   await prisma.vacationBalance.deleteMany();
+  await prisma.notification.deleteMany();
   await prisma.user.deleteMany();
+
+  // Remove a ligação Employee -> Department antes de apagar departamentos.
+  await prisma.employee.updateMany({
+    data: {
+      departmentId: null,
+    },
+  });
+
   await prisma.department.deleteMany();
   await prisma.employee.deleteMany();
   await prisma.companySettings.deleteMany();
 
+  // 1. Criar funcionários sem departmentId.
+  // Department depende de managerId/finalApproverId, então Employee precisa existir antes.
   for (const employee of employees) {
     await prisma.employee.create({
       data: {
@@ -51,17 +67,32 @@ async function main() {
     });
   }
 
+  // 2. Criar departamentos.
   for (const department of departments) {
+    const departmentWithOptionalSettings = department as {
+      id: string;
+      name: string;
+      managerId: string;
+      finalApproverId?: string | null;
+      approvalStepsRequired?: number;
+      isActive?: boolean;
+    };
+
     await prisma.department.create({
       data: {
-        id: department.id,
-        name: department.name,
-        managerId: department.managerId,
-        finalApproverId: department.finalApproverId,
+        id: departmentWithOptionalSettings.id,
+        name: departmentWithOptionalSettings.name,
+        managerId: departmentWithOptionalSettings.managerId,
+        finalApproverId:
+          departmentWithOptionalSettings.finalApproverId ?? null,
+        approvalStepsRequired:
+          departmentWithOptionalSettings.approvalStepsRequired ?? 2,
+        isActive: departmentWithOptionalSettings.isActive ?? true,
       },
     });
   }
 
+  // 3. Ligar funcionários aos departamentos.
   for (const employee of employees) {
     await prisma.employee.update({
       where: {
@@ -73,6 +104,7 @@ async function main() {
     });
   }
 
+  // 4. Criar usuários.
   for (const user of users) {
     await prisma.user.create({
       data: {
@@ -85,72 +117,53 @@ async function main() {
     });
   }
 
+  // 5. Criar configurações da empresa.
+  const companySettingsWithOptionalFields = companySettings as {
+    defaultVacationDaysPerYear: number;
+    allowPastVacationRequests?: boolean;
+    requireVacationRequestComment?: boolean;
+    minimumNoticeDays?: number;
+    allowHalfVacationDays?: boolean;
+    federalState?: string;
+  };
+
   await prisma.companySettings.create({
     data: {
       id: "company-settings-001",
       defaultVacationDaysPerYear:
-        companySettings.defaultVacationDaysPerYear,
+        companySettingsWithOptionalFields.defaultVacationDaysPerYear,
+      allowPastVacationRequests:
+        companySettingsWithOptionalFields.allowPastVacationRequests ?? false,
+      requireVacationRequestComment:
+        companySettingsWithOptionalFields.requireVacationRequestComment ?? false,
+      minimumNoticeDays:
+        companySettingsWithOptionalFields.minimumNoticeDays ?? 0,
+      allowHalfVacationDays:
+        companySettingsWithOptionalFields.allowHalfVacationDays ?? false,
+      federalState: companySettingsWithOptionalFields.federalState ?? "NW",
     },
   });
 
-  for (const vacationRequest of vacationRequests) {
-    await prisma.vacationRequest.create({
-      data: {
-        id: vacationRequest.id,
-        employeeId: vacationRequest.employeeId,
-        createdByUserId:
-          users.find((user) => user.employeeId === vacationRequest.employeeId)
-            ?.id ?? null,
-        absenceType: vacationRequest.absenceType,
-        startDate: new Date(vacationRequest.startDate),
-        endDate: new Date(vacationRequest.endDate),
-        days: vacationRequest.days,
-        status: vacationRequest.status,
-        createdAt: new Date(vacationRequest.createdAt),
-        approvalStepsCompleted: vacationRequest.approvalStepsCompleted,
-        approvalStepsRequired: vacationRequest.approvalStepsRequired,
-        comment: vacationRequest.comment,
-      },
-    });
-  }
+  // 6. Criar saldo inicial zerado para cada funcionário no ano atual.
+  for (const employee of employees) {
+    const total = employee.contractVacationDaysPerYear;
 
-  for (const vacationBalance of vacationBalances) {
     await prisma.vacationBalance.create({
       data: {
-        id: vacationBalance.id,
-        employeeId: vacationBalance.employeeId,
-        year: vacationBalance.year,
-        total: vacationBalance.total,
-        used: vacationBalance.used,
-        pending: vacationBalance.pending,
-        available: vacationBalance.available,
-        carriedOver: vacationBalance.carriedOver,
-        expiresAt: vacationBalance.expiresAt
-          ? new Date(vacationBalance.expiresAt)
-          : null,
+        id: `balance-${employee.id}-${currentYear}`,
+        employeeId: employee.id,
+        year: currentYear,
+        total,
+        used: 0,
+        pending: 0,
+        available: total,
+        carriedOver: 0,
+        expiresAt: null,
       },
     });
   }
 
-  for (const approvalDecision of approvalDecisions) {
-    await prisma.approvalDecision.create({
-      data: {
-        id: approvalDecision.id,
-        vacationRequestId: approvalDecision.vacationRequestId,
-        approverEmployeeId: approvalDecision.approverEmployeeId,
-        decidedByUserId:
-          users.find(
-            (user) => user.employeeId === approvalDecision.approverEmployeeId
-          )?.id ?? null,
-        stepOrder: approvalDecision.stepOrder,
-        decision: approvalDecision.decision,
-        decidedAt: new Date(approvalDecision.decidedAt),
-        comment: approvalDecision.comment,
-      },
-    });
-  }
-
-  console.log("Seed completed.");
+  console.log("Lean seed completed.");
 }
 
 main()
