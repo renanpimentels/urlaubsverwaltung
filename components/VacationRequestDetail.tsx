@@ -249,9 +249,10 @@ export function VacationRequestDetail({
 
   const canDecideCancellationWorkflow =
     Boolean(pendingCancellationRequest) &&
+    currentUser.employeeId !== request.employeeId &&
     (currentUser.role === "hr" ||
       currentUser.role === "admin" ||
-      canApproveRequest);
+      currentUser.role === "manager");
 
   function resetMessages() {
     setMessage("");
