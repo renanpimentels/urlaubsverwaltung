@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 
 import { updateVacationRequestAction } from "@/lib/actions/vacation-request-edit-actions";
-import { calculateBusinessDays } from "@/lib/vacation-calculations";
 import type { AbsenceType, VacationRequest } from "@/lib/types";
+import { calculateBusinessDays } from "@/lib/vacation-calculations";
 
 type VacationRequestEditFormProps = {
   request: VacationRequest;
@@ -37,14 +37,18 @@ export function VacationRequestEditForm({
     formData.endDate
   );
 
+  function resetMessages() {
+    setErrorMessage("");
+    setSuccessMessage("");
+  }
+
   function updateField(field: keyof FormState, value: string) {
     setFormData((currentFormData) => ({
       ...currentFormData,
       [field]: value,
     }));
 
-    setErrorMessage("");
-    setSuccessMessage("");
+    resetMessages();
   }
 
   function updateAbsenceType(value: AbsenceType) {
@@ -53,11 +57,12 @@ export function VacationRequestEditForm({
       absenceType: value,
     }));
 
-    setErrorMessage("");
-    setSuccessMessage("");
+    resetMessages();
   }
 
   function handleSubmit() {
+    resetMessages();
+
     if (!formData.startDate) {
       setErrorMessage("Bitte wähle ein Startdatum aus.");
       return;
@@ -101,50 +106,54 @@ export function VacationRequestEditForm({
           `${result.message} Neuer Zeitraum: ${result.days} Abwesenheitstage.`
         );
       } catch {
-        setErrorMessage("Der Antrag konnte nicht gespeichert werden. Prüfe bitte die Unternehmensrichtlinien, den verfügbaren Urlaubssaldo oder mögliche Überschneidungen.");
+        setErrorMessage(
+          "Der Antrag konnte nicht gespeichert werden. Prüfe bitte die Unternehmensrichtlinien, den verfügbaren Urlaubssaldo oder mögliche Überschneidungen."
+        );
       }
     });
   }
 
   return (
-    <form className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-6">
-        <h2 className="text-xl font-bold">Antrag bearbeiten</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Du kannst diesen Antrag bearbeiten, solange noch keine Freigabe
-          erfolgt ist.
+    <form className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-4">
+        <h2 className="text-base font-semibold text-slate-950">
+          Antrag bearbeiten
+        </h2>
+        <p className="mt-1 text-sm leading-6 text-slate-500">
+          Du kannst diesen Antrag bearbeiten, solange noch keine Freigabe erfolgt
+          ist.
         </p>
       </div>
 
-      <div className="grid gap-5">
-        <div className="grid gap-5 md:grid-cols-2">
-          <label className="grid gap-2">
-            <span className="text-sm font-semibold text-slate-700">
+      <div className="grid gap-4">
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="grid gap-1.5">
+            <span className="text-sm font-medium text-slate-700">
               Startdatum
             </span>
             <input
               type="date"
               value={formData.startDate}
               onChange={(event) => updateField("startDate", event.target.value)}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-slate-500"
             />
           </label>
 
-          <label className="grid gap-2">
-            <span className="text-sm font-semibold text-slate-700">
+          <label className="grid gap-1.5">
+            <span className="text-sm font-medium text-slate-700">
               Enddatum
             </span>
             <input
               type="date"
               value={formData.endDate}
               onChange={(event) => updateField("endDate", event.target.value)}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-slate-500"
             />
           </label>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <p className="text-sm font-semibold text-slate-700">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
+          <p className="text-sm font-medium text-slate-700">
             Zeitraum-Auswertung
           </p>
 
@@ -153,12 +162,12 @@ export function VacationRequestEditForm({
               <p className="text-sm text-slate-500">
                 Beantragte Abwesenheitstage
               </p>
-              <p className="mt-1 text-3xl font-bold text-slate-950">
+              <p className="mt-1 text-3xl font-bold tracking-tight text-slate-950">
                 {requestedDays}
               </p>
             </div>
 
-            <div className="max-w-sm text-sm text-slate-500">
+            <div className="max-w-sm text-sm leading-6 text-slate-500">
               <p>
                 Wochenenden werden in dieser Version nicht mitgezählt. Feiertage
                 werden später ergänzt.
@@ -174,8 +183,8 @@ export function VacationRequestEditForm({
           </div>
         </div>
 
-        <label className="grid gap-2">
-          <span className="text-sm font-semibold text-slate-700">
+        <label className="grid gap-1.5">
+          <span className="text-sm font-medium text-slate-700">
             Abwesenheitsart
           </span>
           <select
@@ -183,56 +192,54 @@ export function VacationRequestEditForm({
             onChange={(event) =>
               updateAbsenceType(event.target.value as AbsenceType)
             }
-            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-slate-500"
           >
             <option value="Urlaub">Urlaub</option>
             <option value="Sonderurlaub">Sonderurlaub</option>
           </select>
         </label>
 
-        <label className="grid gap-2">
-          <span className="text-sm font-semibold text-slate-700">
-            Bemerkung
-          </span>
+        <label className="grid gap-1.5">
+          <span className="text-sm font-medium text-slate-700">Bemerkung</span>
           <textarea
-            rows={5}
+            rows={4}
             value={formData.comment}
             onChange={(event) => updateField("comment", event.target.value)}
             placeholder="Optionale Bemerkung zum Antrag..."
-            className="resize-none rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:border-teal-600"
+            className="resize-none rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-slate-500"
           />
         </label>
 
         {errorMessage ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700">
             {errorMessage}
           </div>
         ) : null}
 
         {successMessage ? (
-          <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+          <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 text-sm font-medium text-green-700">
             {successMessage}
           </div>
         ) : null}
 
-        <div className="flex flex-col gap-3 pt-2 sm:flex-row">
+        <div className="flex flex-col gap-2 pt-1 sm:flex-row">
           <button
             type="button"
             onClick={handleSubmit}
             disabled={isPending}
-            className="rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white shadow-sm hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isPending ? "Wird gespeichert..." : "Änderungen speichern"}
           </button>
 
           <Link
             href={`/urlaubsantraege/${request.id}`}
-            className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 hover:bg-slate-50"
+            className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-200"
           >
             Zurück zum Antrag
           </Link>
         </div>
       </div>
-    </form> 
+    </form>
   );
 }

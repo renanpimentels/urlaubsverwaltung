@@ -3,12 +3,12 @@ import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/PageHeader";
 import { VacationRequestEditForm } from "@/components/VacationRequestEditForm";
-import { currentUser } from "@/lib/current-user";
+import { getActiveCurrentUserFromDb } from "@/lib/current-user-server";
+import { canEditOwnVacationRequest } from "@/lib/permissions";
 import {
-  canEditOwnVacationRequest,
-  getEmployeeById,
-  getVacationRequestById,
-} from "@/lib/mock-queries";
+  getEmployeeByIdFromDb,
+  getVacationRequestByIdFromDb,
+} from "@/lib/prisma-queries";
 
 type EditVacationRequestPageProps = {
   params: Promise<{
@@ -21,7 +21,8 @@ export default async function EditVacationRequestPage({
 }: EditVacationRequestPageProps) {
   const { id } = await params;
 
-  const request = getVacationRequestById(id);
+  const currentUser = await getActiveCurrentUserFromDb();
+  const request = await getVacationRequestByIdFromDb(id);
 
   if (!request) {
     notFound();
@@ -36,10 +37,10 @@ export default async function EditVacationRequestPage({
     notFound();
   }
 
-  const employee = getEmployeeById(request.employeeId);
+  const employee = await getEmployeeByIdFromDb(request.employeeId);
 
   return (
-    <>
+    <div className="grid gap-5">
       <PageHeader
         eyebrow="Antrag bearbeiten"
         title={request.absenceType}
@@ -49,40 +50,48 @@ export default async function EditVacationRequestPage({
         action={
           <Link
             href={`/urlaubsantraege/${request.id}`}
-            className="rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 hover:bg-slate-50"
+            className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-200"
           >
             Zurück zum Antrag
           </Link>
         }
       />
 
-      <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
         <VacationRequestEditForm request={request} />
 
-        <aside className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold">Bearbeitungsregel</h2>
-          <p className="mt-1 text-sm text-slate-500">
+        <aside className="self-start rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <h2 className="text-base font-semibold text-slate-950">
+            Bearbeitungsregel
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-slate-500">
             Dieser Antrag kann bearbeitet werden, weil er noch keine Freigabe
             erhalten hat.
           </p>
 
-          <div className="mt-6 grid gap-4">
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="font-semibold text-slate-800">Status</p>
-              <p className="mt-1 text-sm text-slate-600">{request.status}</p>
+          <div className="mt-4 grid gap-3">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Status
+              </p>
+              <p className="mt-1 text-sm font-medium text-slate-900">
+                {request.status}
+              </p>
             </div>
 
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="font-semibold text-slate-800">Freigabestand</p>
-              <p className="mt-1 text-sm text-slate-600">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Freigabestand
+              </p>
+              <p className="mt-1 text-sm font-medium text-slate-900">
                 {request.approvalStepsCompleted}/
                 {request.approvalStepsRequired}
               </p>
             </div>
 
-            <div className="rounded-2xl bg-amber-50 p-4">
-              <p className="font-semibold text-amber-800">Hinweis</p>
-              <p className="mt-1 text-sm text-amber-700">
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
+              <p className="text-sm font-medium text-amber-800">Hinweis</p>
+              <p className="mt-1 text-sm leading-6 text-amber-700">
                 Nach der ersten Freigabe kann der Antrag nicht mehr direkt
                 bearbeitet werden.
               </p>
@@ -90,6 +99,6 @@ export default async function EditVacationRequestPage({
           </div>
         </aside>
       </section>
-    </>
+    </div>
   );
 }
